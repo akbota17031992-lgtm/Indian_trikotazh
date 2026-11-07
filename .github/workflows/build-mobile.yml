@@ -24,8 +24,6 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
@@ -78,7 +76,7 @@ jobs:
 
   build-ios:
     name: Build iOS App (Simulator & Export)
-    runs-on: macos-14
+    runs-on: macos-13
     timeout-minutes: 40
     steps:
       - name: Checkout repository
@@ -86,8 +84,6 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
@@ -95,8 +91,8 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
-      - name: Select Xcode 15/16
-        run: sudo xcode-select -switch /Applications/Xcode_15.4.app || true
+      - name: Select Xcode
+        run: sudo xcode-select -switch /Applications/Xcode_15.2.app || sudo xcode-select -switch /Applications/Xcode_15.0.1.app || true
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
