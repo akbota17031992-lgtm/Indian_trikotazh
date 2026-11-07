@@ -1,0 +1,137 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Shannon AI Pentester",
+          "organization": "Keygraph Shannon",
+          "version": "3.5.0",
+          "rules": [
+            {
+              "id": "SHANNON-AUTH-001",
+              "name": "UnauthenticatedAdminEndpoint",
+              "shortDescription": { "text": "Unauthenticated administrative endpoints allowing arbitrary mutations" },
+              "defaultConfiguration": { "level": "error" },
+              "properties": {
+                "security-severity": "9.8",
+                "owasp": "API1:2023 Broken Object Level Authorization, API5:2023 Broken Function Level Authorization"
+              }
+            },
+            {
+              "id": "SHANNON-DATA-002",
+              "name": "UnauthenticatedPiiDataLeak",
+              "shortDescription": { "text": "Unauthenticated full customer PII database exposure via GET /api/auth" },
+              "defaultConfiguration": { "level": "error" },
+              "properties": {
+                "security-severity": "9.1",
+                "owasp": "API3:2023 Broken Object Property Level Authorization"
+              }
+            },
+            {
+              "id": "SHANNON-AUTH-003",
+              "name": "PrivilegeEscalationClientRole",
+              "shortDescription": { "text": "Privilege escalation to admin via untrusted client-supplied existingCustomer.role" },
+              "defaultConfiguration": { "level": "error" },
+              "properties": {
+                "security-severity": "8.8",
+                "owasp": "API5:2023 Broken Function Level Authorization"
+              }
+            },
+            {
+              "id": "SHANNON-LOGIC-004",
+              "name": "LoyaltyBonusBalanceTampering",
+              "shortDescription": { "text": "Client-controlled loyalty bonus balance injection during registration" },
+              "defaultConfiguration": { "level": "warning" },
+              "properties": {
+                "security-severity": "8.1",
+                "owasp": "API6:2023 Unrestricted Access to Sensitive Business Flows"
+              }
+            },
+            {
+              "id": "SHANNON-TOKEN-005",
+              "name": "UnsignedBase64SessionToken",
+              "shortDescription": { "text": "Unsigned Base64 mock customer authentication token vulnerable to forgery" },
+              "defaultConfiguration": { "level": "warning" },
+              "properties": {
+                "security-severity": "7.5",
+                "owasp": "API2:2023 Broken Authentication"
+              }
+            },
+            {
+              "id": "SHANNON-DOS-006",
+              "name": "UnrestrictedAiQuotaExhaustion",
+              "shortDescription": { "text": "Unauthenticated access to generative AI endpoints risking API quota exhaustion" },
+              "defaultConfiguration": { "level": "note" },
+              "properties": {
+                "security-severity": "5.3",
+                "owasp": "API4:2023 Unrestricted Resource Consumption"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "SHANNON-AUTH-001",
+          "level": "error",
+          "message": { "text": "API routes /api/admin/orders and /api/admin/products do not enforce authentication or role verification, allowing unauthenticated read, price alteration, and deletion." },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "apps/web/src/app/api/admin/products/route.ts" },
+                "region": { "startLine": 116, "endLine": 145 }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "apps/web/src/app/api/admin/orders/route.ts" },
+                "region": { "startLine": 88, "endLine": 126 }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "SHANNON-DATA-002",
+          "level": "error",
+          "message": { "text": "GET /api/auth returns all registered users with phone numbers, emails, and balances without authentication." },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "apps/web/src/app/api/auth/route.ts" },
+                "region": { "startLine": 164, "endLine": 170 }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "SHANNON-AUTH-003",
+          "level": "error",
+          "message": { "text": "POST /api/auth assigns user.role directly from untrusted existingCustomer.role input parameter, enabling unauthenticated admin escalation." },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "apps/web/src/app/api/auth/route.ts" },
+                "region": { "startLine": 115, "endLine": 122 }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "SHANNON-LOGIC-004",
+          "level": "warning",
+          "message": { "text": "POST /api/auth accepts existingCustomer.bonusBalance without server-side validation, permitting arbitrary loyalty point credit injection." },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "apps/web/src/app/api/auth/route.ts" },
+                "region": { "startLine": 123, "endLine": 123 }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

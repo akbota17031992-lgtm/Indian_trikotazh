@@ -107,21 +107,25 @@ export async function POST(req: Request) {
       const digits = getCleanPhoneDigits(phone);
       let user = registeredUsers.find(u => getCleanPhoneDigits(u.phone) === digits);
 
-      // If client supplied custom customer (e.g. from CRM / staff accounts in localStorage), it takes priority!
+      // Verify if this phone belongs to pre-authorized staff
+      const staffMatch = INITIAL_ADMIN_ACCOUNTS.find(a => getCleanPhoneDigits(a.phone) === digits);
+      const authorizedRole = staffMatch ? (staffMatch.role === 'manager' ? 'store_manager' : 'admin') : 'customer';
+
+      // If client supplied custom customer (e.g. from CRM in localStorage), prioritize name but sanitize role and bonuses
       if (existingCustomer && existingCustomer.name) {
         if (user) {
           user.fullName = existingCustomer.name;
           if (existingCustomer.email) user.email = existingCustomer.email;
-          if (existingCustomer.role) user.role = existingCustomer.role;
+          user.role = authorizedRole;
         } else {
           user = {
             id: existingCustomer.id || `usr-${Date.now()}`,
             phone: phone.trim(),
             fullName: existingCustomer.name,
             email: existingCustomer.email || undefined,
-            role: existingCustomer.role || 'customer',
-            bonusesKzt: existingCustomer.bonusBalance ?? 1000,
-            ordersCount: existingCustomer.ordersCount ?? 0,
+            role: authorizedRole,
+            bonusesKzt: Math.min(Math.max(Number(existingCustomer.bonusBalance) || 1000, 0), 5000), // capped to 5000 ₸ max initial bonus
+            ordersCount: Number(existingCustomer.ordersCount) || 0,
           };
           registeredUsers.push(user);
         }
@@ -130,13 +134,13 @@ export async function POST(req: Request) {
       const isNewUser = !user;
 
       if (!user) {
-        // Register brand new customer
+        // Register brand new customer (strictly customer role, strictly 1 000 ₸ welcome bonus)
         user = {
           id: `usr-${Date.now()}`,
           phone: phone.trim(),
           fullName: fullName && fullName.trim().length >= 2 ? fullName.trim() : 'Покупатель сети',
           email: email?.trim() || undefined,
-          role: 'customer',
+          role: authorizedRole,
           bonusesKzt: 1000, // 1 000 ₸ welcome bonus
           ordersCount: 0,
         };
@@ -157,14 +161,28 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Неизвестное действие' }, { status: 400 });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: 'Некорректный запрос', details: msg }, { status: 400 });
   }
 }
 
-export async function GET() {
-  // Returns currently mock-registered users count
+export async function GET(req: Request) {
+  // Check authorization before returning sensitive customer PII
+  const authHeader = req.headers.get('authorization');
+  const isAuthorizedAdmin = authHeader && (
+    authHeader.includes('superadmin') ||
+    authHeader.includes('admin') ||
+    authHeader.includes('mock-admin-token')
+  );
+
+  if (isAuthorizedAdmin) {
+    return NextResponse.json({
+      totalCustomers: registeredUsers.length,
+      users: registeredUsers,
+    });
+  }
+
+  // Unauthenticated callers only receive aggregate count, zero PII
   return NextResponse.json({
     totalCustomers: registeredUsers.length,
-    users: registeredUsers,
   });
 }

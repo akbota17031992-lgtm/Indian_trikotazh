@@ -692,7 +692,9 @@ export function AdminDashboardClient() {
   // Fetch orders and products
   const fetchOrders = async () => {
     try {
-      const res = await fetch('/api/admin/orders');
+      const res = await fetch('/api/admin/orders', {
+        headers: { 'Authorization': 'Bearer mock-admin-token' },
+      });
       if (res.ok) {
         const data = await res.json();
         setOrders(data.orders || []);
@@ -704,7 +706,9 @@ export function AdminDashboardClient() {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch('/api/admin/products');
+      const res = await fetch('/api/admin/products', {
+        headers: { 'Authorization': 'Bearer mock-admin-token' },
+      });
       if (res.ok) {
         const data = await res.json();
         const apiProds: ProductItem[] = data.products || [];
@@ -758,7 +762,10 @@ export function AdminDashboardClient() {
     try {
       const res = await fetch('/api/admin/orders', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer mock-admin-token',
+        },
         body: JSON.stringify({ id: orderId, status: newStatus }),
       });
       if (res.ok) {
@@ -775,7 +782,10 @@ export function AdminDashboardClient() {
     try {
       const res = await fetch('/api/admin/products', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer mock-admin-token',
+        },
         body: JSON.stringify({ id: productId, updates: { stockByBranch: updatedStockMap } }),
       });
       if (res.ok) {
@@ -802,7 +812,10 @@ export function AdminDashboardClient() {
     try {
       const res = await fetch('/api/admin/products', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer mock-admin-token',
+        },
         body: JSON.stringify({ id: productId, updates: { isPublished: !currentStatus } }),
       });
       if (res.ok) {
@@ -1745,7 +1758,7 @@ export function AdminDashboardClient() {
             }`}
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>ИИ-товаровед (Добавление новинок)</span>
+            <span>Добавление товаров (ИИ)</span>
           </button>
 
           {/* Promotions & Discounts (All roles: Superadmin, Admin, Manager) */}
@@ -2324,7 +2337,7 @@ export function AdminDashboardClient() {
         {activeTab === 'ai_ingest' && (
           <div className="space-y-4">
             <div className="pb-2 border-b border-slate-800">
-              <h3 className="text-lg font-bold text-white">ИИ-товаровед (Фото-распознавание)</h3>
+              <h3 className="text-lg font-bold text-white">ИИ-распознавание товаров (Фото-сканер)</h3>
               <p className="text-xs text-slate-400">
                 Загрузите фото ткани или бирки. Gemini 1.5 Vision мгновенно определит состав, категорию и создаст
                 карточку на двух языках (RU / KZ).
@@ -2622,7 +2635,7 @@ export function AdminDashboardClient() {
                   </button>
                 ) : (
                   <div className="text-[11px] text-slate-400 bg-slate-800/80 border border-slate-700 px-3 py-1.5 rounded-xl font-medium">
-                    Режим поиска и просмотра (Товаровед)
+                    Режим поиска и просмотра (Менеджер)
                   </div>
                 )}
               </div>

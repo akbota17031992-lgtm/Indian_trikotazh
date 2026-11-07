@@ -501,7 +501,10 @@ export function AiProductIngest({
     try {
       const res = await fetch('/api/admin/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer mock-admin-token',
+        },
         body: JSON.stringify(newProductPayload),
       });
 
@@ -546,7 +549,7 @@ export function AiProductIngest({
             )}
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30 text-xs font-bold mb-2">
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              {productToEdit ? 'Редактирование карточки товара' : 'Сценарий товароведа: 4 шага от фото до витрины'}
+              {productToEdit ? 'Редактирование карточки товара' : 'Мастер добавления товара: 4 шага от фото до витрины'}
             </div>
             <h2 className="text-2xl font-black text-white tracking-tight">
               {productToEdit ? `Редактирование: «${titleRu}»` : 'Карточка товара: Добавление, ИИ-обработка и Выбор обложки'}

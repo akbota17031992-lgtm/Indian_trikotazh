@@ -46,6 +46,18 @@ let liveProducts: AdminProductItem[] = CATALOG_PRODUCTS.map((p, idx) => {
   };
 });
 
+function isAuthorizedStaff(req: Request): boolean {
+  const auth = req.headers.get('authorization') || '';
+  const referer = req.headers.get('referer') || '';
+  if (auth.includes('admin') || auth.includes('manager') || auth.includes('superadmin') || auth.includes('mock-admin-token')) {
+    return true;
+  }
+  if (referer.includes('/admin')) {
+    return true;
+  }
+  return false;
+}
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const category = searchParams.get('category');
@@ -79,6 +91,9 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  if (!isAuthorizedStaff(req)) {
+    return NextResponse.json({ error: 'Доступ запрещен. Требуется авторизация сотрудника.' }, { status: 401 });
+  }
   try {
     const body = await req.json();
     const newProduct: AdminProductItem = {
@@ -114,6 +129,9 @@ export async function POST(req: Request) {
 }
 
 export async function PATCH(req: Request) {
+  if (!isAuthorizedStaff(req)) {
+    return NextResponse.json({ error: 'Доступ запрещен. Требуется авторизация сотрудника.' }, { status: 401 });
+  }
   try {
     const body = await req.json();
     const { id, updates } = body;
@@ -145,6 +163,9 @@ export async function PATCH(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  if (!isAuthorizedStaff(req)) {
+    return NextResponse.json({ error: 'Доступ запрещен. Требуется авторизация сотрудника.' }, { status: 401 });
+  }
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
   if (!id) {

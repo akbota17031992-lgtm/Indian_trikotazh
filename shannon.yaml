@@ -1,0 +1,13 @@
+# shannon.yaml - Keygraph Shannon Autonomous Penetration Testing Configuration
+agentic_sast:
+  enabled: true
+
+report:
+  min_severity: "low"
+  min_confidence: "medium"
+  sarif: true
+  guidance: >
+    Focus on e-commerce API endpoints under /api/v1, customer authentication at /api/auth,
+    and administrative control hub endpoints under /api/admin/* and /api/ai/ingest.
+    Verify role-based access control, broken object level authorization (BOLA/IDOR),
+    session fixation, and input validation.
