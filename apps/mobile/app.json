@@ -35,6 +35,17 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "1.9.25"
+          }
+        }
+      ],
+      "expo-asset"
+    ],
     "extra": {
       "eas": {
         "projectId": "india-trikotaj-almaty-2026"
@@ -43,4 +54,3 @@
     }
   }
 }
-
