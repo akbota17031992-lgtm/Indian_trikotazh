@@ -49,6 +49,24 @@ jobs:
       - name: Expo Prebuild Android
         run: pnpm --dir apps/mobile exec expo prebuild --platform android --no-install
 
+      - name: Configure Kotlin 1.9.25 and Compose compatibility
+        run: |
+          node -e "
+            const fs = require('fs');
+            const bg = 'apps/mobile/android/build.gradle';
+            if (fs.existsSync(bg)) {
+              let c = fs.readFileSync(bg, 'utf8');
+              c = c.replace(/kotlinVersion\s*=\s*['\"][^'\"]+['\"]/g, \"kotlinVersion = '1.9.25'\");
+              fs.writeFileSync(bg, c);
+              console.log('build.gradle updated with kotlinVersion 1.9.25');
+            }
+            const gp = 'apps/mobile/android/gradle.properties';
+            if (fs.existsSync(gp)) {
+              fs.appendFileSync(gp, '\nkotlinVersion=1.9.25\nandroid.kotlinVersion=1.9.25\n');
+              console.log('gradle.properties updated with kotlinVersion 1.9.25');
+            }
+          "
+
       - name: Grant execute permission for gradlew
         run: chmod +x apps/mobile/android/gradlew
 
@@ -60,7 +78,9 @@ jobs:
       - name: Locate and copy APK artifact
         run: |
           mkdir -p build-artifacts/android
-          cp apps/mobile/android/app/build/outputs/apk/debug/*.apk build-artifacts/android/india-trikotaj-debug.apk
+          APK_PATH=$(find apps/mobile/android/app/build/outputs/apk -name "*.apk" | head -n 1)
+          echo "Found APK at: $APK_PATH"
+          cp "$APK_PATH" build-artifacts/android/india-trikotaj-debug.apk
           ls -la build-artifacts/android
 
       - name: Upload Android APK
@@ -112,8 +132,8 @@ jobs:
         run: |
           WORKSPACE=$(find apps/mobile/ios -name "*.xcworkspace" | head -n 1)
           echo "Using workspace: $WORKSPACE"
-          SCHEME=$(xcodebuild -workspace "$WORKSPACE" -list | awk '/Schemes:/{flag=1;next}/^$/{flag=0}flag{gsub(/^[ \t]+/, ""); print; exit}')
-          echo "Detected scheme: $SCHEME"
+          SCHEME="IndijskijTrikotazh"
+          echo "Using target scheme: $SCHEME"
           
           xcodebuild \
             -workspace "$WORKSPACE" \
@@ -127,7 +147,7 @@ jobs:
       - name: Package iOS .app into ZIP
         run: |
           mkdir -p build-artifacts/ios
-          APP_DIR=$(find apps/mobile/ios/build/Build/Products/Release-iphonesimulator -name "*.app" | head -n 1)
+          APP_DIR=$(find apps/mobile/ios/build -name "*.app" | head -n 1)
           echo "Found compiled app at: $APP_DIR"
           cd $(dirname "$APP_DIR")
           zip -r "$GITHUB_WORKSPACE/build-artifacts/ios/IndiaTrikotaj-iOS-Simulator.app.zip" $(basename "$APP_DIR")
