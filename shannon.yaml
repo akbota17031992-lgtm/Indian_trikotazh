@@ -11,3 +11,4 @@ report:
     and administrative control hub endpoints under /api/admin/* and /api/ai/ingest.
     Verify role-based access control, broken object level authorization (BOLA/IDOR),
     session fixation, and input validation.
+

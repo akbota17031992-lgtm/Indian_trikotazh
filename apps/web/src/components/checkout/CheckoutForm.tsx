@@ -18,7 +18,7 @@ import {
   TabsTrigger,
   TabsContent,
 } from '@india-trikotaj/ui';
-import { formatKZT, validateKazakhstanPhone, normalizeKazakhstanPhone } from '@india-trikotaj/shared';
+import { formatKZT, validateKazakhstanPhone, normalizeKazakhstanPhone, formatPhoneInput } from '@india-trikotaj/shared';
 import { Store, Truck, ShieldCheck, Sparkles, Gift } from 'lucide-react';
 import { ApiClient } from '../../lib/api-client';
 import { KaspiCheckoutModal } from './KaspiCheckoutModal';
@@ -36,31 +36,6 @@ export function CheckoutForm() {
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerComment, setCustomerComment] = useState('');
   const [applyBonus, setApplyBonus] = useState(false);
-
-  const formatPhoneInput = (value: string): string => {
-    const digits = value.replace(/\D/g, '');
-    let clean = digits;
-    if (clean.startsWith('8')) {
-      clean = '7' + clean.slice(1);
-    } else if (!clean.startsWith('7')) {
-      clean = '7' + clean;
-    }
-    clean = clean.slice(0, 11);
-    const len = clean.length;
-    if (len <= 1) return '+7 (';
-
-    const op = clean.slice(1, 4);
-    if (len <= 4) return `+7 (${op}`;
-
-    const p1 = clean.slice(4, 7);
-    if (len <= 7) return `+7 (${op}) ${p1}`;
-
-    const p2 = clean.slice(7, 9);
-    if (len <= 9) return `+7 (${op}) ${p1}-${p2}`;
-
-    const p3 = clean.slice(9, 11);
-    return `+7 (${op}) ${p1}-${p2}-${p3}`;
-  };
 
   // Autofill user information if logged in
   useEffect(() => {

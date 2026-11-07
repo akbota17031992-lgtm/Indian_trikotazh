@@ -163,3 +163,52 @@ export function formatKazakhstanPhone(phone: string): string {
 
   return `+7 (${p1}) ${p2}-${p3}-${p4}`;
 }
+
+/**
+ * Interactive input mask formatter for Kazakhstan phone inputs in UI components.
+ * Formats user typing into "+7 (7XX) XXX-XX-XX".
+ */
+export function formatPhoneInput(value: string): string {
+  if (!value) return '';
+  if (value === '+' || value === '+7') return value;
+
+  let digits = value.replace(/\D/g, '');
+  if (!digits) return '';
+
+  if (digits.length === 10 && !value.trim().startsWith('+7')) {
+    digits = '7' + digits;
+  } else if (digits.startsWith('8')) {
+    digits = '7' + digits.slice(1);
+  } else if (!digits.startsWith('7')) {
+    digits = '7' + digits;
+  }
+
+  digits = digits.slice(0, 11);
+  const len = digits.length;
+  if (len <= 1) return '+7 (';
+
+  const op = digits.slice(1, 4);
+  if (len <= 4) return `+7 (${op}`;
+
+  const p1 = digits.slice(4, 7);
+  if (len <= 7) return `+7 (${op}) ${p1}`;
+
+  const p2 = digits.slice(7, 9);
+  if (len <= 9) return `+7 (${op}) ${p1}-${p2}`;
+
+  const p3 = digits.slice(9, 11);
+  return `+7 (${op}) ${p1}-${p2}-${p3}`;
+}
+
+/**
+ * Extracts 10 national digits (e.g. 7473759914) from any Kazakhstan phone for duplicate comparison.
+ */
+export function getPhoneDigits(phone: string | null | undefined): string {
+  if (!phone) return '';
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 11 && (digits.startsWith('7') || digits.startsWith('8'))) {
+    return digits.slice(1);
+  }
+  return digits;
+}
+
