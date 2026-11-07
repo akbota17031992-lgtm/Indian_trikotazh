@@ -48,6 +48,13 @@ desktop.ini
 .idea/
 .vscode/*
 !.vscode/settings.json
+
+# Expo & Mobile native generated folders
+.expo/
+apps/mobile/.expo/
+apps/mobile/android/
+apps/mobile/ios/
+
 !.vscode/extensions.json
 *.swp
 *.swo
