@@ -55,7 +55,7 @@ jobs:
       - name: Build Android APK (Debug / Direct Install)
         run: |
           cd apps/mobile/android
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleDebug -PkotlinVersion=1.9.25 --no-daemon --stacktrace
 
       - name: Locate and copy APK artifact
         run: |
@@ -73,7 +73,7 @@ jobs:
 
   build-ios:
     name: Build iOS App (Simulator & Export)
-    runs-on: macos-13
+    runs-on: macos-latest
     timeout-minutes: 40
     steps:
       - name: Checkout repository
@@ -89,7 +89,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Select Xcode
-        run: sudo xcode-select -switch /Applications/Xcode_15.2.app || sudo xcode-select -switch /Applications/Xcode_15.0.1.app || true
+        run: sudo xcode-select -switch /Applications/Xcode_16.app || sudo xcode-select -switch /Applications/Xcode_15.4.app || true
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

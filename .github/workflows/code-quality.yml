@@ -27,8 +27,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: TypeCheck Shared Package
-        run: pnpm --filter @india-trikotaj/shared build
+      - name: Build Monorepo Packages (Shared & UI)
+        run: pnpm build:packages
 
       - name: TypeCheck Web Frontend
         run: pnpm --filter @india-trikotaj/web exec tsc --noEmit
