@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: india_trikotaj_prod_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Database password is required}
+      POSTGRES_DB: ${POSTGRES_DB:-india_trikotaj_prod}
+    volumes:
+      - prod_postgres_data:/var/lib/postgresql/data
+      - ./supabase/migrations/20261102000001_initial_schema.sql:/docker-entrypoint-initdb.d/01_initial_schema.sql:ro
+      - ./supabase/migrations/20261102000002_indexes_and_constraints.sql:/docker-entrypoint-initdb.d/02_indexes_and_constraints.sql:ro
+      - ./supabase/migrations/20261102000003_functions_and_triggers.sql:/docker-entrypoint-initdb.d/03_functions_and_triggers.sql:ro
+      - ./supabase/migrations/20261102000004_row_level_security.sql:/docker-entrypoint-initdb.d/04_row_level_security.sql:ro
+      - ./supabase/seed.sql:/docker-entrypoint-initdb.d/05_seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-india_trikotaj_prod}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal_network
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: india_trikotaj_prod_api
+    restart: always
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-india_trikotaj_prod}
+      JWT_SECRET: ${JWT_SECRET:?JWT secret is required}
+      CORS_ORIGIN: ${CORS_ORIGIN:-https://indiatrikotaj.kz,https://admin.indiatrikotaj.kz}
+      KASPI_GATEWAY: ${KASPI_GATEWAY:-apipay}
+      APIPAY_API_KEY: ${APIPAY_API_KEY}
+      APIPAY_MERCHANT_ID: ${APIPAY_MERCHANT_ID}
+      WEBKASSA_API_URL: ${WEBKASSA_API_URL}
+      WEBKASSA_LOGIN: ${WEBKASSA_LOGIN}
+      WEBKASSA_PASSWORD: ${WEBKASSA_PASSWORD}
+      WEBKASSA_CASHBOX_ID: ${WEBKASSA_CASHBOX_ID}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - internal_network
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.web
+    container_name: india_trikotaj_prod_web
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.indiatrikotaj.kz}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://indiatrikotaj.kz}
+    depends_on:
+      - api
+    networks:
+      - internal_network
+
+networks:
+  internal_network:
+    driver: bridge
+
+volumes:
+  prod_postgres_data:
+    driver: local
+

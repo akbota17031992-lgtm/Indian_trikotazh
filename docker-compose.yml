@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: india_trikotaj_postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-india_trikotaj}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./supabase/migrations/20261102000001_initial_schema.sql:/docker-entrypoint-initdb.d/01_initial_schema.sql:ro
+      - ./supabase/migrations/20261102000002_indexes_and_constraints.sql:/docker-entrypoint-initdb.d/02_indexes_and_constraints.sql:ro
+      - ./supabase/migrations/20261102000003_functions_and_triggers.sql:/docker-entrypoint-initdb.d/03_functions_and_triggers.sql:ro
+      - ./supabase/migrations/20261102000004_row_level_security.sql:/docker-entrypoint-initdb.d/04_row_level_security.sql:ro
+      - ./supabase/seed.sql:/docker-entrypoint-initdb.d/05_seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-india_trikotaj}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.7
+    container_name: india_trikotaj_meilisearch
+    restart: unless-stopped
+    ports:
+      - "${MEILISEARCH_PORT:-7700}:7700"
+    environment:
+      MEILI_ENV: ${MEILISEARCH_ENV:-development}
+      MEILI_MASTER_KEY: ${MEILISEARCH_MASTER_KEY:-india_trikotaj_local_master_key_2026}
+      MEILI_NO_ANALYTICS: "true"
+    volumes:
+      - meili_data:/meili_data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:7700/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local
+  meili_data:
+    driver: local

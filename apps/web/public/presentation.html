@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Презентация: Омниканальный маркетплейс «Индийский Трикотаж»</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #141c2e;
+      --card-border: #1e293b;
+      --amber-main: #f59e0b;
+      --amber-dark: #b45309;
+      --amber-light: #fef3c7;
+      --emerald: #10b981;
+      --red: #ef4444;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .deck-container {
+      width: 100%;
+      max-width: 1140px;
+      padding: 30px 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .slide {
+      display: none;
+      background: linear-gradient(145deg, #131b2e 0%, #0d1322 100%);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 44px;
+      min-height: 610px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      position: relative;
+      animation: fadeIn 0.35s ease-out;
+    }
+
+    .slide.active {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .slide-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 30px;
+      color: var(--amber-main);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 14px;
+    }
+
+    h1, h2 { font-weight: 800; line-height: 1.2; }
+    .slide-title { font-size: 30px; color: #ffffff; margin-bottom: 6px; }
+    .slide-subtitle { font-size: 15px; color: var(--text-muted); margin-bottom: 24px; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+
+    .card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card:hover {
+      border-color: rgba(245, 158, 11, 0.4);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .card-title { font-size: 16px; font-weight: 700; color: #ffffff; margin-bottom: 6px; }
+    .card-desc { font-size: 13.5px; color: var(--text-muted); line-height: 1.5; }
+
+    .stat-number { font-size: 36px; font-weight: 800; color: var(--amber-main); line-height: 1; margin: 10px 0 6px 0; }
+    .stat-number.emerald { color: var(--emerald); }
+    .stat-number.red { color: var(--red); }
+    .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 6px; }
+    th { text-align: left; padding: 10px 12px; color: var(--text-muted); border-bottom: 1px solid var(--card-border); font-weight: 600; font-size: 12px; text-transform: uppercase; }
+    td { padding: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); color: #e2e8f0; }
+    .highlight-row { background: rgba(245, 158, 11, 0.08); font-weight: 700; }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1140px;
+      padding: 14px 20px 30px;
+    }
+
+    .nav-btn {
+      background: #1e293b;
+      color: #ffffff;
+      border: 1px solid #334155;
+      padding: 11px 22px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      background: var(--amber-main);
+      color: #000;
+      border-color: var(--amber-main);
+    }
+
+    .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .progress-bar-container { display: flex; gap: 6px; align-items: center; }
+    .dot { width: 10px; height: 10px; border-radius: 5px; background: #334155; cursor: pointer; transition: all 0.3s; }
+    .dot.active { width: 32px; background: var(--amber-main); }
+
+    .hero-title { font-family: 'Playfair Display', serif; font-size: 44px; color: #ffffff; line-height: 1.15; margin-bottom: 14px; }
+    .hero-title span { color: var(--amber-main); }
+    .quote-box { border-left: 4px solid var(--amber-main); padding-left: 18px; margin: 18px 0; font-style: italic; color: #cbd5e1; font-size: 15px; }
+  </style>
+</head>
+<body>
+
+  <div class="deck-container">
+
+    <!-- SLIDE 1 -->
+    <div class="slide active" id="slide-1">
+      <div>
+        <div class="slide-badge">💼 Инвестиционное предложение</div>
+        <h1 class="hero-title">Как сети <span>«Индийский Трикотаж»</span> увеличить прибыль на <span>+3 000 000 ₸</span> в месяц</h1>
+        <p class="slide-subtitle">Презентация омниканальной цифровой экосистемы: Интернет-витрина + Мобильное приложение (iOS/Android) + Kaspi Pay + ИИ-товаровед</p>
+        <div class="quote-box">
+          «Сеть из 16 филиалов в Алматы и 150 000+ лояльных клиентов уже есть. Настало время забрать продажи, которые сейчас теряются в Instagram Direct и офлайне.»
+        </div>
+      </div>
+      <div class="grid-3" style="margin-top: 24px;">
+        <div class="card">
+          <div class="card-desc">Срок полной окупаемости</div>
+          <div class="stat-number emerald">25 дней</div>
+          <div class="stat-label">Меньше 1 месяца</div>
+        </div>
+        <div class="card">
+          <div class="card-desc">Прямая себестоимость запуска</div>
+          <div class="stat-number">845 500 ₸</div>
+          <div class="stat-label">Инфраструктура и вывод в сторы</div>
+        </div>
+        <div class="card">
+          <div class="card-desc">Годовой чистый доход сети</div>
+          <div class="stat-number emerald">+36 млн ₸</div>
+          <div class="stat-label">При 25 заказах в день</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 -->
+    <div class="slide" id="slide-2">
+      <div>
+        <div class="slide-badge" style="color: var(--red); border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.1);">⚠️ Реальность рынка</div>
+        <h2 class="slide-title">Где сеть «Индийский Трикотаж» теряет деньги прямо сейчас?</h2>
+        <p class="slide-subtitle">4 ключевые точки утечки выручки классического ритейла в Алматы</p>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">1. Нет размера в магазине = потеря клиента</div>
+          <p class="card-desc">Покупатель зашел в MEGA Alma-Ata, но его размера нет. Продавец не знает остатков других 15 точек. Клиент уходит ни с чем.</p>
+          <div class="stat-number red" style="font-size: 24px;">-20% продаж</div>
+          <div class="stat-label">Упущенный трафик в 16 филиалах</div>
+        </div>
+        <div class="card">
+          <div class="card-title">2. Устаревшие продажи через Instagram/WhatsApp</div>
+          <p class="card-desc">Менеджеры вручную пересылают фото, замеряют сантиметром вещи и ждут скриншот перевода Kaspi Gold. Ночью заявки сгорают.</p>
+          <div class="stat-number red" style="font-size: 24px;">-35% импульсивных заказов</div>
+          <div class="stat-label">Клиенты уходят к тем, у кого есть сайт</div>
+        </div>
+        <div class="card">
+          <div class="card-title">3. Высокие комиссии Kaspi Магазина</div>
+          <p class="card-desc">При торговле через общий Kaspi.kz комиссия составляет от 9% до 15% с каждой вещи, а клиентская база остается у банка, а не у бренда.</p>
+          <div class="stat-number red" style="font-size: 24px;">9% — 15% маржи</div>
+          <div class="stat-label">Уходит стороннему маркетплейсу</div>
+        </div>
+        <div class="card">
+          <div class="card-title">4. Медленная оцифровка новых поставок</div>
+          <p class="card-desc">Приехал контейнер с хлопком из Дели — товары неделями лежат без качественных фото и описаний, пока фотограф сделает снимки.</p>
+          <div class="stat-number red" style="font-size: 24px;">Заморозка средств</div>
+          <div class="stat-label">Медленная оборачиваемость склада</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 -->
+    <div class="slide" id="slide-3">
+      <div>
+        <div class="slide-badge">🚀 Наше решение</div>
+        <h2 class="slide-title">Единая экосистема: Интернет-магазин + Мобильное приложение</h2>
+        <p class="slide-subtitle">Не разработка с нуля на полгода, а протестированная и готовая платформа</p>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <div style="font-size: 30px; margin-bottom: 6px;">📱</div>
+          <div class="card-title">Мобильное приложение (iOS & Android)</div>
+          <p class="card-desc">Иконка бренда на главном экране. Бесплатные Push-уведомления об акциях и скидках вместо дорогих SMS.</p>
+        </div>
+        <div class="card">
+          <div style="font-size: 30px; margin-bottom: 6px;">📍</div>
+          <div class="card-title">16 филиалов Алматы в онлайне</div>
+          <p class="card-desc">Покупатель видит наличие в любимом ТЦ (MEGA, Dostyk Plaza, Тастак). Самовывоз за 15 минут или доставка Яндекс Курьером.</p>
+        </div>
+        <div class="card">
+          <div style="font-size: 30px; margin-bottom: 6px;">🔴</div>
+          <div class="card-title">Kaspi Pay, QR и Red 0-0-3</div>
+          <p class="card-desc">Мгновенная оплата в один клик и рассрочка Kaspi Red. Комиссия эквайринга всего ~1-2% вместо 15% у сторонних площадок.</p>
+        </div>
+        <div class="card">
+          <div style="font-size: 30px; margin-bottom: 6px;">🤖</div>
+          <div class="card-title">ИИ-товаровед (Gemini Vision)</div>
+          <p class="card-desc">Продавец делает фото на телефон — ИИ удаляет фон, пишет состав и описание на казахском и русском языках за 3 секунды.</p>
+        </div>
+        <div class="card">
+          <div style="font-size: 30px; margin-bottom: 6px;">🧾</div>
+          <div class="card-title">Фискализация ОФД (WebKassa)</div>
+          <p class="card-desc">Полное соблюдение законов РК. Электронный фискальный чек автоматически генерируется и отправляется покупателю.</p>
+        </div>
+        <div class="card">
+          <div style="font-size: 30px; margin-bottom: 6px;">🔒</div>
+          <div class="card-title">100% владение кодом</div>
+          <p class="card-desc">Никаких кабальных арендных подписок SaaS. Все исходные коды и база данных передаются в собственность заказчика.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 -->
+    <div class="slide" id="slide-4">
+      <div>
+        <div class="slide-badge">💰 Финансовый план</div>
+        <h2 class="slide-title">Сколько нужно вложить: прозрачный расчет себестоимости</h2>
+        <p class="slide-subtitle">Прямые расходы на инфраструктуру, сервера и сервисы</p>
+      </div>
+      <div class="grid-2">
+        <div>
+          <h3 style="font-size: 16px; margin-bottom: 8px; color: var(--amber-main);">Прямые расходы на запуск (CAPEX)</h3>
+          <table>
+            <thead>
+              <tr><th>Статья</th><th style="text-align: right;">Сумма (₸)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Официальный домен .KZ (1 год)</td><td style="text-align: right;">3 500 ₸</td></tr>
+              <tr><td>Аккаунты разработчика (Apple + Google)</td><td style="text-align: right;">62 000 ₸</td></tr>
+              <tr><td>Настройка боевого сервера, SSL, CI/CD</td><td style="text-align: right;">150 000 ₸</td></tr>
+              <tr><td>Интеграция Kaspi Pay и кассы WebKassa ОФД</td><td style="text-align: right;">120 000 ₸</td></tr>
+              <tr><td>Синхронизация остатков по 16 филиалам</td><td style="text-align: right;">180 000 ₸</td></tr>
+              <tr><td>Сборка и публикация iOS & Android приложений</td><td style="text-align: right;">250 000 ₸</td></tr>
+              <tr><td>Оцифровка 300 товаров через ИИ + обучение</td><td style="text-align: right;">80 000 ₸</td></tr>
+              <tr class="highlight-row"><td><strong>ИТОГО СЕБЕСТОИМОСТЬ:</strong></td><td style="text-align: right; color: var(--amber-main);"><strong>845 500 ₸</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h3 style="font-size: 16px; margin-bottom: 8px; color: var(--emerald);">Ежемесячные расходы (OPEX)</h3>
+          <table>
+            <thead>
+              <tr><th>Сервис</th><th style="text-align: right;">В месяц (₸)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Сервер VPS в Алматы (PS.kz)</td><td style="text-align: right;">~ 15 000 ₸</td></tr>
+              <tr><td>Облачная БД PostgreSQL (Supabase Pro)</td><td style="text-align: right;">~ 12 500 ₸</td></tr>
+              <tr><td>Шлюз платежей Kaspi Pay</td><td style="text-align: right;">~ 10 000 ₸</td></tr>
+              <tr><td>Онлайн-касса WebKassa ОФД</td><td style="text-align: right;">~ 3 000 ₸</td></tr>
+              <tr><td>Сервисные SMS / WhatsApp</td><td style="text-align: right;">~ 5 000 ₸</td></tr>
+              <tr><td>ИИ API (Gemini Vision на 3000 фото)</td><td style="text-align: right;">~ 1 500 ₸</td></tr>
+              <tr class="highlight-row"><td><strong>ИТОГО ПОДДЕРЖАНИЕ СИСТЕМЫ:</strong></td><td style="text-align: right; color: var(--emerald);"><strong>~ 47 000 ₸ / мес</strong></td></tr>
+            </tbody>
+          </table>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">Окупается прибылью всего с 12 проданных футболок в месяц!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 -->
+    <div class="slide" id="slide-5">
+      <div>
+        <div class="slide-badge">📈 Доходность сети</div>
+        <h2 class="slide-title">Сколько заработает сеть «Индийский Трикотаж»?</h2>
+        <p class="slide-subtitle">Расчет на основе среднего чека 7 500 ₸ и розничной маржи 55%</p>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Сценарий развития</th>
+            <th style="text-align: center;">Заказов в день</th>
+            <th style="text-align: center;">Выручка в месяц</th>
+            <th style="text-align: center;">Чистая прибыль / мес</th>
+            <th style="text-align: right;">Чистая прибыль за 1 год</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Минимальный (1 заказ на 2 магазина)</strong></td>
+            <td style="text-align: center;">8 заказов</td>
+            <td style="text-align: center;">1 800 000 ₸</td>
+            <td style="text-align: center; color: var(--emerald); font-weight: 700;">+ 943 000 ₸</td>
+            <td style="text-align: right; font-weight: 700;">11 316 000 ₸</td>
+          </tr>
+          <tr class="highlight-row">
+            <td><strong>Базовый (реалистичный с Instagram)</strong></td>
+            <td style="text-align: center;">25 заказов</td>
+            <td style="text-align: center;">5 625 000 ₸</td>
+            <td style="text-align: center; color: var(--amber-main); font-weight: 800;">+ 3 040 000 ₸</td>
+            <td style="text-align: right; color: var(--amber-main); font-weight: 800;">36 480 000 ₸</td>
+          </tr>
+          <tr>
+            <td><strong>Оптимистичный (сезон / праздники)</strong></td>
+            <td style="text-align: center;">50 заказов</td>
+            <td style="text-align: center;">11 250 000 ₸</td>
+            <td style="text-align: center; color: var(--emerald); font-weight: 700;">+ 6 140 000 ₸</td>
+            <td style="text-align: right; font-weight: 700;">73 680 000 ₸</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="grid-3" style="margin-top: 20px;">
+        <div class="card" style="text-align: center;">
+          <div class="card-desc">Срок полной окупаемости</div>
+          <div class="stat-number emerald">0.7 мес.</div>
+          <div class="stat-label">Проект окупается за 20-25 дней</div>
+        </div>
+        <div class="card" style="text-align: center;">
+          <div class="card-desc">ROI за первый год</div>
+          <div class="stat-number">> 1400%</div>
+          <div class="stat-label">Каждый 1 ₸ приносит 14 ₸ прибыли</div>
+        </div>
+        <div class="card" style="text-align: center;">
+          <div class="card-desc">Экономия на комиссиях Kaspi</div>
+          <div class="stat-number emerald">~450 000 ₸</div>
+          <div class="stat-label">Чистая экономия каждый месяц</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- [NEW] SLIDE 6: ВАРИАНТЫ СОТРУДНИЧЕСТВА -->
+    <div class="slide" id="slide-6">
+      <div>
+        <div class="slide-badge" style="background: rgba(16,185,129,0.15); color: var(--emerald); border-color: rgba(16,185,129,0.4);">
+          🤝 Варианты сотрудничества
+        </div>
+        <h2 class="slide-title">Форматы сделки для заказчика и условия запуска</h2>
+        <p class="slide-subtitle">Гибкие коммерческие модели входа: от полного выкупа до партнерского процента с продаж</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card" style="border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.03);">
+          <div>
+            <div style="font-size: 13px; font-weight: 800; color: var(--amber-main); text-transform: uppercase;">Вариант 1: «Под ключ» + SLA</div>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Классическая покупка решения</p>
+            <div class="stat-number" style="font-size: 28px; margin: 12px 0 2px 0;">2 900 000 ₸</div>
+            <div style="font-size: 11px; color: var(--text-muted);">единоразово за платформу</div>
+            <div style="margin-top: 8px; font-size: 13px; font-weight: 700; color: var(--amber-main);">+ 180 000 ₸ / мес (SLA)</div>
+          </div>
+          <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+            ✔ 100% передача всех прав и кодов<br/>
+            ✔ Окупаемость заказчика: 1–1.5 мес.<br/>
+            ✔ Бесперебойная поддержка 24/7<br/>
+            ✔ Регулярные обновления в сторах
+          </div>
+        </div>
+
+        <div class="card" style="border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.04);">
+          <div>
+            <div style="font-size: 13px; font-weight: 800; color: var(--emerald); text-transform: uppercase;">Вариант 2: «Партнерский» (% с продаж)</div>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Минимальный порог входа</p>
+            <div class="stat-number emerald" style="font-size: 28px; margin: 12px 0 2px 0;">850 000 ₸</div>
+            <div style="font-size: 11px; color: var(--text-muted);">вход (покрытие расходов)</div>
+            <div style="margin-top: 8px; font-size: 13px; font-weight: 700; color: var(--emerald);">+ 4% от онлайн-оборота</div>
+          </div>
+          <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+            ✔ Заказчик ничем не рискует<br/>
+            ✔ Комиссия в 3 раза ниже Kaspi (4% vs 15%)<br/>
+            ✔ При обороте 6 млн ₸: плата ~240 000 ₸<br/>
+            ✔ Общая цель — максимизировать продажи
+          </div>
+        </div>
+
+        <div class="card">
+          <div>
+            <div style="font-size: 13px; font-weight: 800; color: #fff; text-transform: uppercase;">Вариант 3: «Гибридный» (Фикс + Заказ)</div>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Оплата за реальный результат</p>
+            <div class="stat-number" style="font-size: 28px; color: #fff; margin: 12px 0 2px 0;">1 400 000 ₸</div>
+            <div style="font-size: 11px; color: var(--text-muted);">быстрый старт и интеграция</div>
+            <div style="margin-top: 8px; font-size: 13px; font-weight: 700; color: #fff;">+ 150 ₸ за заказ + 50 ₸ за ИИ</div>
+          </div>
+          <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+            ✔ Понятная для ритейла метрика<br/>
+            ✔ При 30 заказах в день: ~135 000 ₸/мес<br/>
+            ✔ Оцифровка 1000 товаров: +50 000 ₸<br/>
+            ✔ Доступная цена внедрения
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7 -->
+    <div class="slide" id="slide-7">
+      <div>
+        <div class="slide-badge">🛡️ Безопасность и запуск</div>
+        <h2 class="slide-title">Управление рисками и план быстрого запуска</h2>
+        <p class="slide-subtitle">Как защищены инвестиции заказчика и когда пойдут первые продажи</p>
+      </div>
+      <div class="grid-2">
+        <div>
+          <h3 style="font-size: 16px; margin-bottom: 10px; color: #fff;">Ответы на возможные сомнения</h3>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div class="card" style="padding: 12px;">
+              <div style="font-weight: 700; color: var(--amber-main); font-size: 12.5px;">«Будут ли клиенты скачивать приложение?»</div>
+              <p style="font-size: 11.5px; color: var(--text-muted); margin-top: 3px;">На кассах всех 16 магазинов размещается табличка с QR: «Скидка 10% на первую покупку в приложении». Это обеспечивает лавинообразные скачивания.</p>
+            </div>
+            <div class="card" style="padding: 12px;">
+              <div style="font-weight: 700; color: var(--amber-main); font-size: 12.5px;">«Справятся ли продавцы в магазинах?»</div>
+              <p style="font-size: 11.5px; color: var(--text-muted); margin-top: 3px;">Интерфейс сделан элементарным для смартфона: звучит сигнал заказа $\rightarrow$ продавец кладет вещь в пакет $\rightarrow$ нажимает одну кнопку «Собрано».</p>
+            </div>
+            <div class="card" style="padding: 12px;">
+              <div style="font-weight: 700; color: var(--amber-main); font-size: 12.5px;">«Требования законодательства РК»</div>
+              <p style="font-size: 11.5px; color: var(--text-muted); margin-top: 3px;">Сервера размещаются в РК (PS.kz), фискальные чеки автоматически уходят в налоговую через WebKassa ОФД в строгом соответствии с законами РК.</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3 style="font-size: 16px; margin-bottom: 10px; color: var(--emerald);">Дорожная карта (2.5 недели до продаж)</h3>
+          <div style="display: flex; flex-direction: column; gap: 7px;">
+            <div class="card" style="padding: 10px 14px;"><strong style="color: #fff; font-size: 12px;">Дни 1–3:</strong> <span style="font-size: 12px; color: var(--text-muted);">Регистрация домена, аккаунтов Apple/Google</span></div>
+            <div class="card" style="padding: 10px 14px;"><strong style="color: #fff; font-size: 12px;">Дни 4–7:</strong> <span style="font-size: 12px; color: var(--text-muted);">Подключение Kaspi Pay и фискализации ОФД</span></div>
+            <div class="card" style="padding: 10px 14px;"><strong style="color: #fff; font-size: 12px;">Дни 8–12:</strong> <span style="font-size: 12px; color: var(--text-muted);">Оцифровка каталога через ИИ-товароведа</span></div>
+            <div class="card" style="padding: 10px 14px;"><strong style="color: #fff; font-size: 12px;">Дни 13–15:</strong> <span style="font-size: 12px; color: var(--text-muted);">Тестовый заказ через Kaspi QR на 100 ₸</span></div>
+            <div class="card" style="padding: 10px 14px; border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.06);"><strong style="color: var(--emerald); font-size: 12px;">День 16:</strong> <span style="font-size: 12px; color: #fff; font-weight: 700;">Официальный запуск и первые продажи!</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 8 -->
+    <div class="slide" id="slide-8">
+      <div style="text-align: center; max-width: 820px; margin: 0 auto;">
+        <div class="slide-badge" style="background: rgba(16,185,129,0.15); color: var(--emerald); border-color: rgba(16,185,129,0.4);">
+          🤝 Резюме для владельца бизнеса
+        </div>
+        <h2 style="font-size: 34px; color: #fff; margin: 16px 0; line-height: 1.25;">
+          «Сеть уже оплачивает аренду 16 магазинов. Без своего приложения вы просто дарите прибыль конкурентам.»
+        </h2>
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 24px; text-align: left; margin: 24px 0;">
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 12px; font-size: 15px; color: #e2e8f0;">
+            <li style="display: flex; align-items: center; gap: 12px;">
+              <span style="color: var(--emerald); font-size: 18px;">✔</span>
+              <span><strong>Быстрый старт</strong> — готовая платформа сэкономит вам 6 месяцев студийной разработки.</span>
+            </li>
+            <li style="display: flex; align-items: center; gap: 12px;">
+              <span style="color: var(--emerald); font-size: 18px;">✔</span>
+              <span><strong>Выбор формата</strong> — выкуп «под ключ» с полной собственностью или партнерство за % с оборота.</span>
+            </li>
+            <li style="display: flex; align-items: center; gap: 12px;">
+              <span style="color: var(--emerald); font-size: 18px;">✔</span>
+              <span><strong>25 дней</strong> — срок полного возврата всех вложений за счет онлайн-заказов.</span>
+            </li>
+            <li style="display: flex; align-items: center; gap: 12px;">
+              <span style="color: var(--emerald); font-size: 18px;">✔</span>
+              <span><strong>+36 000 000 ₸</strong> — дополнительная чистая прибыль розничной сети уже в первый год.</span>
+            </li>
+          </ul>
+        </div>
+        <div style="font-size: 17px; font-weight: 700; color: var(--amber-main);">
+          Платформа готова к демонстрации прямо сейчас на вашем экране!
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="controls">
+    <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">← Назад</button>
+    <div class="progress-bar-container" id="dotsContainer"></div>
+    <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">Вперёд →</button>
+  </div>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 8;
+    const dotsContainer = document.getElementById('dotsContainer');
+    for (let i = 1; i <= totalSlides; i++) {
+      const dot = document.createElement('div');
+      dot.className = `dot ${i === 1 ? 'active' : ''}`;
+      dot.onclick = () => goToSlide(i);
+      dotsContainer.appendChild(dot);
+    }
+    function updateView() {
+      document.querySelectorAll('.slide').forEach((slide, idx) => {
+        slide.classList.toggle('active', idx + 1 === currentSlide);
+      });
+      document.querySelectorAll('.dot').forEach((dot, idx) => {
+        dot.classList.toggle('active', idx + 1 === currentSlide);
+      });
+      document.getElementById('prevBtn').disabled = currentSlide === 1;
+      document.getElementById('nextBtn').disabled = currentSlide === totalSlides;
+    }
+    function changeSlide(direction) {
+      currentSlide = Math.min(Math.max(1, currentSlide + direction), totalSlides);
+      updateView();
+    }
+    function goToSlide(slideNum) {
+      currentSlide = slideNum;
+      updateView();
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') { changeSlide(1); }
+      else if (e.key === 'ArrowLeft') { changeSlide(-1); }
+    });
+  </script>
+</body>
+</html>

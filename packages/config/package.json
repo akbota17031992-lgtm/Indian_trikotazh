@@ -1,0 +1,25 @@
+{
+  "name": "@india-trikotaj/config",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./tsconfig.base.json": "./tsconfig.base.json",
+    "./tsconfig.node.json": "./tsconfig.node.json",
+    "./tsconfig.react.json": "./tsconfig.react.json",
+    "./eslint.base": "./eslint.base.js",
+    "./eslint.react": "./eslint.react.js",
+    "./prettier": "./.prettierrc.json"
+  },
+  "files": [
+    "tsconfig.base.json",
+    "tsconfig.node.json",
+    "tsconfig.react.json",
+    "eslint.base.js",
+    "eslint.react.js",
+    ".prettierrc.json"
+  ],
+  "peerDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

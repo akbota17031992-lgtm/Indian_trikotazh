@@ -1,0 +1,45 @@
+{
+  "name": "india-trikotaj-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "build": "pnpm -r --filter \"./packages/**\" build",
+    "build:packages": "pnpm -r --filter \"./packages/**\" build",
+    "build:apps": "pnpm -r --filter \"./apps/**\" build",
+    "build:shared": "pnpm --filter @india-trikotaj/shared build",
+    "build:ui": "pnpm --filter @india-trikotaj/ui build",
+    "build:ai": "pnpm --filter @india-trikotaj/ai build",
+    "build:api": "pnpm --filter @india-trikotaj/api build",
+    "build:web": "pnpm --filter @india-trikotaj/web build",
+    "dev": "pnpm --parallel dev",
+    "dev:api": "pnpm --filter @india-trikotaj/api dev",
+    "dev:web": "pnpm --filter @india-trikotaj/web dev",
+    "lint": "pnpm -r lint",
+    "lint:fix": "pnpm -r lint:fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
+    "test": "pnpm run test:unit",
+    "test:unit": "pnpm -r --filter \"./packages/**\" test",
+    "test:shared": "pnpm --filter @india-trikotaj/shared test",
+    "test:api": "pnpm --filter @india-trikotaj/api test",
+    "test:e2e": "pnpm --filter @india-trikotaj/e2e-tests test",
+    "type-check": "pnpm -r type-check",
+    "clean": "pnpm -r --parallel exec rimraf dist .next coverage",
+    "clean:all": "pnpm -r --parallel exec rimraf dist .next coverage node_modules && rimraf node_modules pnpm-lock.yaml",
+    "db:docker:up": "docker compose up -d",
+    "db:docker:down": "docker compose down",
+    "db:docker:logs": "docker compose logs -f"
+  },
+  "devDependencies": {
+    "@india-trikotaj/config": "workspace:*",
+    "prettier": "^3.4.2",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.7.2"
+  }
+}
