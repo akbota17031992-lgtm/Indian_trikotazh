@@ -10,8 +10,8 @@
     "noEmit": true,
     "noImplicitAny": false,
     "paths": {
-      "@india-trikotaj/shared": ["../../packages/shared/src/index.ts"],
-      "@india-trikotaj/shared/*": ["../../packages/shared/src/*"]
+      "@india-trikotaj/shared": ["../../packages/shared/dist/index.d.ts"],
+      "@india-trikotaj/shared/*": ["../../packages/shared/dist/*"]
     }
   },
   "include": [
