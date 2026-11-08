@@ -2,6 +2,7 @@
   "expo": {
     "name": "Индийский Трикотаж",
     "slug": "india-trikotaj",
+    "owner": "dostiyar1992",
     "scheme": "indiatrikotaj",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -36,20 +37,9 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "kotlinVersion": "1.9.25"
-          }
-        }
-      ],
-      "expo-asset"
+      "expo-status-bar"
     ],
     "extra": {
-      "eas": {
-        "projectId": "india-trikotaj-almaty-2026"
-      },
       "apiBaseUrl": "https://api.indiatrikotaj.kz"
     }
   }
