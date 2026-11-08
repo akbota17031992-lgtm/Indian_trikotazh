@@ -15,7 +15,7 @@ import { ProductDetailScreen } from './src/screens/ProductDetailScreen';
 import { CartScreen } from './src/screens/CartScreen';
 import { StoresScreen } from './src/screens/StoresScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
-import { KaspiAuthModal } from './src/components/KaspiAuthModal';
+import { KaspiAuthModal, INITIAL_REGISTERED_USERS, StoredUser } from './src/components/KaspiAuthModal';
 import { KaspiLockScreen } from './src/components/KaspiLockScreen';
 import type { MobileProduct, CartItem, TabType, ProductColor, MobileOrder, UserProfile } from './src/types';
 
@@ -33,27 +33,35 @@ function MainScreen() {
     'prod-002',
     'prod-003',
   ]);
+  const [registeredUsers, setRegisteredUsers] = useState<StoredUser[]>(INITIAL_REGISTERED_USERS);
+
+  // App starts in GUEST mode on first launch
   const [userProfile, setUserProfile] = useState<UserProfile>({
-    name: 'Достияр Алиев',
-    phone: '+7 (701) 992-84-12',
-    email: 'dostiyar@gmail.com',
-    bonusPoints: 3500,
-    isRegistered: true,
-    pinCode: '1234',
-    patternCode: '0-1-2-5-8',
-    biometricsEnabled: true,
-    preferredUnlockMode: 'pin',
+    name: '',
+    phone: '',
+    email: '',
+    bonusPoints: 0,
+    isRegistered: false,
+    biometricsEnabled: false,
   });
   const [isLocked, setIsLocked] = useState(false);
   const [isAuthModalVisible, setIsAuthModalVisible] = useState(false);
 
-  if (isLocked) {
+  if (isLocked && userProfile.isRegistered) {
     return (
       <KaspiLockScreen
         userProfile={userProfile}
         onUnlock={() => setIsLocked(false)}
         onSwitchAccount={() => {
           setIsLocked(false);
+          setUserProfile({
+            name: '',
+            phone: '',
+            email: '',
+            bonusPoints: 0,
+            isRegistered: false,
+            biometricsEnabled: false,
+          });
           setIsAuthModalVisible(true);
         }}
         locale={locale}
@@ -124,11 +132,13 @@ function MainScreen() {
 
   const handleOrderCreated = (order: MobileOrder) => {
     setOrders(prev => [order, ...prev]);
-    const earnedPoints = Math.round(order.totalKzt * 0.05);
-    setUserProfile(prev => ({
-      ...prev,
-      bonusPoints: prev.bonusPoints + earnedPoints,
-    }));
+    if (userProfile.isRegistered) {
+      const earnedPoints = Math.round(order.totalKzt * 0.05);
+      setUserProfile(prev => ({
+        ...prev,
+        bonusPoints: prev.bonusPoints + earnedPoints,
+      }));
+    }
     // Remove only the items that were ordered from the cart
     setCart(prev =>
       prev.filter(
@@ -224,6 +234,8 @@ function MainScreen() {
             locale={locale}
             onToggleLocale={handleToggleLocale}
             recentlyViewedIds={recentlyViewedIds}
+            userProfile={userProfile}
+            onOpenAuthModal={() => setIsAuthModalVisible(true)}
           />
         ) : activeTab === 'catalog' ? (
           <CatalogScreen
@@ -270,11 +282,14 @@ function MainScreen() {
             onLockApp={() => setIsLocked(true)}
             onOpenAuthModal={() => setIsAuthModalVisible(true)}
             onLogout={() => {
-              setUserProfile(prev => ({
-                ...prev,
+              setUserProfile({
+                name: '',
+                phone: '',
+                email: '',
+                bonusPoints: 0,
                 isRegistered: false,
-              }));
-              setIsAuthModalVisible(true);
+                biometricsEnabled: false,
+              });
             }}
           />
         )}
@@ -284,8 +299,23 @@ function MainScreen() {
       <KaspiAuthModal
         visible={isAuthModalVisible}
         onClose={() => setIsAuthModalVisible(false)}
+        registeredUsers={registeredUsers}
+        onRegisterUser={newUser => {
+          setRegisteredUsers(prev => [newUser, ...prev.filter(u => u.phone !== newUser.phone)]);
+        }}
         onSuccess={newProfile => {
           setUserProfile(newProfile);
+          // Also persist / update into registeredUsers
+          setRegisteredUsers(prev => [
+            {
+              phone: newProfile.phone,
+              name: newProfile.name,
+              email: newProfile.email || '',
+              bonusPoints: newProfile.bonusPoints,
+              biometricsEnabled: newProfile.biometricsEnabled,
+            },
+            ...prev.filter(u => u.phone !== newProfile.phone),
+          ]);
           setIsAuthModalVisible(false);
           setIsLocked(false);
         }}

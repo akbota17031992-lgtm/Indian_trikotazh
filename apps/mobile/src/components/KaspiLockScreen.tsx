@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
-  Alert,
+  ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import * as LocalAuthentication from 'expo-local-authentication';
@@ -19,293 +19,153 @@ interface Props {
   locale: 'ru' | 'kz';
 }
 
+function maskPhoneNumber(phone: string): string {
+  // Format +7 (701) •••-••-12
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length >= 10) {
+    const code = digits.slice(-10, -7);
+    const last2 = digits.slice(-2);
+    return `+7 (${code}) •••-••-${last2}`;
+  }
+  return phone;
+}
+
 export function KaspiLockScreen({ userProfile, onUnlock, onSwitchAccount, locale }: Props) {
-  const [unlockMode, setUnlockMode] = useState<'pin' | 'pattern'>(
-    userProfile.preferredUnlockMode || 'pin'
-  );
-  const [enteredPin, setEnteredPin] = useState('');
-  const [pinError, setPinError] = useState<string | null>(null);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
-  // Pattern unlock state
-  const [enteredPatternNodes, setEnteredPatternNodes] = useState<number[]>([]);
-  const [patternError, setPatternError] = useState<string | null>(null);
-
-  // Trigger Face ID / Touch ID automatically on mount if enabled
+  // Auto trigger biometrics / phone screen lock when screen appears
   useEffect(() => {
-    if (userProfile.biometricsEnabled) {
-      triggerBiometrics();
-    }
-  }, [userProfile.biometricsEnabled]);
+    handleSystemUnlock();
+  }, []);
 
-  const triggerBiometrics = async () => {
+  const handleSystemUnlock = async () => {
+    setAuthError(null);
+    setIsAuthenticating(true);
     try {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
 
-      if (hasHardware && isEnrolled) {
-        const result = await LocalAuthentication.authenticateAsync({
-          promptMessage:
-            locale === 'kz'
-              ? 'Қосымшаға кіруді растаңыз (Face ID / Touch ID)'
-              : 'Подтвердите вход в Индийский Трикотаж',
-          cancelLabel: locale === 'kz' ? 'Бас тарту' : 'Отмена',
-          fallbackLabel: locale === 'kz' ? 'ПИН-кодпен кіру' : 'Ввести ПИН-код',
-          disableDeviceFallback: true,
-        });
+      if (!hasHardware || !isEnrolled) {
+        // Fallback or no lock set on device
+        setIsAuthenticating(false);
+        onUnlock();
+        return;
+      }
 
-        if (result.success) {
-          onUnlock();
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage:
+          locale === 'kz'
+            ? 'Индийский Трикотаж қосымшасына кіру'
+            : 'Вход в Индийский Трикотаж',
+        cancelLabel: locale === 'kz' ? 'Бас тарту' : 'Отмена',
+        disableDeviceFallback: false, // Uses device PIN / pattern if biometrics fails!
+      });
+
+      setIsAuthenticating(false);
+
+      if (result.success) {
+        onUnlock();
+      } else {
+        if (result.error !== 'user_cancel') {
+          setAuthError(
+            locale === 'kz'
+              ? 'Растау орындалмады. Қайталап көріңіз'
+              : 'Подтверждение не выполнено. Попробуйте еще раз'
+          );
         }
       }
     } catch {
-      // Biometrics not available on this device or cancelled, fallback to PIN
+      setIsAuthenticating(false);
+      // If error occurs, let user try again via button
     }
   };
 
-  // PIN keypad handling
-  const handleKeyPress = (num: string) => {
-    setPinError(null);
-    if (enteredPin.length < 4) {
-      const next = enteredPin + num;
-      setEnteredPin(next);
-
-      if (next.length === 4) {
-        const targetPin = userProfile.pinCode || '1234';
-        if (next === targetPin || next === '1234') {
-          setTimeout(() => {
-            onUnlock();
-          }, 150);
-        } else {
-          setPinError(locale === 'kz' ? 'Қате ПИН-код' : 'Неверный ПИН-код');
-          setTimeout(() => {
-            setEnteredPin('');
-          }, 500);
-        }
-      }
-    }
-  };
-
-  const handleKeyBackspace = () => {
-    setPinError(null);
-    setEnteredPin(prev => prev.slice(0, -1));
-  };
-
-  // Pattern handling
-  const handleTogglePatternNode = (nodeIdx: number) => {
-    setPatternError(null);
-    if (!enteredPatternNodes.includes(nodeIdx)) {
-      const next = [...enteredPatternNodes, nodeIdx];
-      setEnteredPatternNodes(next);
-
-      const targetPattern = userProfile.patternCode || '0-1-2-5-8';
-      const enteredStr = next.join('-');
-
-      if (enteredStr === targetPattern || (next.length >= 4 && enteredStr === '0-1-2-5-8')) {
-        setTimeout(() => {
-          onUnlock();
-        }, 180);
-      } else if (next.length >= 5) {
-        setPatternError(locale === 'kz' ? 'Қате сурет' : 'Неверный рисунок');
-        setTimeout(() => {
-          setEnteredPatternNodes([]);
-        }, 500);
-      }
-    }
-  };
-
-  // Mask phone e.g. +7 701 ••• •• 12
-  const maskedPhone = React.useMemo(() => {
-    const raw = userProfile.phone || '+7 (701) 992-84-12';
-    if (raw.length >= 10) {
-      return `${raw.slice(0, 6)} ••• •• ${raw.slice(-2)}`;
-    }
-    return raw;
-  }, [userProfile.phone]);
-
-  const initials = React.useMemo(() => {
-    const parts = (userProfile.name || 'Достияр').trim().split(/\s+/);
-    if (parts.length >= 2) {
-      return `${parts[0]![0]}${parts[1]![0]}`.toUpperCase();
-    }
-    return (userProfile.name?.[0] || 'Д').toUpperCase();
-  }, [userProfile.name]);
+  const initials = userProfile.name
+    ? userProfile.name
+        .split(' ')
+        .map(p => p[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase()
+    : 'ИТ';
 
   return (
-    <SafeAreaView style={styles.safeContainer}>
+    <SafeAreaView style={styles.safeArea}>
       <StatusBar style="dark" />
       <View style={styles.container}>
-        {/* Top Header & User Greeting (Kaspi Style) */}
-        <View style={styles.userGreetingCard}>
-          <View style={styles.avatarCircle}>
-            <Text style={styles.avatarText}>{initials}</Text>
-          </View>
-          <Text style={styles.greetingTitle}>
-            {locale === 'kz' ? 'Қайырлы күн' : 'Здравствуйте'}, {userProfile.name || 'Достияр'}!
-          </Text>
-          <Text style={styles.greetingPhone}>{maskedPhone}</Text>
+        {/* Top Header Badge */}
+        <View style={styles.headerBadge}>
+          <Ionicons name="shield-checkmark" size={16} color="#059669" />
+          <Text style={styles.headerBadgeText}>Kaspi ID Безопасность</Text>
         </View>
 
-        {/* UNLOCK MODE 1: 4-digit PIN Code */}
-        {unlockMode === 'pin' && (
-          <View style={styles.unlockBody}>
-            <Text style={styles.modeHeading}>
-              {locale === 'kz' ? 'ПИН-кодты енгізіңіз' : 'Введите ПИН-код'}
-            </Text>
-
-            {/* 4 Indicator Dots */}
-            <View style={styles.pinDotsRow}>
-              {[0, 1, 2, 3].map(idx => {
-                const isFilled = enteredPin.length > idx;
-                return (
-                  <View
-                    key={idx}
-                    style={[
-                      styles.pinDot,
-                      isFilled && styles.pinDotFilled,
-                      pinError && styles.pinDotError,
-                    ]}
-                  />
-                );
-              })}
-            </View>
-
-            {pinError && <Text style={styles.errorText}>{pinError}</Text>}
-
-            {/* Numeric Keypad */}
-            <View style={styles.keypadGrid}>
-              {[
-                ['1', '2', '3'],
-                ['4', '5', '6'],
-                ['7', '8', '9'],
-                ['faceid', '0', '⌫'],
-              ].map((row, rIdx) => (
-                <View key={rIdx} style={styles.keypadRow}>
-                  {row.map((btn, bIdx) => {
-                    if (btn === 'faceid') {
-                      return (
-                        <TouchableOpacity
-                          key={bIdx}
-                          style={styles.keypadSpecialBtn}
-                          onPress={triggerBiometrics}
-                          activeOpacity={0.7}
-                        >
-                          <Ionicons name="scan-outline" size={26} color="#b45309" />
-                        </TouchableOpacity>
-                      );
-                    }
-                    if (btn === '⌫') {
-                      return (
-                        <TouchableOpacity
-                          key={bIdx}
-                          style={styles.keypadSpecialBtn}
-                          onPress={handleKeyBackspace}
-                          activeOpacity={0.7}
-                        >
-                          <Ionicons name="backspace-outline" size={24} color="#334155" />
-                        </TouchableOpacity>
-                      );
-                    }
-                    return (
-                      <TouchableOpacity
-                        key={bIdx}
-                        style={styles.keypadBtn}
-                        onPress={() => handleKeyPress(btn)}
-                        activeOpacity={0.65}
-                      >
-                        <Text style={styles.keypadBtnText}>{btn}</Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              ))}
-            </View>
-
-            {/* Switch to Pattern */}
-            <TouchableOpacity
-              style={styles.switchModeBtn}
-              onPress={() => setUnlockMode('pattern')}
-              activeOpacity={0.75}
-            >
-              <Ionicons name="grid-outline" size={16} color="#b45309" style={{ marginRight: 6 }} />
-              <Text style={styles.switchModeText}>
-                {locale === 'kz' ? 'Графикалық кілтпен кіру' : 'Вход по графическому ключу'}
-              </Text>
-            </TouchableOpacity>
+        {/* User Card */}
+        <View style={styles.userSection}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{initials}</Text>
           </View>
-        )}
 
-        {/* UNLOCK MODE 2: Graphic Pattern Matrix */}
-        {unlockMode === 'pattern' && (
-          <View style={styles.unlockBody}>
-            <Text style={styles.modeHeading}>
-              {locale === 'kz' ? 'Графикалық кілтті салыңыз' : 'Нарисуйте ключ разблокировки'}
+          <Text style={styles.greeting}>
+            {locale === 'kz'
+              ? `Қайырлы күн, ${userProfile.name.split(' ')[0]}!`
+              : `Здравствуйте, ${userProfile.name.split(' ')[0]}!`}
+          </Text>
+
+          <Text style={styles.maskedPhone}>{maskPhoneNumber(userProfile.phone)}</Text>
+
+          <View style={styles.bonusTag}>
+            <Ionicons name="star" size={14} color="#d97706" style={{ marginRight: 4 }} />
+            <Text style={styles.bonusText}>
+              {locale === 'kz' ? 'Бонустық шот:' : 'Бонусный баланс:'}{' '}
+              <Text style={{ fontWeight: '800' }}>{userProfile.bonusPoints} ₸</Text>
             </Text>
-
-            <View style={styles.patternBox}>
-              <View style={styles.patternGrid}>
-                {[0, 1, 2, 3, 4, 5, 6, 7, 8].map(nodeIdx => {
-                  const isSelected = enteredPatternNodes.includes(nodeIdx);
-                  const order = enteredPatternNodes.indexOf(nodeIdx) + 1;
-                  return (
-                    <TouchableOpacity
-                      key={nodeIdx}
-                      style={[
-                        styles.patternNode,
-                        isSelected && styles.patternNodeActive,
-                        patternError && styles.patternNodeError,
-                      ]}
-                      onPress={() => handleTogglePatternNode(nodeIdx)}
-                      activeOpacity={0.7}
-                    >
-                      {isSelected ? (
-                        <Text style={styles.patternNodeText}>{order}</Text>
-                      ) : (
-                        <View style={styles.patternNodeDot} />
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-
-            {patternError && <Text style={styles.errorText}>{patternError}</Text>}
-
-            {/* Switch to PIN */}
-            <TouchableOpacity
-              style={styles.switchModeBtn}
-              onPress={() => setUnlockMode('pin')}
-              activeOpacity={0.75}
-            >
-              <Ionicons name="keypad-outline" size={16} color="#b45309" style={{ marginRight: 6 }} />
-              <Text style={styles.switchModeText}>
-                {locale === 'kz' ? 'ПИН-кодпен кіру' : 'Ввести ПИН-код'}
-              </Text>
-            </TouchableOpacity>
           </View>
-        )}
+        </View>
 
-        {/* Bottom Actions: Log Out / Switch Account */}
-        <View style={styles.bottomBar}>
+        {/* Unlock Action Center */}
+        <View style={styles.actionCenter}>
+          <TouchableOpacity
+            style={styles.biometricCircleBtn}
+            onPress={handleSystemUnlock}
+            activeOpacity={0.8}
+            disabled={isAuthenticating}
+          >
+            {isAuthenticating ? (
+              <ActivityIndicator size="large" color="#b45309" />
+            ) : (
+              <Ionicons name="scan-circle" size={88} color="#b45309" />
+            )}
+          </TouchableOpacity>
+
+          <Text style={styles.promptText}>
+            {locale === 'kz'
+              ? 'Face ID немесе телефонды бұғаттау кодымен кіру'
+              : 'Вход по Face ID или коду разблокировки телефона'}
+          </Text>
+
+          {authError && <Text style={styles.errorText}>{authError}</Text>}
+
+          <TouchableOpacity
+            style={styles.unlockBtn}
+            onPress={handleSystemUnlock}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="lock-open-outline" size={18} color="#ffffff" style={{ marginRight: 6 }} />
+            <Text style={styles.unlockBtnText}>
+              {locale === 'kz' ? 'Қайта растау' : 'Разблокировать'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Footer Actions */}
+        <View style={styles.footerSection}>
           <TouchableOpacity
             style={styles.switchAccountBtn}
-            onPress={() => {
-              Alert.alert(
-                locale === 'kz' ? 'Басқа нөмірмен кіру' : 'Войти под другим номером',
-                locale === 'kz'
-                  ? 'Ағымдағы сессиядан шығып, жаңа нөмірмен кіруді қалайсыз ба?'
-                  : 'Выйти из текущего аккаунта и авторизоваться с другим номером телефона?',
-                [
-                  { text: locale === 'kz' ? 'Жоқ' : 'Отмена', style: 'cancel' },
-                  {
-                    text: locale === 'kz' ? 'Иә, шығу' : 'Да, выйти',
-                    style: 'destructive',
-                    onPress: onSwitchAccount,
-                  },
-                ]
-              );
-            }}
+            onPress={onSwitchAccount}
             activeOpacity={0.7}
           >
+            <Ionicons name="log-out-outline" size={16} color="#64748b" style={{ marginRight: 6 }} />
             <Text style={styles.switchAccountText}>
               {locale === 'kz' ? 'Басқа нөмірмен кіру' : 'Войти под другим номером'}
             </Text>
@@ -317,198 +177,151 @@ export function KaspiLockScreen({ userProfile, onUnlock, onSwitchAccount, locale
 }
 
 const styles = StyleSheet.create({
-  safeContainer: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#fdfbf7',
   },
   container: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 20,
     justifyContent: 'space-between',
+    paddingVertical: 20,
   },
-  userGreetingCard: {
-    alignItems: 'center',
-    paddingVertical: 14,
-  },
-  avatarCircle: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    backgroundColor: '#fef2f2',
-    borderWidth: 2,
-    borderColor: '#fca5a5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-    shadowColor: '#dc2626',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  avatarText: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: '#dc2626',
-  },
-  greetingTitle: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: '#0f172a',
-    textAlign: 'center',
-  },
-  greetingPhone: {
-    fontSize: 13,
-    color: '#64748b',
-    marginTop: 3,
-    fontWeight: '500',
-  },
-  unlockBody: {
-    alignItems: 'center',
-    width: '100%',
-  },
-  modeHeading: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#475569',
-    marginBottom: 8,
-  },
-  pinDotsRow: {
+  headerBadge: {
+    alignSelf: 'center',
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 18,
-    marginVertical: 14,
+    alignItems: 'center',
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 6,
   },
-  pinDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#cbd5e1',
-    backgroundColor: '#ffffff',
-  },
-  pinDotFilled: {
-    backgroundColor: '#dc2626',
-    borderColor: '#dc2626',
-  },
-  pinDotError: {
-    borderColor: '#ef4444',
-    backgroundColor: '#fee2e2',
-  },
-  errorText: {
-    color: '#ef4444',
+  headerBadgeText: {
     fontSize: 12,
     fontWeight: '700',
-    marginBottom: 10,
+    color: '#065f46',
   },
-  keypadGrid: {
-    width: '100%',
-    maxWidth: 290,
-    gap: 12,
-    marginVertical: 6,
-  },
-  keypadRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  keypadBtn: {
-    width: 72,
-    height: 62,
-    borderRadius: 20,
-    backgroundColor: '#f8fafc',
+  userSection: {
     alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+    marginTop: 20,
   },
-  keypadSpecialBtn: {
-    width: 72,
-    height: 62,
-    borderRadius: 20,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  keypadBtnText: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#0f172a',
-  },
-  switchModeBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 18,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 20,
+  avatar: {
+    width: 86,
+    height: 86,
+    borderRadius: 43,
     backgroundColor: '#fffbeb',
+    borderWidth: 3,
+    borderColor: '#fde68a',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    elevation: 3,
+    shadowColor: '#b45309',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
   },
-  switchModeText: {
-    fontSize: 13,
-    fontWeight: '700',
+  avatarText: {
+    fontSize: 30,
+    fontWeight: '800',
     color: '#b45309',
   },
-  patternBox: {
-    alignItems: 'center',
-    marginVertical: 14,
-    padding: 12,
-    backgroundColor: '#f8fafc',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+  greeting: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#0f172a',
+    marginBottom: 4,
   },
-  patternGrid: {
-    width: 230,
-    height: 230,
+  maskedPhone: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#64748b',
+    marginBottom: 12,
+  },
+  bonusTag: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    alignContent: 'space-between',
-    padding: 10,
+    alignItems: 'center',
+    backgroundColor: '#fef3c7',
+    borderWidth: 1,
+    borderColor: '#fde68a',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
   },
-  patternNode: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  bonusText: {
+    fontSize: 13,
+    color: '#78350f',
+  },
+  actionCenter: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  biometricCircleBtn: {
+    width: 104,
+    height: 104,
+    borderRadius: 52,
     backgroundColor: '#ffffff',
-    borderWidth: 2,
-    borderColor: '#cbd5e1',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    borderWidth: 1,
+    borderColor: '#fed7aa',
+  },
+  promptText: {
+    fontSize: 14,
+    color: '#64748b',
+    textAlign: 'center',
+    maxWidth: 260,
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  errorText: {
+    fontSize: 13,
+    color: '#dc2626',
+    fontWeight: '600',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  unlockBtn: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#b45309',
+    paddingHorizontal: 28,
+    height: 48,
+    borderRadius: 14,
+    elevation: 2,
+    shadowColor: '#b45309',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
   },
-  patternNodeActive: {
-    borderColor: '#dc2626',
-    backgroundColor: '#dc2626',
-  },
-  patternNodeError: {
-    borderColor: '#ef4444',
-    backgroundColor: '#fee2e2',
-  },
-  patternNodeDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#64748b',
-  },
-  patternNodeText: {
+  unlockBtnText: {
     color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '900',
+    fontSize: 15,
+    fontWeight: '700',
   },
-  bottomBar: {
+  footerSection: {
     alignItems: 'center',
-    paddingTop: 10,
+    paddingBottom: 10,
   },
   switchAccountBtn: {
-    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 16,
+    paddingVertical: 10,
   },
   switchAccountText: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 14,
     color: '#64748b',
-    textDecorationLine: 'underline',
+    fontWeight: '600',
   },
 });

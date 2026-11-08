@@ -62,8 +62,5 @@ export interface UserProfile {
   email?: string;
   bonusPoints: number;
   isRegistered: boolean;
-  pinCode?: string;
-  patternCode?: string;
   biometricsEnabled?: boolean;
-  preferredUnlockMode?: 'pin' | 'pattern';
 }

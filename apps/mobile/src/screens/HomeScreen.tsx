@@ -14,7 +14,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { formatKZT, ALMATY_STORES_SEED } from '@india-trikotaj/shared';
 import { MOBILE_PRODUCTS } from '../data/mock-products';
-import type { MobileProduct } from '../types';
+import type { MobileProduct, UserProfile } from '../types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_CARD_WIDTH = SCREEN_WIDTH - 32;
@@ -31,6 +31,8 @@ interface Props {
   locale: 'ru' | 'kz';
   onToggleLocale: () => void;
   recentlyViewedIds: string[];
+  userProfile?: UserProfile;
+  onOpenAuthModal?: () => void;
 }
 
 interface HomeProductCardProps {
@@ -182,6 +184,8 @@ export function HomeScreen({
   locale,
   onToggleLocale,
   recentlyViewedIds,
+  userProfile,
+  onOpenAuthModal,
 }: Props) {
   const carouselRef = useRef<any>(null);
   const [activeSlide, setActiveSlide] = useState(0);
@@ -365,14 +369,72 @@ export function HomeScreen({
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Top Header */}
       <View style={styles.header}>
-        <View>
+        <View style={{ flex: 1, marginRight: 8 }}>
           <Text style={styles.brandTitle}>ИНДИЙСКИЙ ТРИКОТАЖ</Text>
           <Text style={styles.brandSubtitle}>Прямой импорт из Индии • Алматы</Text>
         </View>
-        <TouchableOpacity style={styles.langBadge} onPress={onToggleLocale} activeOpacity={0.8}>
-          <Text style={styles.langText}>{locale === 'ru' ? 'KZ 🇰🇿' : 'RU 🇷🇺'}</Text>
-        </TouchableOpacity>
+
+        <View style={styles.headerRightActions}>
+          {userProfile?.isRegistered ? (
+            <TouchableOpacity
+              style={styles.headerUserPill}
+              onPress={onNavigateToProfile}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="person-circle" size={17} color="#fde68a" />
+              <Text style={styles.headerUserName}>
+                {userProfile.name.split(' ')[0]}
+              </Text>
+              <View style={styles.headerBonusPill}>
+                <Text style={styles.headerBonusPillText}>{userProfile.bonusPoints} ₸</Text>
+              </View>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.headerLoginBtn}
+              onPress={onOpenAuthModal}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="log-in-outline" size={16} color="#ffffff" style={{ marginRight: 4 }} />
+              <Text style={styles.headerLoginBtnText}>
+                {locale === 'kz' ? 'Кіру' : 'Войти'}
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity style={styles.langBadge} onPress={onToggleLocale} activeOpacity={0.8}>
+            <Text style={styles.langText}>{locale === 'ru' ? 'KZ 🇰🇿' : 'RU 🇷🇺'}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
+
+      {/* Guest Welcome Bonus Banner */}
+      {!userProfile?.isRegistered && (
+        <TouchableOpacity
+          style={styles.guestBanner}
+          onPress={onOpenAuthModal}
+          activeOpacity={0.85}
+        >
+          <View style={styles.guestGiftCircle}>
+            <Ionicons name="gift" size={18} color="#b45309" />
+          </View>
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <Text style={styles.guestBannerTitle}>
+              {locale === 'kz' ? '+1 000 ₸ сәлемдесу бонусы' : '+1 000 ₸ при регистрации'}
+            </Text>
+            <Text style={styles.guestBannerSub}>
+              {locale === 'kz'
+                ? 'Кіріңіз немесе тіркеліңіз — бонустар кез келген тапсырысқа жарамды'
+                : 'Войдите или зарегистрируйтесь для начисления бонусов'}
+            </Text>
+          </View>
+          <View style={styles.guestBannerBtn}>
+            <Text style={styles.guestBannerBtnText}>
+              {locale === 'kz' ? 'Кіру' : 'Войти'}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      )}
 
       {/* Search Bar */}
       <View style={styles.searchBarWrapper}>
@@ -783,6 +845,97 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  headerRightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerLoginBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#059669',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#34d399',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+  },
+  headerLoginBtnText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  headerUserPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    paddingLeft: 8,
+    paddingRight: 5,
+    paddingVertical: 4,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+    gap: 6,
+  },
+  headerUserName: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  headerBonusPill: {
+    backgroundColor: '#fef3c7',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  headerBonusPillText: {
+    color: '#78350f',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  guestBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fffbeb',
+    borderBottomWidth: 1,
+    borderBottomColor: '#fde68a',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  guestGiftCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#fef3c7',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  guestBannerTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#78350f',
+  },
+  guestBannerSub: {
+    fontSize: 11,
+    color: '#92400e',
+    marginTop: 1,
+  },
+  guestBannerBtn: {
+    backgroundColor: '#b45309',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  guestBannerBtnText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '700',
   },
   brandTitle: { color: '#fef3c7', fontSize: 16, fontWeight: '800', letterSpacing: 0.6 },
   brandSubtitle: { color: '#fde68a', fontSize: 11, marginTop: 1 },

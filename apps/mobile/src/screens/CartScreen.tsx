@@ -59,10 +59,18 @@ export function CartScreen({
   const [selectedDistrict, setSelectedDistrict] = useState(ALMATY_DISTRICTS[0]!.ru);
   const [streetAddress, setStreetAddress] = useState('');
   const [apartment, setApartment] = useState('');
-  const [customerName, setCustomerName] = useState(userProfile?.name || 'Достияр');
-  const [customerPhone, setCustomerPhone] = useState(userProfile?.phone || '+7 (701) 992-84-12');
+  const [customerName, setCustomerName] = useState(userProfile?.isRegistered ? userProfile.name : '');
+  const [customerPhone, setCustomerPhone] = useState(userProfile?.isRegistered ? userProfile.phone : '');
   const [comment, setComment] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'kaspi_pay' | 'cash_on_delivery'>('kaspi_pay');
+
+  // Keep customer name/phone in sync with user profile
+  useEffect(() => {
+    if (userProfile?.isRegistered) {
+      if (userProfile.name) setCustomerName(userProfile.name);
+      if (userProfile.phone) setCustomerPhone(userProfile.phone);
+    }
+  }, [userProfile?.isRegistered, userProfile?.name, userProfile?.phone]);
 
   const [isKaspiModalOpen, setIsKaspiModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -638,6 +646,27 @@ export function CartScreen({
               <Text style={styles.calcValTotal}>{formatKZT(totalKzt)}</Text>
             </View>
 
+            {/* Bonus Accrual / Guest Notice */}
+            {userProfile?.isRegistered ? (
+              <View style={styles.bonusAccrualRow}>
+                <Ionicons name="gift" size={15} color="#b45309" />
+                <Text style={styles.bonusAccrualText}>
+                  {locale === 'kz'
+                    ? `Тапсырыс үшін +${formatKZT(Math.round(totalKzt * 0.05))} бонус беріледі`
+                    : `Будет начислено +${formatKZT(Math.round(totalKzt * 0.05))} бонусов (5%)`}
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.guestWarningRow}>
+                <Ionicons name="information-circle-outline" size={15} color="#64748b" />
+                <Text style={styles.guestWarningText}>
+                  {locale === 'kz'
+                    ? 'Қонақ ретінде тапсырыс (бонустар жиналмайды)'
+                    : 'Гостевой заказ (бонусы и кешбэк не начисляются)'}
+                </Text>
+              </View>
+            )}
+
             <TouchableOpacity
               style={[styles.checkoutBtn, selectedItems.length === 0 && styles.checkoutBtnDisabled]}
               onPress={handleStartCheckout}
@@ -898,6 +927,36 @@ const styles = StyleSheet.create({
   calcVal: { fontSize: 13, fontWeight: '600', color: '#0f172a' },
   calcLabelTotal: { fontSize: 15, fontWeight: '800', color: '#0f172a' },
   calcValTotal: { fontSize: 18, fontWeight: '900', color: '#b45309' },
+  bonusAccrualRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fffbeb',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginTop: 10,
+    gap: 6,
+  },
+  bonusAccrualText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#b45309',
+  },
+  guestWarningRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginTop: 10,
+    gap: 6,
+  },
+  guestWarningText: {
+    fontSize: 11,
+    color: '#64748b',
+    fontWeight: '500',
+  },
   checkoutBtn: {
     marginTop: 14,
     backgroundColor: '#dc2626',
