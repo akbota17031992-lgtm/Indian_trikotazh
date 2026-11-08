@@ -54,58 +54,61 @@ function HomeProductCard({
   const stock = product.stockByStore[selectedStoreId] ?? 10;
 
   return (
-    <TouchableOpacity
-      style={[styles.productCardH, quantityInCart > 0 && styles.productCardInCart]}
-      onPress={() => onSelectProduct(product)}
-      activeOpacity={0.88}
-    >
-      <View style={styles.imageContainerH}>
-        <Image source={{ uri: product.imageUrl }} style={styles.productImageH} resizeMode="cover" />
+    <View style={[styles.productCardH, quantityInCart > 0 && styles.productCardInCart]}>
+      <TouchableOpacity
+        onPress={() => onSelectProduct(product)}
+        activeOpacity={0.88}
+      >
+        <View style={styles.imageContainerH}>
+          <Image source={{ uri: product.imageUrl }} style={styles.productImageH} resizeMode="cover" />
 
-        {/* Top-Left Badges */}
-        {badgeType === 'discount' && product.oldPriceKzt && (
-          <View style={styles.discountBadge}>
-            <Text style={styles.discountText}>
-              -{Math.round(((product.oldPriceKzt - product.priceKzt) / product.oldPriceKzt) * 100)}%
-            </Text>
-          </View>
-        )}
-        {badgeType === 'new' && (
-          <View style={styles.newBadge}>
-            <Text style={styles.newBadgeText}>NEW</Text>
-          </View>
-        )}
-        {badgeType === 'rec' && (
-          <View style={styles.recBadge}>
-            <Text style={styles.recBadgeText}>✨ TOP</Text>
-          </View>
-        )}
+          {/* Top-Left Badges */}
+          {badgeType === 'discount' && product.oldPriceKzt && (
+            <View style={styles.discountBadge}>
+              <Text style={styles.discountText}>
+                -{Math.round(((product.oldPriceKzt - product.priceKzt) / product.oldPriceKzt) * 100)}%
+              </Text>
+            </View>
+          )}
+          {badgeType === 'new' && (
+            <View style={styles.newBadge}>
+              <Text style={styles.newBadgeText}>NEW</Text>
+            </View>
+          )}
+          {badgeType === 'rec' && (
+            <View style={styles.recBadge}>
+              <Text style={styles.recBadgeText}>✨ TOP</Text>
+            </View>
+          )}
 
-        {/* Top-Right Permanent In-Cart Badge Marker */}
-        {quantityInCart > 0 && (
-          <View style={styles.inCartBadge}>
-            <Ionicons name="checkmark-circle" size={10} color="#ffffff" />
-            <Text style={styles.inCartBadgeText}>
-              {quantityInCart} {locale === 'kz' ? 'себетте' : 'в корзине'}
-            </Text>
-          </View>
-        )}
-      </View>
-
-      <View style={styles.productBodyH}>
-        <View style={styles.stockStatusRow}>
-          <View style={[styles.stockDot, { backgroundColor: stock > 0 ? '#10b981' : '#f59e0b' }]} />
-          <Text style={styles.stockTextH}>
-            {stock > 0
-              ? locale === 'kz' ? `Қоймада: ${stock} дана` : `В наличии: ${stock} шт.`
-              : locale === 'kz' ? 'Тапсырыспен' : 'Под заказ'}
-          </Text>
+          {/* Top-Right Permanent In-Cart Badge Marker */}
+          {quantityInCart > 0 && (
+            <View style={styles.inCartBadge}>
+              <Ionicons name="checkmark-circle" size={10} color="#ffffff" />
+              <Text style={styles.inCartBadgeText}>
+                {quantityInCart} {locale === 'kz' ? 'себетте' : 'в корзине'}
+              </Text>
+            </View>
+          )}
         </View>
 
-        <Text style={styles.productTitleH} numberOfLines={2}>
-          {locale === 'kz' ? product.titleKz : product.titleRu}
-        </Text>
+        <View style={styles.productBodyTopH}>
+          <View style={styles.stockStatusRow}>
+            <View style={[styles.stockDot, { backgroundColor: stock > 0 ? '#10b981' : '#f59e0b' }]} />
+            <Text style={styles.stockTextH}>
+              {stock > 0
+                ? locale === 'kz' ? `Қоймада: ${stock} дана` : `В наличии: ${stock} шт.`
+                : locale === 'kz' ? 'Тапсырыспен' : 'Под заказ'}
+            </Text>
+          </View>
 
+          <Text style={styles.productTitleH} numberOfLines={2}>
+            {locale === 'kz' ? product.titleKz : product.titleRu}
+          </Text>
+        </View>
+      </TouchableOpacity>
+
+      <View style={styles.productBodyBottomH}>
         <View style={styles.priceRowH}>
           <View style={{ flex: 1, paddingRight: 4 }}>
             <Text style={styles.productPriceH}>{formatKZT(product.priceKzt)}</Text>
@@ -158,7 +161,7 @@ function HomeProductCard({
           </View>
         )}
       </View>
-    </TouchableOpacity>
+    </View>
   );
 }
 
@@ -717,6 +720,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   productBodyH: { padding: 10 },
+  productBodyTopH: { paddingHorizontal: 10, paddingTop: 10 },
+  productBodyBottomH: { paddingHorizontal: 10, paddingBottom: 10, paddingTop: 2 },
   stockStatusRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
   stockDot: { width: 6, height: 6, borderRadius: 3 },
   stockTextH: { fontSize: 10, color: '#047857', fontWeight: '600' },

@@ -151,6 +151,9 @@ function MainScreen() {
             product={selectedProduct}
             onBack={() => setSelectedProduct(null)}
             onAddToCart={handleAddToCart}
+            onIncreaseQuantity={handleIncreaseQuantity}
+            onDecreaseQuantity={handleDecreaseQuantity}
+            quantityInCart={cartProductQuantities[selectedProduct.id] || 0}
             selectedStoreId={selectedStoreId}
             locale={locale}
           />

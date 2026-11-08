@@ -221,52 +221,55 @@ export function CatalogScreen({
           const stock = item.stockByStore[selectedStoreId] ?? 0;
           const quantityInCart = cartProductQuantities[item.id] || 0;
           return (
-            <TouchableOpacity
-              style={[styles.card, quantityInCart > 0 && styles.cardInCart]}
-              onPress={() => onSelectProduct(item)}
-              activeOpacity={0.88}
-            >
-              <View style={styles.cardImageContainer}>
-                <Image source={{ uri: item.imageUrl }} style={styles.cardImage} resizeMode="cover" />
+            <View style={[styles.card, quantityInCart > 0 && styles.cardInCart]}>
+              <TouchableOpacity
+                onPress={() => onSelectProduct(item)}
+                activeOpacity={0.88}
+              >
+                <View style={styles.cardImageContainer}>
+                  <Image source={{ uri: item.imageUrl }} style={styles.cardImage} resizeMode="cover" />
 
-                {/* Discount Badge */}
-                {item.oldPriceKzt && (
-                  <View style={styles.discountBadge}>
-                    <Text style={styles.discountBadgeText}>
-                      -{Math.round(((item.oldPriceKzt - item.priceKzt) / item.oldPriceKzt) * 100)}%
-                    </Text>
-                  </View>
-                )}
+                  {/* Discount Badge */}
+                  {item.oldPriceKzt && (
+                    <View style={styles.discountBadge}>
+                      <Text style={styles.discountBadgeText}>
+                        -{Math.round(((item.oldPriceKzt - item.priceKzt) / item.oldPriceKzt) * 100)}%
+                      </Text>
+                    </View>
+                  )}
 
-                {/* In-Cart Badge Marker */}
-                {quantityInCart > 0 && (
-                  <View style={styles.inCartBadge}>
-                    <Ionicons name="checkmark-circle" size={11} color="#ffffff" />
-                    <Text style={styles.inCartBadgeText}>
-                      {quantityInCart} {locale === 'kz' ? 'себетте' : 'в корзине'}
-                    </Text>
-                  </View>
-                )}
-              </View>
-
-              <View style={styles.cardBody}>
-                <View style={styles.stockBadgeRow}>
-                  <View style={[styles.stockDot, { backgroundColor: stock > 0 ? '#10b981' : '#f59e0b' }]} />
-                  <Text style={[styles.stockText, stock === 0 && styles.stockTextZero]}>
-                    {stock > 0
-                      ? locale === 'kz'
-                        ? `Қоймада: ${stock} дана`
-                        : `В наличии: ${stock} шт.`
-                      : locale === 'kz'
-                      ? 'Басқа дүкендерде бар'
-                      : 'В других филиалах'}
-                  </Text>
+                  {/* In-Cart Badge Marker */}
+                  {quantityInCart > 0 && (
+                    <View style={styles.inCartBadge}>
+                      <Ionicons name="checkmark-circle" size={11} color="#ffffff" />
+                      <Text style={styles.inCartBadgeText}>
+                        {quantityInCart} {locale === 'kz' ? 'себетте' : 'в корзине'}
+                      </Text>
+                    </View>
+                  )}
                 </View>
 
-                <Text style={styles.cardTitle} numberOfLines={2}>
-                  {locale === 'kz' ? item.titleKz : item.titleRu}
-                </Text>
+                <View style={styles.cardBodyTop}>
+                  <View style={styles.stockBadgeRow}>
+                    <View style={[styles.stockDot, { backgroundColor: stock > 0 ? '#10b981' : '#f59e0b' }]} />
+                    <Text style={[styles.stockText, stock === 0 && styles.stockTextZero]}>
+                      {stock > 0
+                        ? locale === 'kz'
+                          ? `Қоймада: ${stock} дана`
+                          : `В наличии: ${stock} шт.`
+                        : locale === 'kz'
+                        ? 'Басқа дүкендерде бар'
+                        : 'В других филиалах'}
+                    </Text>
+                  </View>
 
+                  <Text style={styles.cardTitle} numberOfLines={2}>
+                    {locale === 'kz' ? item.titleKz : item.titleRu}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <View style={styles.cardBodyBottom}>
                 <View style={styles.priceRow}>
                   <View style={{ flex: 1, paddingRight: 4 }}>
                     <Text style={styles.cardPrice}>{formatKZT(item.priceKzt)}</Text>
@@ -321,7 +324,7 @@ export function CatalogScreen({
                   </Text>
                 </View>
               </View>
-            </TouchableOpacity>
+            </View>
           );
         }}
       />
@@ -487,6 +490,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   cardBody: { padding: 10 },
+  cardBodyTop: { paddingHorizontal: 10, paddingTop: 10 },
+  cardBodyBottom: { paddingHorizontal: 10, paddingBottom: 10, paddingTop: 2 },
   stockBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
   stockDot: { width: 6, height: 6, borderRadius: 3 },
   stockText: { color: '#047857', fontSize: 10, fontWeight: '600' },

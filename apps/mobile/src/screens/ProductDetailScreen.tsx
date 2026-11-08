@@ -20,6 +20,9 @@ interface Props {
   product: MobileProduct;
   onBack: () => void;
   onAddToCart: (product: MobileProduct, size: string, color: ProductColor) => void;
+  onIncreaseQuantity: (product: MobileProduct) => void;
+  onDecreaseQuantity: (productId: string) => void;
+  quantityInCart: number;
   selectedStoreId: string;
   locale: 'ru' | 'kz';
 }
@@ -28,6 +31,9 @@ export function ProductDetailScreen({
   product,
   onBack,
   onAddToCart,
+  onIncreaseQuantity,
+  onDecreaseQuantity,
+  quantityInCart,
   selectedStoreId,
   locale,
 }: Props) {
@@ -53,6 +59,14 @@ export function ProductDetailScreen({
     onAddToCart(product, selectedSize, selectedColor);
     setAdded(true);
     setTimeout(() => setAdded(false), 2200);
+  };
+
+  const handleIncrease = () => {
+    onIncreaseQuantity(product);
+  };
+
+  const handleDecrease = () => {
+    onDecreaseQuantity(product.id);
   };
 
   return (
@@ -105,6 +119,16 @@ export function ProductDetailScreen({
               <Text style={styles.bestsellerText}>ХИТ ПРОДАЖ</Text>
             </View>
           )}
+
+          {/* Permanent In-Cart Badge */}
+          {quantityInCart > 0 && (
+            <View style={styles.inCartHeroBadge}>
+              <Ionicons name="checkmark-circle" size={13} color="#ffffff" style={{ marginRight: 4 }} />
+              <Text style={styles.inCartHeroBadgeText}>
+                {locale === 'kz' ? `${quantityInCart} себетте` : `${quantityInCart} в корзине`}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Details Content Box */}
@@ -119,6 +143,30 @@ export function ProductDetailScreen({
             </View>
             <Text style={styles.skuText}>SKU: {product.slug}</Text>
           </View>
+
+          {/* In-Cart Status Box */}
+          {quantityInCart > 0 && (
+            <View style={styles.inCartAlertBox}>
+              <View style={styles.inCartAlertLeft}>
+                <View style={styles.inCartIconCircle}>
+                  <Ionicons name="cart" size={16} color="#059669" />
+                </View>
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text style={styles.inCartAlertTitle}>
+                    {locale === 'kz' ? 'Тауар себетке қосылған' : 'Товар добавлен в корзину'}
+                  </Text>
+                  <Text style={styles.inCartAlertSubtitle}>
+                    {locale === 'kz'
+                      ? `Тапсырысыңызда барлығы: ${quantityInCart} дана`
+                      : `В вашем заказе сейчас: ${quantityInCart} шт.`}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.inCartCountPill}>
+                <Text style={styles.inCartCountPillText}>{quantityInCart} шт</Text>
+              </View>
+            </View>
+          )}
 
           <Text style={styles.title}>{locale === 'kz' ? product.titleKz : product.titleRu}</Text>
 
@@ -254,31 +302,70 @@ export function ProductDetailScreen({
       {/* Bottom Sticky Action Bar */}
       <View style={styles.bottomBar}>
         <View style={styles.bottomPriceCol}>
-          <Text style={styles.bottomPriceLabel}>{locale === 'kz' ? 'Бағасы:' : 'Итого:'}</Text>
-          <Text style={styles.bottomPriceVal}>{formatKZT(product.priceKzt)}</Text>
+          <Text style={styles.bottomPriceLabel}>
+            {quantityInCart > 0
+              ? locale === 'kz'
+                ? `Себетте (${quantityInCart} дана):`
+                : `В корзине (${quantityInCart} шт):`
+              : locale === 'kz'
+              ? 'Бағасы:'
+              : 'Итого:'}
+          </Text>
+          <Text style={styles.bottomPriceVal}>
+            {formatKZT(product.priceKzt * (quantityInCart > 0 ? quantityInCart : 1))}
+          </Text>
         </View>
 
-        <TouchableOpacity
-          style={[styles.addToCartBtn, added && styles.addToCartBtnSuccess]}
-          onPress={handleAdd}
-          activeOpacity={0.85}
-        >
-          <Ionicons
-            name={added ? 'checkmark-circle' : 'cart'}
-            size={18}
-            color="#ffffff"
-            style={{ marginRight: 6 }}
-          />
-          <Text style={styles.addToCartText}>
-            {added
-              ? locale === 'kz'
-                ? 'Қосылды!'
-                : 'Добавлено!'
-              : locale === 'kz'
-              ? 'Себетке салу'
-              : 'В корзину'}
-          </Text>
-        </TouchableOpacity>
+        {quantityInCart > 0 ? (
+          <View style={styles.bottomStepperContainer}>
+            <TouchableOpacity
+              style={styles.bottomStepperBtn}
+              onPress={handleDecrease}
+              activeOpacity={0.7}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="remove" size={20} color="#065f46" />
+            </TouchableOpacity>
+
+            <View style={styles.bottomStepperCountWrap}>
+              <Text style={styles.bottomStepperCountText}>{quantityInCart}</Text>
+              <Text style={styles.bottomStepperCountUnit}>
+                {locale === 'kz' ? 'дана' : 'шт'}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.bottomStepperBtn, styles.bottomStepperBtnPlus]}
+              onPress={handleIncrease}
+              activeOpacity={0.7}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="add" size={20} color="#ffffff" />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={[styles.addToCartBtn, added && styles.addToCartBtnSuccess]}
+            onPress={handleAdd}
+            activeOpacity={0.85}
+          >
+            <Ionicons
+              name={added ? 'checkmark-circle' : 'cart'}
+              size={18}
+              color="#ffffff"
+              style={{ marginRight: 6 }}
+            />
+            <Text style={styles.addToCartText}>
+              {added
+                ? locale === 'kz'
+                  ? 'Қосылды!'
+                  : 'Добавлено!'
+                : locale === 'kz'
+                ? 'Себетке салу'
+                : 'В корзину'}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* 16 Stores Stock Modal */}
@@ -397,6 +484,52 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   bestsellerText: { color: '#ffffff', fontSize: 11, fontWeight: '800' },
+  inCartHeroBadge: {
+    position: 'absolute',
+    top: 14,
+    right: 14,
+    backgroundColor: '#059669',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  inCartHeroBadgeText: { color: '#ffffff', fontSize: 11, fontWeight: '800' },
+  inCartAlertBox: {
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1.5,
+    borderColor: '#a7f3d0',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  inCartAlertLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  inCartIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#d1fae5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inCartAlertTitle: { fontSize: 13, fontWeight: '800', color: '#065f46' },
+  inCartAlertSubtitle: { fontSize: 11, color: '#047857', marginTop: 1 },
+  inCartCountPill: {
+    backgroundColor: '#059669',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
+  inCartCountPillText: { color: '#ffffff', fontSize: 12, fontWeight: '800' },
   detailsBox: { padding: 16 },
   priceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   price: { fontSize: 24, fontWeight: '900', color: '#b45309' },
@@ -522,6 +655,45 @@ const styles = StyleSheet.create({
   },
   addToCartBtnSuccess: { backgroundColor: '#059669', shadowColor: '#059669' },
   addToCartText: { color: '#ffffff', fontSize: 14, fontWeight: '800' },
+  bottomStepperContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#ecfdf5',
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#a7f3d0',
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    height: 48,
+  },
+  bottomStepperBtn: {
+    width: 40,
+    height: 38,
+    borderRadius: 8,
+    backgroundColor: '#d1fae5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bottomStepperBtnPlus: {
+    backgroundColor: '#059669',
+  },
+  bottomStepperCountWrap: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 4,
+  },
+  bottomStepperCountText: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#065f46',
+  },
+  bottomStepperCountUnit: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#047857',
+  },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
