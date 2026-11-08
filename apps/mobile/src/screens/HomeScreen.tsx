@@ -194,7 +194,45 @@ export function HomeScreen({
         })}
       </ScrollView>
 
-      {/* Value Propositions / Trust Grid */}
+      {/* New Arrivals Section */}
+      <View style={styles.sectionHeader}>
+        <View style={styles.sectionTitleRow}>
+          <Text style={styles.fireEmoji}>✨</Text>
+          <Text style={styles.sectionTitle}>
+            {locale === 'kz' ? 'Жаңа түсімдер' : 'Новинки сезона'}
+          </Text>
+        </View>
+        <TouchableOpacity onPress={() => onNavigateToCatalog()}>
+          <Text style={styles.sectionLink}>
+            {locale === 'kz' ? 'Каталог →' : 'В каталог →'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
+        {newArrivals.map(product => {
+          return (
+            <TouchableOpacity
+              key={product.id}
+              style={styles.productCardH}
+              onPress={() => onSelectProduct(product)}
+              activeOpacity={0.85}
+            >
+              <Image source={{ uri: product.imageUrl }} style={styles.productImageH} />
+              <View style={styles.newBadge}>
+                <Text style={styles.newBadgeText}>NEW</Text>
+              </View>
+              <View style={styles.productBodyH}>
+                <Text style={styles.productTitleH} numberOfLines={2}>
+                  {locale === 'kz' ? product.titleKz : product.titleRu}
+                </Text>
+                <Text style={styles.productPriceH}>{formatKZT(product.priceKzt)}</Text>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+
+      {/* Value Propositions / Trust Grid (Moved to bottom) */}
       <View style={styles.trustBox}>
         <Text style={styles.trustMainTitle}>
           {locale === 'kz'
@@ -240,44 +278,6 @@ export function HomeScreen({
           </View>
         </View>
       </View>
-
-      {/* New Arrivals Section */}
-      <View style={styles.sectionHeader}>
-        <View style={styles.sectionTitleRow}>
-          <Text style={styles.fireEmoji}>✨</Text>
-          <Text style={styles.sectionTitle}>
-            {locale === 'kz' ? 'Жаңа түсімдер' : 'Новинки сезона'}
-          </Text>
-        </View>
-        <TouchableOpacity onPress={() => onNavigateToCatalog()}>
-          <Text style={styles.sectionLink}>
-            {locale === 'kz' ? 'Каталог →' : 'В каталог →'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
-        {newArrivals.map(product => {
-          return (
-            <TouchableOpacity
-              key={product.id}
-              style={styles.productCardH}
-              onPress={() => onSelectProduct(product)}
-              activeOpacity={0.85}
-            >
-              <Image source={{ uri: product.imageUrl }} style={styles.productImageH} />
-              <View style={styles.newBadge}>
-                <Text style={styles.newBadgeText}>NEW</Text>
-              </View>
-              <View style={styles.productBodyH}>
-                <Text style={styles.productTitleH} numberOfLines={2}>
-                  {locale === 'kz' ? product.titleKz : product.titleRu}
-                </Text>
-                <Text style={styles.productPriceH}>{formatKZT(product.priceKzt)}</Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
 
       {/* Bottom spacer */}
       <View style={{ height: 40 }} />
@@ -422,6 +422,7 @@ const styles = StyleSheet.create({
   kaspiTextH: { color: '#dc2626', fontSize: 9, fontWeight: '700' },
   trustBox: {
     margin: 16,
+    marginTop: 20,
     padding: 16,
     backgroundColor: '#ffffff',
     borderRadius: 14,
@@ -429,10 +430,22 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
   },
   trustMainTitle: { fontSize: 15, fontWeight: '800', color: '#1f2937', marginBottom: 12 },
-  trustGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  trustItem: { width: (SCREEN_WIDTH - 32 - 32 - 12) / 2 },
+  trustGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: 10,
+  },
+  trustItem: {
+    width: '48%',
+    backgroundColor: '#f9fafb',
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+  },
   trustIcon: { fontSize: 24, marginBottom: 4 },
   trustHeading: { fontSize: 12, fontWeight: '700', color: '#111827', marginBottom: 2 },
-  trustDesc: { fontSize: 11, color: '#6b7280', lineHeight: 15 },
+  trustDesc: { fontSize: 10, color: '#6b7280', lineHeight: 14 },
 });
 
