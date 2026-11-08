@@ -764,70 +764,6 @@ export function HomeScreen({
           />
         ))}
       </ScrollView>
-      {/* Trust & Value Props (Почему выбирают наш трикотаж?) */}
-      <View style={styles.trustBox}>
-        <View style={styles.trustHeaderRow}>
-          <Text style={styles.trustMainTitle}>
-            {locale === 'kz' ? 'Неге біздің трикотаж?' : 'Почему выбирают наш трикотаж?'}
-          </Text>
-        </View>
-
-        <View style={styles.trustList}>
-          <View style={styles.trustRowItem}>
-            <Text style={styles.trustEmoji}>🌱</Text>
-            <View style={styles.trustTextContainer}>
-              <Text style={styles.trustTitle}>
-                {locale === 'kz' ? '100% Табиғи мақта' : '100% Эко-хлопок'}
-              </Text>
-              <Text style={styles.trustSubtitle}>
-                {locale === 'kz'
-                  ? 'Үндістаннан тікелей жеткізілім. Гипоаллергенді тарақталған мақта.'
-                  : 'Прямые поставки из Индии. Гипоаллергенный гребенной хлопок.'}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.trustRowItem}>
-            <Text style={styles.trustEmoji}>🏢</Text>
-            <View style={styles.trustTextContainer}>
-              <Text style={styles.trustTitle}>
-                {locale === 'kz' ? '16 дүкен' : '16 магазинов'}
-              </Text>
-              <Text style={styles.trustSubtitle}>
-                {locale === 'kz'
-                  ? 'Алматының әр ауданында (MEGA, Dostyk Plaza, Grand Park...).'
-                  : 'В каждом районе Алматы (MEGA, Dostyk Plaza, Grand Park...).'}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.trustRowItem}>
-            <Text style={styles.trustEmoji}>⚡</Text>
-            <View style={styles.trustTextContainer}>
-              <Text style={styles.trustTitle}>Kaspi Red 0-0-3</Text>
-              <Text style={styles.trustSubtitle}>
-                {locale === 'kz'
-                  ? 'Артық төлемсіз және жасырын комиссиясыз бөліп төлеу.'
-                  : 'Рассрочка без переплат и скрытых комиссий.'}
-              </Text>
-            </View>
-          </View>
-
-          <View style={[styles.trustRowItem, { borderBottomWidth: 0, paddingBottom: 0 }]}>
-            <Text style={styles.trustEmoji}>🚚</Text>
-            <View style={styles.trustTextContainer}>
-              <Text style={styles.trustTitle}>
-                {locale === 'kz' ? '2 сағатта жеткізу' : 'Доставка за 2 часа'}
-              </Text>
-              <Text style={styles.trustSubtitle}>
-                {locale === 'kz'
-                  ? 'Бүкіл қала бойынша есікке дейін курьермен жедел жеткізу.'
-                  : 'Быстрая доставка курьером до двери по всему городу.'}
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
         </>
       )}
 
@@ -1272,57 +1208,5 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
     color: '#ffffff',
-  },
-  trustBox: {
-    marginHorizontal: 16,
-    marginTop: 24,
-    marginBottom: 6,
-    padding: 18,
-    backgroundColor: '#ffffff',
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  trustHeaderRow: {
-    marginBottom: 16,
-  },
-  trustMainTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#0f172a',
-  },
-  trustList: {
-    gap: 16,
-  },
-  trustRowItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingBottom: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  trustEmoji: {
-    fontSize: 22,
-    marginRight: 12,
-    marginTop: 1,
-  },
-  trustTextContainer: {
-    flex: 1,
-  },
-  trustTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#0f172a',
-    marginBottom: 2,
-  },
-  trustSubtitle: {
-    fontSize: 11,
-    color: '#64748b',
-    lineHeight: 16,
   },
 });
