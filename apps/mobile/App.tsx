@@ -165,6 +165,7 @@ function MainScreen() {
             onDecreaseQuantity={handleDecreaseQuantity}
             onNavigateToCatalog={navigateToCatalogWithCategory}
             onNavigateToStores={() => setActiveTab('stores')}
+            onNavigateToProfile={() => setActiveTab('profile')}
             selectedStoreId={selectedStoreId}
             locale={locale}
             onToggleLocale={handleToggleLocale}

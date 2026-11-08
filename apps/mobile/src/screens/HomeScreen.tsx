@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatKZT, ALMATY_STORES_SEED } from '@india-trikotaj/shared';
@@ -14,6 +16,7 @@ import { MOBILE_PRODUCTS } from '../data/mock-products';
 import type { MobileProduct } from '../types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const HERO_CARD_WIDTH = SCREEN_WIDTH - 32;
 
 interface Props {
   onSelectProduct: (product: MobileProduct) => void;
@@ -22,6 +25,7 @@ interface Props {
   onDecreaseQuantity: (productId: string) => void;
   onNavigateToCatalog: (category?: string) => void;
   onNavigateToStores: () => void;
+  onNavigateToProfile?: () => void;
   selectedStoreId: string;
   locale: 'ru' | 'kz';
   onToggleLocale: () => void;
@@ -172,11 +176,128 @@ export function HomeScreen({
   onDecreaseQuantity,
   onNavigateToCatalog,
   onNavigateToStores,
+  onNavigateToProfile,
   selectedStoreId,
   locale,
   onToggleLocale,
   recentlyViewedIds,
 }: Props) {
+  const carouselRef = useRef<any>(null);
+  const [activeSlide, setActiveSlide] = useState(0);
+
+  const heroSlides = useMemo(() => [
+    {
+      id: 'cotton',
+      badge1: { textRu: '100% Эко-хлопок', textKz: '100% Табиғи мақта', icon: 'leaf', bg: 'rgba(255,255,255,0.2)', color: '#fef3c7' },
+      badge2: { textRu: 'Прямой импорт', textKz: 'Тікелей импорт', icon: 'globe-outline', bg: 'rgba(255,255,255,0.15)', color: '#fde68a' },
+      titleRu: 'Натуральный Индийский Хлопок',
+      titleKz: 'Табиғи Үнді Мақтасы',
+      subtitleRu: 'Премиальный гипоаллергенный гребенной трикотаж напрямую с фабрик Мумбаи и Тируппура.',
+      subtitleKz: 'Мумбаи және Тируппур фабрикаларынан табиғи гипоаллергенді премиум трикотаж.',
+      buttonTextRu: 'Перейти в каталог',
+      buttonTextKz: 'Каталогқа өту',
+      buttonBg: '#f59e0b',
+      buttonTextColor: '#451a03',
+      cardBg: '#78350f',
+      borderColor: '#92400e',
+      onPress: () => onNavigateToCatalog(),
+    },
+    {
+      id: 'bonuses',
+      badge1: { textRu: 'Кешбэк 5%', textKz: '5% Кешбэк', icon: 'star', bg: '#f59e0b', color: '#451a03' },
+      badge2: { textRu: '1 бонус = 1 ₸', textKz: '1 бонус = 1 ₸', icon: 'gift', bg: 'rgba(255,255,255,0.22)', color: '#ffffff' },
+      titleRu: 'Кешбэк 5% за каждый заказ',
+      titleKz: 'Әр тапсырыстан 5% бонус',
+      subtitleRu: 'Копите бонусы с каждой покупки! Оплачивайте баллами до 30% стоимости любого трикотажа.',
+      subtitleKz: 'Әр сатып алудан бонус жинаңыз! Тауар құнының 30%-на дейін бонустармен төлеңіз.',
+      buttonTextRu: 'Моя бонусная карта',
+      buttonTextKz: 'Менің бонустық картам',
+      buttonBg: '#fbbf24',
+      buttonTextColor: '#1e1b4b',
+      cardBg: '#1e1b4b',
+      borderColor: '#3730a3',
+      onPress: () => (onNavigateToProfile ? onNavigateToProfile() : onNavigateToCatalog()),
+    },
+    {
+      id: 'sale',
+      badge1: { textRu: 'Сезонные скидки', textKz: 'Маусымдық жеңілдіктер', icon: 'flame', bg: '#dc2626', color: '#ffffff' },
+      badge2: { textRu: 'Скидки до -40%', textKz: '-40% дейін', icon: 'pricetag', bg: '#ea580c', color: '#ffffff' },
+      titleRu: 'Акции и скидки на трикотаж',
+      titleKz: 'Трикотажға арнайы жеңілдіктер',
+      subtitleRu: 'Специальные цены на футболки, туники, пижамы и комплекты для дома из индийского хлопка.',
+      subtitleKz: 'Базалық футболкалар, туникалар, пижамалар мен үй жиынтықтарына ең тиімді бағалар.',
+      buttonTextRu: 'Смотреть все акции',
+      buttonTextKz: 'Барлық акцияларды көру',
+      buttonBg: '#ea580c',
+      buttonTextColor: '#ffffff',
+      cardBg: '#9a3412',
+      borderColor: '#c2410c',
+      onPress: () => onNavigateToCatalog(),
+    },
+    {
+      id: 'stores',
+      badge1: { textRu: '16 филиалов', textKz: '16 филиал', icon: 'storefront', bg: '#059669', color: '#ffffff' },
+      badge2: { textRu: 'Бесплатный самовывоз', textKz: 'Тегін алып кету', icon: 'location', bg: 'rgba(255,255,255,0.2)', color: '#ffffff' },
+      titleRu: '16 магазинов по Алматы',
+      titleKz: 'Алматы бойынша 16 дүкен',
+      subtitleRu: 'Забирайте онлайн-заказы в MEGA, Dostyk Plaza, Grand Park, Moskva и других ТРЦ уже сегодня.',
+      subtitleKz: 'MEGA, Dostyk Plaza, Grand Park, Moskva СОО-ларында тапсырысты бүгін тегін алып кетіңіз.',
+      buttonTextRu: 'Посмотреть магазины',
+      buttonTextKz: 'Дүкендерді көру',
+      buttonBg: '#10b981',
+      buttonTextColor: '#064e3b',
+      cardBg: '#064e3b',
+      borderColor: '#047857',
+      onPress: () => onNavigateToStores(),
+    },
+    {
+      id: 'delivery-kaspi',
+      badge1: { textRu: 'Kaspi Red 0-0-3', textKz: 'Kaspi Red 0-0-3', icon: 'flash', bg: '#ef4444', color: '#ffffff' },
+      badge2: { textRu: 'Доставка 2 часа', textKz: '2 сағатта жеткізу', icon: 'bicycle', bg: '#0284c7', color: '#ffffff' },
+      titleRu: 'Kaspi Red и экспресс-доставка',
+      titleKz: 'Kaspi Red және жедел жеткізу',
+      subtitleRu: 'Рассрочка без переплат на 3 месяца и быстрая курьерская доставка до двери по всей Алматы.',
+      subtitleKz: '3 айға пайызсыз бөліп төлеу және Алматы бойынша есікке дейін 2 сағатта курьермен жеткізу.',
+      buttonTextRu: 'Заказать с доставкой',
+      buttonTextKz: 'Жеткізумен тапсырыс беру',
+      buttonBg: '#ef4444',
+      buttonTextColor: '#ffffff',
+      cardBg: '#881337',
+      borderColor: '#9f1239',
+      onPress: () => onNavigateToCatalog(),
+    },
+  ], [locale, onNavigateToCatalog, onNavigateToStores, onNavigateToProfile]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveSlide(prev => {
+        const next = (prev + 1) % heroSlides.length;
+        carouselRef.current?.scrollTo({
+          x: next * (HERO_CARD_WIDTH + 12),
+          animated: true,
+        });
+        return next;
+      });
+    }, 4500);
+
+    return () => clearInterval(timer);
+  }, [heroSlides.length]);
+
+  const handleCarouselScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const xOffset = e.nativeEvent.contentOffset.x;
+    const index = Math.round(xOffset / (HERO_CARD_WIDTH + 12));
+    if (index !== activeSlide && index >= 0 && index < heroSlides.length) {
+      setActiveSlide(index);
+    }
+  };
+
+  const handleDotPress = (index: number) => {
+    setActiveSlide(index);
+    carouselRef.current?.scrollTo({
+      x: index * (HERO_CARD_WIDTH + 12),
+      animated: true,
+    });
+  };
   const currentStore =
     ALMATY_STORES_SEED.find((_, i) => `store-almaty-${String(i + 1).padStart(3, '0')}` === selectedStoreId) ||
     ALMATY_STORES_SEED[0]!;
@@ -246,38 +367,94 @@ export function HomeScreen({
         </View>
       </TouchableOpacity>
 
-      {/* Hero Promo Banner */}
-      <View style={styles.heroCard}>
-        <View style={styles.heroBadgeRow}>
-          <View style={styles.heroBadge}>
-            <Text style={styles.heroBadgeText}>⚡ Kaspi Red 0-0-3</Text>
-          </View>
-          <View style={styles.heroBadgeEco}>
-            <Text style={styles.heroBadgeEcoText}>🌿 100% Cotton</Text>
-          </View>
-        </View>
-
-        <Text style={styles.heroTitle}>
-          {locale === 'kz'
-            ? 'Табиғи Үнді Мақтасы'
-            : 'Натуральный Индийский Хлопок'}
-        </Text>
-        <Text style={styles.heroSubtitle}>
-          {locale === 'kz'
-            ? 'Премиум гребенной трикотаж тікелей Мумбаи және Тируппур фабрикаларынан.'
-            : 'Премиальный гребенной трикотаж напрямую с фабрик Мумбаи и Тируппура.'}
-        </Text>
-
-        <TouchableOpacity
-          style={styles.heroButton}
-          onPress={() => onNavigateToCatalog()}
-          activeOpacity={0.88}
+      {/* Hero Promo Carousel */}
+      <View style={styles.carouselWrapper}>
+        <ScrollView
+          ref={carouselRef}
+          horizontal
+          pagingEnabled={false}
+          snapToInterval={HERO_CARD_WIDTH + 12}
+          snapToAlignment="center"
+          decelerationRate="fast"
+          showsHorizontalScrollIndicator={false}
+          onScroll={handleCarouselScroll}
+          scrollEventThrottle={16}
+          contentContainerStyle={styles.carouselContainer}
         >
-          <Text style={styles.heroButtonText}>
-            {locale === 'kz' ? 'Каталогты көру' : 'Перейти в каталог'}
-          </Text>
-          <Ionicons name="arrow-forward" size={14} color="#451a03" />
-        </TouchableOpacity>
+          {heroSlides.map(slide => (
+            <View
+              key={slide.id}
+              style={[
+                styles.heroSlideCard,
+                {
+                  backgroundColor: slide.cardBg,
+                  borderColor: slide.borderColor,
+                },
+              ]}
+            >
+              <View style={styles.heroBadgeRow}>
+                <View style={[styles.heroBadge, { backgroundColor: slide.badge1.bg }]}>
+                  <Ionicons
+                    name={slide.badge1.icon as any}
+                    size={11}
+                    color={slide.badge1.color}
+                    style={{ marginRight: 4 }}
+                  />
+                  <Text style={[styles.heroBadgeText, { color: slide.badge1.color }]}>
+                    {locale === 'kz' ? slide.badge1.textKz : slide.badge1.textRu}
+                  </Text>
+                </View>
+
+                {slide.badge2 && (
+                  <View style={[styles.heroBadgeEco, { backgroundColor: slide.badge2.bg }]}>
+                    <Ionicons
+                      name={slide.badge2.icon as any}
+                      size={11}
+                      color={slide.badge2.color}
+                      style={{ marginRight: 4 }}
+                    />
+                    <Text style={[styles.heroBadgeEcoText, { color: slide.badge2.color }]}>
+                      {locale === 'kz' ? slide.badge2.textKz : slide.badge2.textRu}
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              <Text style={styles.heroTitle}>
+                {locale === 'kz' ? slide.titleKz : slide.titleRu}
+              </Text>
+              <Text style={styles.heroSubtitle}>
+                {locale === 'kz' ? slide.subtitleKz : slide.subtitleRu}
+              </Text>
+
+              <TouchableOpacity
+                style={[styles.heroButton, { backgroundColor: slide.buttonBg }]}
+                onPress={slide.onPress}
+                activeOpacity={0.88}
+              >
+                <Text style={[styles.heroButtonText, { color: slide.buttonTextColor }]}>
+                  {locale === 'kz' ? slide.buttonTextKz : slide.buttonTextRu}
+                </Text>
+                <Ionicons name="arrow-forward" size={14} color={slide.buttonTextColor} />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </ScrollView>
+
+        {/* Carousel Pagination Dots */}
+        <View style={styles.carouselDotsRow}>
+          {heroSlides.map((_, idx) => (
+            <TouchableOpacity
+              key={idx}
+              onPress={() => handleDotPress(idx)}
+              style={[
+                styles.carouselDot,
+                activeSlide === idx && styles.carouselDotActive,
+              ]}
+              hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+            />
+          ))}
+        </View>
       </View>
 
       {/* Categories Horizontal Pills */}
@@ -443,69 +620,8 @@ export function HomeScreen({
         ))}
       </ScrollView>
 
-      {/* Value Propositions / Trust Grid (Clean bottom section) */}
-      <View style={styles.trustBox}>
-        <View style={styles.trustHeaderRow}>
-          <Text style={styles.trustMainTitle}>
-            {locale === 'kz'
-              ? 'Неге біздің трикотажды таңдайды?'
-              : 'Почему выбирают наш трикотаж?'}
-          </Text>
-        </View>
-
-        <View style={styles.trustGrid}>
-          <View style={styles.trustItem}>
-            <View style={[styles.trustIconCircle, { backgroundColor: '#ecfdf5' }]}>
-              <Text style={styles.trustIconEmoji}>🌱</Text>
-            </View>
-            <Text style={styles.trustHeading}>100% Эко-хлопок</Text>
-            <Text style={styles.trustDesc}>
-              {locale === 'kz'
-                ? 'Үндістаннан табиғи мақта, аллергия тудырмайды.'
-                : 'Прямые поставки из Индии. Гипоаллергенный трикотаж.'}
-            </Text>
-          </View>
-
-          <View style={styles.trustItem}>
-            <View style={[styles.trustIconCircle, { backgroundColor: '#eff6ff' }]}>
-              <Text style={styles.trustIconEmoji}>🏬</Text>
-            </View>
-            <Text style={styles.trustHeading}>16 магазинов</Text>
-            <Text style={styles.trustDesc}>
-              {locale === 'kz'
-                ? 'Алматының барлық ірі СОО-ларында (MEGA, Dostyk).'
-                : 'В каждом районе Алматы (MEGA, Dostyk Plaza, Grand Park).'}
-            </Text>
-          </View>
-
-          <View style={styles.trustItem}>
-            <View style={[styles.trustIconCircle, { backgroundColor: '#fef2f2' }]}>
-              <Text style={styles.trustIconEmoji}>⚡</Text>
-            </View>
-            <Text style={styles.trustHeading}>Kaspi Red 0-0-3</Text>
-            <Text style={styles.trustDesc}>
-              {locale === 'kz'
-                ? '3 айға процентсіз бөліп төлеу.'
-                : 'Рассрочка без переплат и скрытых комиссий.'}
-            </Text>
-          </View>
-
-          <View style={styles.trustItem}>
-            <View style={[styles.trustIconCircle, { backgroundColor: '#fffbeb' }]}>
-              <Text style={styles.trustIconEmoji}>🚚</Text>
-            </View>
-            <Text style={styles.trustHeading}>Доставка 2 часа</Text>
-            <Text style={styles.trustDesc}>
-              {locale === 'kz'
-                ? 'Алматы бойынша курьермен есікке дейін.'
-                : 'Быстрая доставка курьером по всему городу.'}
-            </Text>
-          </View>
-        </View>
-      </View>
-
       {/* Bottom spacer */}
-      <View style={{ height: 30 }} />
+      <View style={{ height: 28 }} />
     </ScrollView>
   );
 }
@@ -555,41 +671,69 @@ const styles = StyleSheet.create({
   storeName: { fontSize: 12, color: '#451a03', fontWeight: '800', marginTop: 1 },
   changeBadge: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   storeChangeArrow: { fontSize: 11, color: '#b45309', fontWeight: '700' },
-  heroCard: {
-    margin: 16,
-    marginBottom: 8,
-    backgroundColor: '#78350f',
+  carouselWrapper: {
+    marginTop: 10,
+    marginBottom: 4,
+  },
+  carouselContainer: {
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  heroSlideCard: {
+    width: HERO_CARD_WIDTH,
+    minHeight: 185,
     borderRadius: 18,
     padding: 18,
-    shadowColor: '#78350f',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: '#92400e',
+    borderWidth: 1.5,
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  carouselDotsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 10,
+    marginBottom: 4,
+  },
+  carouselDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: '#cbd5e1',
+  },
+  carouselDotActive: {
+    width: 22,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: '#b45309',
   },
   heroBadgeRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   heroBadge: {
-    backgroundColor: '#dc2626',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  heroBadgeText: { color: '#ffffff', fontSize: 10, fontWeight: '800' },
+  heroBadgeText: { fontSize: 10, fontWeight: '800' },
   heroBadgeEco: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.25)',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  heroBadgeEcoText: { color: '#fef3c7', fontSize: 10, fontWeight: '700' },
-  heroTitle: { color: '#ffffff', fontSize: 20, fontWeight: '800', marginBottom: 6, letterSpacing: 0.2 },
-  heroSubtitle: { color: '#fde68a', fontSize: 12, lineHeight: 17, marginBottom: 16 },
+  heroBadgeEcoText: { fontSize: 10, fontWeight: '700' },
+  heroTitle: { color: '#ffffff', fontSize: 19, fontWeight: '800', marginBottom: 6, letterSpacing: 0.2 },
+  heroSubtitle: { color: 'rgba(255,255,255,0.85)', fontSize: 12, lineHeight: 17, marginBottom: 16 },
   heroButton: {
-    backgroundColor: '#f59e0b',
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 10,
@@ -599,11 +743,11 @@ const styles = StyleSheet.create({
     gap: 6,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.12,
     shadowRadius: 4,
     elevation: 2,
   },
-  heroButtonText: { color: '#451a03', fontSize: 13, fontWeight: '800' },
+  heroButtonText: { fontSize: 13, fontWeight: '800' },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -785,45 +929,4 @@ const styles = StyleSheet.create({
     borderColor: '#fee2e2',
   },
   kaspiTextH: { color: '#dc2626', fontSize: 9, fontWeight: '700' },
-  trustBox: {
-    margin: 16,
-    marginTop: 22,
-    padding: 16,
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  trustHeaderRow: { marginBottom: 14 },
-  trustMainTitle: { fontSize: 15, fontWeight: '800', color: '#0f172a' },
-  trustGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    rowGap: 10,
-  },
-  trustItem: {
-    width: '48%',
-    backgroundColor: '#f8fafc',
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-  },
-  trustIconCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 6,
-  },
-  trustIconEmoji: { fontSize: 18 },
-  trustHeading: { fontSize: 12, fontWeight: '700', color: '#0f172a', marginBottom: 2 },
-  trustDesc: { fontSize: 10, color: '#64748b', lineHeight: 14 },
 });
