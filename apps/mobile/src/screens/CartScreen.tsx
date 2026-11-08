@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ interface Props {
   cart: CartItem[];
   onUpdateQuantity: (productId: string, size: string, delta: number) => void;
   onRemoveItem: (productId: string, size: string) => void;
+  onRemoveMultipleItems?: (items: { productId: string; size: string; colorId?: string }[]) => void;
   onClearCart: () => void;
   onOrderCreated: (order: MobileOrder) => void;
   selectedStoreId: string;
@@ -27,6 +28,8 @@ interface Props {
   onNavigateToCatalog: () => void;
   userProfile?: UserProfile;
 }
+
+const getItemKey = (item: CartItem) => `${item.product.id}_${item.size}_${item.color.id}`;
 
 const ALMATY_DISTRICTS = [
   { id: 'bostandyk', ru: 'Бостандыкский', kz: 'Бостандық' },
@@ -43,6 +46,7 @@ export function CartScreen({
   cart,
   onUpdateQuantity,
   onRemoveItem,
+  onRemoveMultipleItems,
   onClearCart,
   onOrderCreated,
   selectedStoreId,
@@ -64,8 +68,110 @@ export function CartScreen({
   const [isProcessing, setIsProcessing] = useState(false);
   const [completedOrder, setCompletedOrder] = useState<MobileOrder | null>(null);
 
-  const subtotalKzt = cart.reduce((acc, item) => acc + item.product.priceKzt * item.quantity, 0);
-  const deliveryFeeKzt = fulfillmentType === 'courier' ? (subtotalKzt > 15000 ? 0 : 1500) : 0;
+  // Checkbox Selection State
+  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(
+    () => new Set(cart.map(getItemKey))
+  );
+  const knownKeysRef = useRef<Set<string>>(new Set(cart.map(getItemKey)));
+
+  // Sync selection when items are added/removed from cart
+  useEffect(() => {
+    setSelectedKeys(prev => {
+      const currentKeys = new Set(cart.map(getItemKey));
+      const next = new Set<string>();
+
+      // Keep previously selected keys if still in cart
+      for (const k of prev) {
+        if (currentKeys.has(k)) {
+          next.add(k);
+        }
+      }
+
+      // New items added to cart get selected by default
+      for (const item of cart) {
+        const k = getItemKey(item);
+        if (!knownKeysRef.current.has(k)) {
+          next.add(k);
+        }
+      }
+
+      knownKeysRef.current = currentKeys;
+      return next;
+    });
+  }, [cart]);
+
+  const isAllSelected = cart.length > 0 && selectedKeys.size === cart.length;
+
+  const handleToggleItem = (key: string) => {
+    setSelectedKeys(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
+
+  const handleToggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedKeys(new Set());
+    } else {
+      setSelectedKeys(new Set(cart.map(getItemKey)));
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedKeys.size === 0) return;
+
+    const count = selectedKeys.size;
+    Alert.alert(
+      locale === 'kz' ? 'Тауарларды өшіру' : 'Удаление товаров',
+      locale === 'kz'
+        ? `Таңдалған ${count} тауарды себеттен өшіруді қалайсыз ба?`
+        : `Удалить выбранные товары (${count} шт.) из корзины?`,
+      [
+        {
+          text: locale === 'kz' ? 'Жоқ' : 'Отмена',
+          style: 'cancel',
+        },
+        {
+          text: locale === 'kz' ? 'Өшіру' : 'Удалить',
+          style: 'destructive',
+          onPress: () => {
+            const toRemove = cart
+              .filter(i => selectedKeys.has(getItemKey(i)))
+              .map(i => ({
+                productId: i.product.id,
+                size: i.size,
+                colorId: i.color.id,
+              }));
+            if (onRemoveMultipleItems) {
+              onRemoveMultipleItems(toRemove);
+            } else {
+              toRemove.forEach(r => onRemoveItem(r.productId, r.size));
+            }
+            setSelectedKeys(new Set());
+          },
+        },
+      ]
+    );
+  };
+
+  // Calculations strictly for SELECTED items
+  const selectedItems = useMemo(
+    () => cart.filter(item => selectedKeys.has(getItemKey(item))),
+    [cart, selectedKeys]
+  );
+
+  const subtotalKzt = useMemo(
+    () => selectedItems.reduce((acc, item) => acc + item.product.priceKzt * item.quantity, 0),
+    [selectedItems]
+  );
+
+  const deliveryFeeKzt =
+    fulfillmentType === 'courier' ? (subtotalKzt > 15000 || subtotalKzt === 0 ? 0 : 1500) : 0;
   const totalKzt = subtotalKzt + deliveryFeeKzt;
 
   const currentStore =
@@ -74,6 +180,16 @@ export function CartScreen({
 
   const handleStartCheckout = () => {
     if (cart.length === 0) return;
+
+    if (selectedItems.length === 0) {
+      Alert.alert(
+        locale === 'kz' ? 'Тауарлар таңдалмаған' : 'Товары не выбраны',
+        locale === 'kz'
+          ? 'Тапсырыс беру үшін кем дегенде бір тауарды таңдаңыз'
+          : 'Отметьте галочками товары, которые хотите оплатить'
+      );
+      return;
+    }
 
     if (!customerName.trim()) {
       Alert.alert(locale === 'kz' ? 'Қате' : 'Ошибка', locale === 'kz' ? 'Атыңызды енгізіңіз' : 'Введите ваше имя');
@@ -108,7 +224,7 @@ export function CartScreen({
         hour: '2-digit',
         minute: '2-digit',
       }),
-      items: [...cart],
+      items: [...selectedItems],
       totalKzt,
       fulfillmentType,
       pickupStoreId: fulfillmentType === 'pickup' ? selectedStoreId : undefined,
@@ -132,7 +248,9 @@ export function CartScreen({
       setIsKaspiModalOpen(false);
       setCompletedOrder(newOrder);
       onOrderCreated(newOrder);
-      onClearCart();
+      if (selectedItems.length === cart.length) {
+        onClearCart();
+      }
     }, 1600);
   };
 
@@ -222,58 +340,104 @@ export function CartScreen({
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Cart Items List */}
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionHeading}>
-              {locale === 'kz' ? 'Таңдалған тауарлар' : 'Товары в заказе'} ({cart.length})
-            </Text>
-            {cart.map(item => (
-              <View key={`${item.product.id}-${item.size}-${item.color.id}`} style={styles.itemRow}>
-                <Image source={{ uri: item.product.imageUrl }} style={styles.itemImage} resizeMode="cover" />
-                <View style={styles.itemBody}>
-                  <Text style={styles.itemTitle} numberOfLines={2}>
-                    {locale === 'kz' ? item.product.titleKz : item.product.titleRu}
+            {/* Selection & Batch Actions Header */}
+            <View style={styles.selectionToolbar}>
+              <TouchableOpacity
+                style={styles.selectAllBtn}
+                onPress={handleToggleSelectAll}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.checkbox, isAllSelected && styles.checkboxActive]}>
+                  {isAllSelected && <Ionicons name="checkmark" size={13} color="#ffffff" />}
+                </View>
+                <Text style={styles.selectAllText}>
+                  {locale === 'kz' ? 'Барлығын таңдау' : 'Выбрать все'} ({selectedKeys.size}/{cart.length})
+                </Text>
+              </TouchableOpacity>
+
+              {selectedKeys.size > 0 && (
+                <TouchableOpacity
+                  style={styles.deleteSelectedBtn}
+                  onPress={handleDeleteSelected}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="trash-outline" size={14} color="#ef4444" style={{ marginRight: 3 }} />
+                  <Text style={styles.deleteSelectedText}>
+                    {locale === 'kz' ? `Өшіру (${selectedKeys.size})` : `Удалить (${selectedKeys.size})`}
                   </Text>
-                  <View style={styles.itemMeta}>
-                    <Text style={styles.metaBadge}>{item.size}</Text>
-                    <View style={styles.colorPill}>
-                      <View style={[styles.colorDot, { backgroundColor: item.color.hex }]} />
-                      <Text style={styles.colorText}>
-                        {locale === 'kz' ? item.color.nameKz : item.color.nameRu}
-                      </Text>
-                    </View>
-                  </View>
-                  <Text style={styles.itemPrice}>{formatKZT(item.product.priceKzt)}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
 
-                  {/* Quantity Controller & Delete */}
-                  <View style={styles.quantityRow}>
-                    <View style={styles.counterBox}>
+            {cart.map(item => {
+              const itemKey = getItemKey(item);
+              const isSelected = selectedKeys.has(itemKey);
+
+              return (
+                <View
+                  key={itemKey}
+                  style={[styles.itemRow, !isSelected && styles.itemRowUnselected]}
+                >
+                  {/* Item Checkbox */}
+                  <TouchableOpacity
+                    style={styles.itemCheckboxWrapper}
+                    onPress={() => handleToggleItem(itemKey)}
+                    activeOpacity={0.7}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <View style={[styles.checkbox, isSelected && styles.checkboxActive]}>
+                      {isSelected && <Ionicons name="checkmark" size={13} color="#ffffff" />}
+                    </View>
+                  </TouchableOpacity>
+
+                  <Image source={{ uri: item.product.imageUrl }} style={styles.itemImage} resizeMode="cover" />
+                  <View style={styles.itemBody}>
+                    <Text style={styles.itemTitle} numberOfLines={2}>
+                      {locale === 'kz' ? item.product.titleKz : item.product.titleRu}
+                    </Text>
+                    <View style={styles.itemMeta}>
+                      <Text style={styles.metaBadge}>{item.size}</Text>
+                      <View style={styles.colorPill}>
+                        <View style={[styles.colorDot, { backgroundColor: item.color.hex }]} />
+                        <Text style={styles.colorText}>
+                          {locale === 'kz' ? item.color.nameKz : item.color.nameRu}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={styles.itemPrice}>{formatKZT(item.product.priceKzt)}</Text>
+
+                    {/* Quantity Controller & Delete */}
+                    <View style={styles.quantityRow}>
+                      <View style={styles.counterBox}>
+                        <TouchableOpacity
+                          style={styles.qtyBtn}
+                          onPress={() => onUpdateQuantity(item.product.id, item.size, -1)}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                          <Text style={styles.qtyBtnText}>−</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.qtyVal}>{item.quantity}</Text>
+                        <TouchableOpacity
+                          style={styles.qtyBtn}
+                          onPress={() => onUpdateQuantity(item.product.id, item.size, 1)}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                          <Text style={styles.qtyBtnText}>+</Text>
+                        </TouchableOpacity>
+                      </View>
+
                       <TouchableOpacity
-                        style={styles.qtyBtn}
-                        onPress={() => onUpdateQuantity(item.product.id, item.size, -1)}
+                        style={styles.deleteBtn}
+                        onPress={() => onRemoveItem(item.product.id, item.size)}
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                       >
-                        <Text style={styles.qtyBtnText}>−</Text>
-                      </TouchableOpacity>
-                      <Text style={styles.qtyVal}>{item.quantity}</Text>
-                      <TouchableOpacity
-                        style={styles.qtyBtn}
-                        onPress={() => onUpdateQuantity(item.product.id, item.size, 1)}
-                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                      >
-                        <Text style={styles.qtyBtnText}>+</Text>
+                        <Ionicons name="trash-outline" size={17} color="#ef4444" />
                       </TouchableOpacity>
                     </View>
-
-                    <TouchableOpacity
-                      style={styles.deleteBtn}
-                      onPress={() => onRemoveItem(item.product.id, item.size)}
-                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    >
-                      <Ionicons name="trash-outline" size={17} color="#ef4444" />
-                    </TouchableOpacity>
                   </View>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
 
           {/* Fulfillment Switcher: Pickup vs Courier */}
@@ -450,29 +614,43 @@ export function CartScreen({
           {/* Order Summary Calculation */}
           <View style={styles.summaryCard}>
             <View style={styles.calcRow}>
-              <Text style={styles.calcLabel}>Сумма товаров:</Text>
-              <Text style={styles.calcVal}>{formatKZT(subtotalKzt)}</Text>
+              <Text style={styles.calcLabel}>
+                {locale === 'kz' ? 'Таңдалған тауарлар:' : 'Выбрано товаров:'}
+              </Text>
+              <Text style={styles.calcVal}>
+                {selectedItems.length} {locale === 'kz' ? 'дана' : 'шт.'} ({formatKZT(subtotalKzt)})
+              </Text>
             </View>
             <View style={styles.calcRow}>
-              <Text style={styles.calcLabel}>Доставка:</Text>
+              <Text style={styles.calcLabel}>
+                {locale === 'kz' ? 'Жеткізу:' : 'Доставка:'}
+              </Text>
               <Text style={styles.calcVal}>
-                {deliveryFeeKzt === 0 ? 'Бесплатно' : formatKZT(deliveryFeeKzt)}
+                {deliveryFeeKzt === 0
+                  ? locale === 'kz' ? 'Тегін' : 'Бесплатно'
+                  : formatKZT(deliveryFeeKzt)}
               </Text>
             </View>
             <View style={[styles.calcRow, styles.calcRowTotal]}>
-              <Text style={styles.calcLabelTotal}>Итого к оплате:</Text>
+              <Text style={styles.calcLabelTotal}>
+                {locale === 'kz' ? 'Төлемге барлығы:' : 'Итого к оплате:'}
+              </Text>
               <Text style={styles.calcValTotal}>{formatKZT(totalKzt)}</Text>
             </View>
 
             <TouchableOpacity
-              style={styles.checkoutBtn}
+              style={[styles.checkoutBtn, selectedItems.length === 0 && styles.checkoutBtnDisabled]}
               onPress={handleStartCheckout}
               activeOpacity={0.88}
             >
-              <Text style={styles.checkoutBtnText}>
-                {paymentMethod === 'kaspi_pay'
+              <Text style={[styles.checkoutBtnText, selectedItems.length === 0 && styles.checkoutBtnTextDisabled]}>
+                {selectedItems.length === 0
+                  ? locale === 'kz'
+                    ? 'Тауарларды таңдаңыз'
+                    : 'Выберите товары для оплаты'
+                  : paymentMethod === 'kaspi_pay'
                   ? `Оплатить через Kaspi • ${formatKZT(totalKzt)}`
-                  : `Оформить заказ • ${formatKZT(totalKzt)}`}
+                  : `Оформить заказ (${selectedItems.length}) • ${formatKZT(totalKzt)}`}
               </Text>
             </TouchableOpacity>
           </View>
@@ -554,11 +732,65 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   sectionHeading: { fontSize: 14, fontWeight: '800', color: '#0f172a', marginBottom: 10 },
+  selectionToolbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: 10,
+    marginBottom: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  selectAllBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  selectAllText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1e293b',
+  },
+  deleteSelectedBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    backgroundColor: '#fef2f2',
+  },
+  deleteSelectedText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#ef4444',
+  },
+  itemCheckboxWrapper: {
+    paddingRight: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#cbd5e1',
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxActive: {
+    borderColor: '#b45309',
+    backgroundColor: '#b45309',
+  },
   itemRow: {
     flexDirection: 'row',
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
+  },
+  itemRowUnselected: {
+    opacity: 0.65,
   },
   itemImage: { width: 70, height: 70, borderRadius: 10, backgroundColor: '#f1f5f9', marginRight: 12 },
   itemBody: { flex: 1 },
@@ -678,7 +910,15 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 3,
   },
+  checkoutBtnDisabled: {
+    backgroundColor: '#e2e8f0',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
   checkoutBtnText: { color: '#ffffff', fontSize: 15, fontWeight: '800' },
+  checkoutBtnTextDisabled: {
+    color: '#94a3b8',
+  },
   emptyContainer: { alignItems: 'center', paddingVertical: 80, paddingHorizontal: 20 },
   emptyIconCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#f1f5f9', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
   emptyTitle: { fontSize: 18, fontWeight: '800', color: '#0f172a', marginBottom: 6 },

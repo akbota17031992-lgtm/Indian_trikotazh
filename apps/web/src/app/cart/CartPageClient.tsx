@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ShoppingBag, ArrowRight, Trash2, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { ShoppingBag, ArrowRight, Trash2, ArrowLeft, CheckSquare } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import { useLocale } from '../../contexts/LocaleContext';
 import { useBranch } from '../../contexts/BranchContext';
@@ -11,9 +11,23 @@ import { Button, Card, CardHeader, CardTitle, CardContent, CardFooter, Badge } f
 import { formatKZT } from '@india-trikotaj/shared';
 import { calculateKaspiRedInstallment } from '../../lib/kaspi-helpers';
 
-
 export function CartPageClient() {
-  const { cart, itemCount, subtotalKzt, formattedSubtotal, deliveryFeeKzt, formattedDeliveryFee, formattedTotal, totalKzt, clearCart, fulfillmentType, setFulfillmentType } = useCart();
+  const {
+    cart,
+    itemCount,
+    clearCart,
+    fulfillmentType,
+    setFulfillmentType,
+    selectedVariantIds,
+    isAllSelected,
+    selectAll,
+    removeSelectedItems,
+    selectedItemCount,
+    formattedSelectedSubtotal,
+    formattedSelectedDeliveryFee,
+    formattedSelectedTotal,
+    selectedTotalKzt,
+  } = useCart();
   const { locale, t } = useLocale();
   const { selectedBranch } = useBranch();
 
@@ -41,6 +55,7 @@ export function CartPageClient() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
+      {/* Top Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
@@ -64,7 +79,39 @@ export function CartPageClient() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Items List Column */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-3">
+          {/* Checkboxes & Batch Actions Header */}
+          <div className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-card shadow-sm">
+            <label className="flex items-center gap-2.5 cursor-pointer text-xs font-semibold text-foreground select-none">
+              <input
+                type="checkbox"
+                checked={isAllSelected}
+                onChange={e => selectAll(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500 cursor-pointer accent-amber-600"
+              />
+              <span>
+                {locale === 'kz' ? 'Барлығын таңдау' : 'Выбрать все'} ({selectedVariantIds.length} из {cart.length})
+              </span>
+            </label>
+
+            {selectedVariantIds.length > 0 && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={removeSelectedItems}
+                className="h-8 text-xs text-destructive hover:bg-destructive/10 flex items-center gap-1.5 font-medium"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>
+                  {locale === 'kz'
+                    ? `Таңдалғанды өшіру (${selectedVariantIds.length})`
+                    : `Удалить выбранные (${selectedVariantIds.length})`}
+                </span>
+              </Button>
+            )}
+          </div>
+
           <Card>
             <CardContent className="p-4 sm:p-6 divide-y divide-border">
               {cart.map(item => (
@@ -84,12 +131,18 @@ export function CartPageClient() {
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div className="flex justify-between text-muted-foreground">
+                <span>{locale === 'kz' ? 'Таңдалған тауарлар' : 'Выбрано товаров'}:</span>
+                <span className="font-semibold text-foreground">
+                  {selectedItemCount} из {itemCount} {locale === 'kz' ? 'дана' : 'шт.'}
+                </span>
+              </div>
+              <div className="flex justify-between text-muted-foreground">
                 <span>{t('subtotal')}:</span>
-                <span className="font-semibold text-foreground">{formattedSubtotal}</span>
+                <span className="font-semibold text-foreground">{formattedSelectedSubtotal}</span>
               </div>
               <div className="flex justify-between text-muted-foreground">
                 <span>{t('deliveryFee')}:</span>
-                <span className="font-semibold text-foreground">{formattedDeliveryFee}</span>
+                <span className="font-semibold text-foreground">{formattedSelectedDeliveryFee}</span>
               </div>
 
               {/* Delivery mode selection */}
@@ -120,35 +173,54 @@ export function CartPageClient() {
                     }`}
                   >
                     <div>{t('courierDelivery')}</div>
-                    <div className="text-[10px] text-muted-foreground font-normal">1 500 ₸</div>
+                    <div className="text-[10px] text-muted-foreground font-normal">
+                      {selectedTotalKzt > 15000 ? '0 ₸' : '1 500 ₸'}
+                    </div>
                   </button>
                 </div>
               </div>
 
               <div className="border-t border-border pt-3 flex justify-between text-lg font-black text-foreground">
                 <span>{t('total')}:</span>
-                <span className="text-[#F14635]">{formattedTotal}</span>
+                <span className="text-[#F14635]">{formattedSelectedTotal}</span>
               </div>
 
               {/* Installment Badge */}
-              <div className="p-2.5 bg-red-50 rounded-lg text-xs space-y-1 text-red-900 border border-red-100">
-                <div className="font-semibold flex items-center justify-between">
-                  <span>Kaspi Red 0-0-3:</span>
-                  <span>3 x {formatKZT(calculateKaspiRedInstallment(totalKzt))}/мес</span>
+              {selectedTotalKzt > 0 && (
+                <div className="p-2.5 bg-red-50 rounded-lg text-xs space-y-1 text-red-900 border border-red-100">
+                  <div className="font-semibold flex items-center justify-between">
+                    <span>Kaspi Red 0-0-3:</span>
+                    <span>3 x {formatKZT(calculateKaspiRedInstallment(selectedTotalKzt))}/мес</span>
+                  </div>
                 </div>
-              </div>
+              )}
             </CardContent>
 
             <CardFooter className="pt-0 flex flex-col gap-2">
-              <Link href="/checkout" className="w-full">
+              {selectedItemCount > 0 ? (
+                <Link href="/checkout" className="w-full">
+                  <Button
+                    size="lg"
+                    className="w-full h-12 text-sm font-bold flex items-center justify-center gap-2 bg-[#E83434] hover:bg-[#D32828] text-white shadow-sm"
+                  >
+                    <span>
+                      {locale === 'kz'
+                        ? `Тапсырыс беру (${selectedItemCount}) • ${formattedSelectedTotal}`
+                        : `Оформить заказ (${selectedItemCount}) • ${formattedSelectedTotal}`}
+                    </span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+              ) : (
                 <Button
                   size="lg"
-                  className="w-full h-12 text-sm font-bold flex items-center justify-center gap-2 bg-[#E83434] hover:bg-[#D32828] text-white"
+                  disabled
+                  className="w-full h-12 text-sm font-bold flex items-center justify-center gap-2 opacity-50 cursor-not-allowed bg-muted text-muted-foreground"
                 >
-                  <span>{t('goToCheckout')}</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <span>{locale === 'kz' ? 'Тауарларды таңдаңыз' : 'Выберите товары для оформления'}</span>
                 </Button>
-              </Link>
+              )}
+
               <Link href="/catalog" className="w-full">
                 <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground">
                   <ArrowLeft className="w-3.5 h-3.5 mr-1" />

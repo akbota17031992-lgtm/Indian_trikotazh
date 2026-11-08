@@ -93,3 +93,4 @@ export function calculateDistanceKm(
   const d = R * c;
   return Math.round(d * 10) / 10;
 }
+

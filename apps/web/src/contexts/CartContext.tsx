@@ -27,7 +27,7 @@ export interface CartItem {
 
 export type FulfillmentType = 'pickup' | 'courier';
 
-interface CartContextType {
+export interface CartContextType {
   cart: CartItem[];
   items: CartItem[]; // alias for compatibility
   itemCount: number;
@@ -43,6 +43,21 @@ interface CartContextType {
   formattedSubtotal: string;
   formattedDeliveryFee: string;
   formattedTotal: string;
+
+  // Selection & Batch Operations
+  selectedVariantIds: string[];
+  isAllSelected: boolean;
+  toggleSelectItem: (variantId: string) => void;
+  selectAll: (selected: boolean) => void;
+  removeSelectedItems: () => void;
+  selectedItems: CartItem[];
+  selectedItemCount: number;
+  selectedSubtotalKzt: number;
+  selectedDeliveryFeeKzt: number;
+  selectedTotalKzt: number;
+  formattedSelectedSubtotal: string;
+  formattedSelectedDeliveryFee: string;
+  formattedSelectedTotal: string;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -51,6 +66,8 @@ const STORAGE_KEY = 'indiatrikotaj_cart';
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [fulfillmentType, setFulfillmentType] = useState<FulfillmentType>('pickup');
+  const [selectedVariantIds, setSelectedVariantIds] = useState<string[]>([]);
+  const [hasInitializedSelection, setHasInitializedSelection] = useState(false);
 
   // Load from localStorage on mount & listen for cross-tab updates (B23.2)
   useEffect(() => {
@@ -62,6 +79,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           const parsed = JSON.parse(raw);
           if (Array.isArray(parsed)) {
             setItems(parsed);
+            if (!hasInitializedSelection) {
+              setSelectedVariantIds(parsed.map((i: CartItem) => i.variantId));
+              setHasInitializedSelection(true);
+            }
           }
         }
       } catch (err) {
@@ -81,7 +102,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       window.addEventListener('storage', handleStorage);
       return () => window.removeEventListener('storage', handleStorage);
     }
-  }, []);
+  }, [hasInitializedSelection]);
 
   const saveItems = (nextItems: CartItem[]) => {
     setItems(nextItems);
@@ -93,6 +114,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const addItem = (newItem: Omit<CartItem, 'quantity'>, quantity = 1) => {
     const updated = addCartItem(items, newItem, quantity);
     saveItems(updated);
+    setSelectedVariantIds(prev => Array.from(new Set([...prev, newItem.variantId])));
   };
 
   const updateQuantity = (variantId: string, quantity: number) => {
@@ -103,14 +125,48 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const removeItem = (variantId: string) => {
     const updated = removeCartItem(items, variantId);
     saveItems(updated);
+    setSelectedVariantIds(prev => prev.filter(id => id !== variantId));
   };
 
   const clearCart = () => {
     saveItems([]);
+    setSelectedVariantIds([]);
+  };
+
+  const toggleSelectItem = (variantId: string) => {
+    setSelectedVariantIds(prev =>
+      prev.includes(variantId) ? prev.filter(id => id !== variantId) : [...prev, variantId]
+    );
+  };
+
+  const selectAll = (selected: boolean) => {
+    setSelectedVariantIds(selected ? items.map(i => i.variantId) : []);
+  };
+
+  const removeSelectedItems = () => {
+    const remaining = items.filter(i => !selectedVariantIds.includes(i.variantId));
+    saveItems(remaining);
+    setSelectedVariantIds([]);
   };
 
   const itemCount = items.reduce((sum: number, item: CartItem) => sum + item.quantity, 0);
   const { subtotalKzt, deliveryFeeKzt, totalKzt } = calculateCartTotals(items, fulfillmentType);
+
+  // Selected totals
+  const isAllSelected = items.length > 0 && selectedVariantIds.length === items.length;
+  const selectedItems = items.filter(i => selectedVariantIds.includes(i.variantId));
+  const selectedItemCount = selectedItems.reduce((sum: number, item: CartItem) => sum + item.quantity, 0);
+  const selectedSubtotalKzt = selectedItems.reduce(
+    (sum: number, item: CartItem) => sum + item.priceKzt * item.quantity,
+    0
+  );
+  const selectedDeliveryFeeKzt =
+    fulfillmentType === 'courier'
+      ? selectedSubtotalKzt > 15000 || selectedSubtotalKzt === 0
+        ? 0
+        : 1500
+      : 0;
+  const selectedTotalKzt = selectedSubtotalKzt + selectedDeliveryFeeKzt;
 
   return (
     <CartContext.Provider
@@ -130,13 +186,27 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         formattedSubtotal: formatKZT(subtotalKzt),
         formattedDeliveryFee: formatKZT(deliveryFeeKzt),
         formattedTotal: formatKZT(totalKzt),
+
+        // Selection & Batch Operations
+        selectedVariantIds,
+        isAllSelected,
+        toggleSelectItem,
+        selectAll,
+        removeSelectedItems,
+        selectedItems,
+        selectedItemCount,
+        selectedSubtotalKzt,
+        selectedDeliveryFeeKzt,
+        selectedTotalKzt,
+        formattedSelectedSubtotal: formatKZT(selectedSubtotalKzt),
+        formattedSelectedDeliveryFee: formatKZT(selectedDeliveryFeeKzt),
+        formattedSelectedTotal: formatKZT(selectedTotalKzt),
       }}
     >
       {children}
     </CartContext.Provider>
   );
 }
-
 
 export function useCart() {
   const ctx = useContext(CartContext);

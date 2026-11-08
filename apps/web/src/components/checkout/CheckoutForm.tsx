@@ -25,10 +25,23 @@ import { KaspiCheckoutModal } from './KaspiCheckoutModal';
 import type { KaspiPaymentMode } from '../../types/checkout';
 
 export function CheckoutForm() {
-  const { cart, subtotalKzt, clearCart, fulfillmentType, setFulfillmentType } = useCart();
+  const {
+    cart,
+    selectedItems,
+    selectedSubtotalKzt,
+    subtotalKzt: defaultSubtotalKzt,
+    removeSelectedItems,
+    clearCart,
+    fulfillmentType,
+    setFulfillmentType,
+  } = useCart();
   const { selectedBranch, branches } = useBranch();
   const { locale, t } = useLocale();
   const { user, isAuthenticated, openAuthModal } = useAuth();
+
+  // If user selected specific items in the cart, checkout only those!
+  const checkoutItems = selectedItems && selectedItems.length > 0 ? selectedItems : cart;
+  const subtotalKzt = selectedItems && selectedItems.length > 0 ? selectedSubtotalKzt : defaultSubtotalKzt;
 
   const [pickupStoreId, setPickupStoreId] = useState<string>(selectedBranch.id);
   const [customerName, setCustomerName] = useState('');
@@ -137,7 +150,7 @@ export function CheckoutForm() {
                 apartment: apartment.trim() || undefined,
               }
             : null,
-        items: cart.map(i => ({
+        items: checkoutItems.map(i => ({
           variantId: i.variantId,
           quantity: i.quantity,
         })),
@@ -164,7 +177,11 @@ export function CheckoutForm() {
   };
 
   const handlePaymentSuccess = (orderId: string) => {
-    clearCart();
+    if (selectedItems && selectedItems.length > 0 && selectedItems.length < cart.length) {
+      removeSelectedItems();
+    } else {
+      clearCart();
+    }
     if (typeof window !== 'undefined') {
       window.location.href = `/orders/${orderId}`;
     }
@@ -397,7 +414,7 @@ export function CheckoutForm() {
             <CardContent className="space-y-3 text-sm">
               <div className="flex justify-between text-muted-foreground">
                 <span>
-                  {locale === 'kz' ? 'Тауарлар' : 'Товары'} ({cart.length}):
+                  {locale === 'kz' ? 'Тауарлар' : 'Товары'} ({checkoutItems.length}):
                 </span>
                 <span className="font-semibold text-foreground">{formatKZT(subtotalKzt)}</span>
               </div>

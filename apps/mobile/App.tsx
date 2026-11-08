@@ -78,6 +78,22 @@ function MainScreen() {
     setCart(prev => prev.filter(item => !(item.product.id === productId && item.size === size)));
   };
 
+  const handleRemoveMultipleItems = (
+    itemsToRemove: { productId: string; size: string; colorId?: string }[]
+  ) => {
+    setCart(prev =>
+      prev.filter(
+        cartItem =>
+          !itemsToRemove.some(
+            r =>
+              r.productId === cartItem.product.id &&
+              r.size === cartItem.size &&
+              (!r.colorId || r.colorId === cartItem.color.id)
+          )
+      )
+    );
+  };
+
   const handleClearCart = () => {
     setCart([]);
   };
@@ -89,6 +105,18 @@ function MainScreen() {
       ...prev,
       bonusPoints: prev.bonusPoints + earnedPoints,
     }));
+    // Remove only the items that were ordered from the cart
+    setCart(prev =>
+      prev.filter(
+        cartItem =>
+          !order.items.some(
+            orderedItem =>
+              orderedItem.product.id === cartItem.product.id &&
+              orderedItem.size === cartItem.size &&
+              orderedItem.color.id === cartItem.color.id
+          )
+      )
+    );
   };
 
   const cartProductQuantities = useMemo(() => {
@@ -198,6 +226,7 @@ function MainScreen() {
             cart={cart}
             onUpdateQuantity={handleUpdateQuantity}
             onRemoveItem={handleRemoveItem}
+            onRemoveMultipleItems={handleRemoveMultipleItems}
             onClearCart={handleClearCart}
             onOrderCreated={handleOrderCreated}
             selectedStoreId={selectedStoreId}

@@ -12,15 +12,32 @@ interface CartItemRowProps {
 }
 
 export function CartItemRow({ item }: CartItemRowProps) {
-  const { updateQuantity, removeItem } = useCart();
+  const { updateQuantity, removeItem, selectedVariantIds, toggleSelectItem } = useCart();
   const { getBilingual, t } = useLocale();
 
+  const isSelected = selectedVariantIds ? selectedVariantIds.includes(item.variantId) : true;
   const title = getBilingual(item.titleKz, item.titleRu);
   const color = getBilingual(item.colorKz, item.colorRu);
   const itemTotal = item.priceKzt * item.quantity;
 
   return (
-    <div className="flex items-center gap-4 py-4 border-b border-border last:border-none">
+    <div
+      className={`flex items-center gap-3 sm:gap-4 py-4 border-b border-border last:border-none transition-opacity duration-150 ${
+        !isSelected ? 'opacity-50' : ''
+      }`}
+    >
+      {/* Checkbox */}
+      <div className="flex items-center shrink-0">
+        <input
+          type="checkbox"
+          id={`cart-check-${item.variantId}`}
+          checked={isSelected}
+          onChange={() => toggleSelectItem(item.variantId)}
+          className="w-4 h-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500 cursor-pointer accent-amber-600"
+          aria-label={isSelected ? 'Снять выбор' : 'Выбрать товар'}
+        />
+      </div>
+
       {/* Product Image / Placeholder */}
       <div className="w-16 h-20 bg-muted/60 rounded-lg flex items-center justify-center shrink-0 overflow-hidden border border-border/50">
         {item.imageUrl ? (
