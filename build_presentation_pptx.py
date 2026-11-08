@@ -87,12 +87,12 @@ def create_presentation(output_paths):
     p2.space_after = Pt(12)
 
     p3 = tf1.add_paragraph()
-    p3.text = "Интернет-магазин (Next.js 15) • Мобильное приложение (iOS & Android) • Kaspi Red 0-0-3 • 16 розничных филиалов в Алматы • ИИ-товаровед"
+    p3.text = "Интернет-магазин (Next.js 15) • Мобильное приложение (iOS & Android) • Kaspi Red 0-0-3 • Сквозной учет 16 филиалов в Алматы • ИИ Fashion Studio"
     p3.font.size = Pt(15)
     p3.font.color.rgb = RGBColor(0xFD, 0xE6, 0x8A)
 
     p4 = tf1.add_paragraph()
-    p4.text = "г. Алматы • Ноябрь 2026 г. • Статус: Готово к демонстрации и запуску"
+    p4.text = "г. Алматы • Ноябрь 2026 г. • Статус: Готово к демонстрации и промышленному внедрению"
     p4.font.size = Pt(12)
     p4.font.color.rgb = RGBColor(0x94, 0xA3, 0xB8)
     p4.space_before = Pt(40)
@@ -105,10 +105,10 @@ def create_presentation(output_paths):
 
     # 4 Problem Cards
     cards_data = [
-        ("1. Потеря 20% клиентов из-за размеров", "Клиент пришел в MEGA Alma-Ata, нужного размера нет — уходит с пустыми руками. Продавец не видит склад Dostyk Plaza или Grand Park.", "Упущенные продажи: 2.0–2.5 млн ₸/мес", C_RED),
+        ("1. Дефицит в филиалах (Out-of-Stock)", "Клиент пришел в магазин, нужного размера нет — уходит с пустыми руками. Продавец не видит остатки других филиалов сети.", "Упущенные продажи: 2.0–2.5 млн ₸/мес", C_RED),
         ("2. Ручные продажи в Instagram / WhatsApp", "Менеджеры тратят по 20 минут на отправку фото и реквизитов Kaspi Gold вручную. Ночью и в часы пик заявки сгорают без чекаута.", "Потеря до 35% онлайн-заказов", C_RED),
         ("3. Высокая комиссия Kaspi Магазина", "Маркетплейс Kaspi.kz удерживает до 15% с каждой продажи трикотажа, не передавая базу прямых клиентов бренду.", "Потеря маржи: ~10-15% с чека", C_RED),
-        ("4. Долгая оцифровка партий из Индии", "Товар приехал из Мумбаи/Тируппура, лежит на складе неделями, пока фотограф сделает снимки и описания вручную.", "Замороженные оборотные средства", C_RED),
+        ("4. Долгая оцифровка партий из Индии", "Товар приехал из Мумбаи/Тируппура, лежит на складе неделями, пока организуют фотосессии моделей и описания вручную.", "Замороженные оборотные средства", C_RED),
     ]
 
     for idx, (head, desc, stat, color) in enumerate(cards_data):
@@ -152,9 +152,9 @@ def create_presentation(output_paths):
     add_header(s3, "Готовая омниканальная платформа «Индийский Трикотаж»")
 
     features = [
-        ("Интернет-магазин Next.js 15", "Высокая скорость загрузки, адаптив под смартфоны, умные фильтры по составу, плотности, полу и наличию в 16 ТРЦ. Корзина с гибким выбором позиций.", C_PRIMARY),
-        ("Мобильное приложение (iOS & Android)", "Нативное приложение с авторизацией по Face ID, отпечатку пальца и СМС без паролей в стиле Kaspi. Гостевой режим для мгновенных покупок и кешбэк 5%.", C_PRIMARY),
-        ("Единая сеть 16 филиалов в Алматы", "Покупатель видит складские остатки ближайшего ТРЦ (MEGA, Dostyk Plaza, Grand Park и др.) и может забрать заказ через 2 часа (Click & Collect).", C_PRIMARY),
+        ("Интернет-магазин Next.js 15", "Высокая скорость загрузки, адаптив под смартфоны, фильтры по составу, плотности, полу и наличию в 16 филиалах. Корзина с гибким выбором позиций.", C_PRIMARY),
+        ("Мобильное приложение (iOS & Android)", "Нативное приложение с авторизацией по Face ID, Touch ID и СМС без паролей в стиле Kaspi. Гостевой режим для покупок и кешбэк 5%.", C_PRIMARY),
+        ("Сквозной учет и пополнение 16 филиалов", "Покупатель и кассир видят остатки всех филиалов (Click & Collect за 2 часа). Автоматический контроль остатков и листы перемещений со склада.", C_PRIMARY),
         ("Kaspi Pay + Kaspi Red 0-0-3", "Прямой прием оплаты: Kaspi QR, Kaspi Gold, рассрочка Kaspi Red без переплат. Автоматическая фискализация чеков ОФД Webkassa.", C_PRIMARY),
     ]
 
@@ -202,21 +202,21 @@ def create_presentation(output_paths):
             "Экономия: заменяет копирайтера (150 тыс ₸/мес)",
         ], "Настройка: 80 000 ₸\nAPI: ~15 000 ₸/мес", RGBColor(0x02, 0x84, 0xC7)),
 
-        ("ВАРИАНТ 2: «Smart Business»", "ХИТ ПРОДАЖ • Рекомендуемый", [
+        ("ВАРИАНТ 2: «Smart Business»", "Оптимальный уровень", [
             "Все функции AI-Товароведа Lite",
             "Семантический умный поиск по смыслу",
             "WhatsApp AI-Консультант 24/7",
             "Подбор размера по росту/весу клиента",
-            "Проверка остатков в 16 ТРЦ и ссылка на чекаут",
+            "Проверка остатков в 16 филиалах и ссылка на корзину",
             "Экономия: заменяет 2 операторов (450 тыс ₸/мес)",
         ], "Настройка: 180 000 ₸\nAPI: ~35 000 ₸/мес", C_GOLD),
 
-        ("ВАРИАНТ 3: «Fashion Studio»", "Премиум-уровень", [
-            "Все функции Smart Business",
+        ("⭐ ВАРИАНТ 3: «Fashion Studio»", "ХИТ ПРЕМИУМ • ВЫБОР СЕТИ", [
+            "Все функции Smart Business + WhatsApp 24/7",
             "Генерация фото одежды на виртуальных моделях",
-            "Фото с манекена превращается в фотосессию",
-            "Экономия на моделях, фотографах и студиях",
-            "Экономия: до 800 000 ₸/мес на фотосессиях",
+            "Фото с манекена превращается в студийный лукбук",
+            "Полный отказ от фотографов, моделей и аренды студий",
+            "Экономия: от 900 000 ₸/мес на фотосессиях",
         ], "Настройка: 350 000 ₸\nAPI: ~65 000 ₸/мес", RGBColor(0x7C, 0x3A, 0xED)),
     ]
 
@@ -228,7 +228,7 @@ def create_presentation(output_paths):
         card.fill.solid()
         card.fill.fore_color.rgb = C_CARD_BG
         card.line.color.rgb = accent_color
-        card.line.width = Pt(1.5)
+        card.line.width = Pt(2.0 if idx == 2 else 1.0)
 
         # Header tag
         tag_box = s4.shapes.add_shape(MSO_SHAPE.RECTANGLE, left, top, Inches(3.8), Inches(0.7))
@@ -241,7 +241,7 @@ def create_presentation(output_paths):
         p_t = tf_t.paragraphs[0]
         p_t.text = tag.upper()
         p_t.alignment = PP_ALIGN.CENTER
-        p_t.font.size = Pt(11)
+        p_t.font.size = Pt(10.5)
         p_t.font.bold = True
         p_t.font.color.rgb = C_WHITE
 
@@ -259,7 +259,7 @@ def create_presentation(output_paths):
         for b in bullet_list:
             pb = tf.add_paragraph()
             pb.text = "• " + b
-            pb.font.size = Pt(10.5)
+            pb.font.size = Pt(10)
             pb.font.color.rgb = C_TEXT_MAIN
             pb.space_before = Pt(4)
 
@@ -284,7 +284,7 @@ def create_presentation(output_paths):
     table.columns[2].width = Inches(1.8)
     table.columns[3].width = Inches(1.8)
 
-    headers = ["Компонент платформы", "Функциональный состав", "Рынок РК", "Наша стоимость"]
+    headers = ["Компонент платформы", "Функциональный состав", "Рынок РК", "Наша цена (Премиум)"]
     for i, h in enumerate(headers):
         cell = table.cell(0, i)
         cell.text = h
@@ -296,11 +296,11 @@ def create_presentation(output_paths):
         p.font.color.rgb = C_WHITE
 
     dev_rows = [
-        ("Интернет-магазин (Web)", "Next.js 15, SSR, умные фильтры, корзина, геолокация 16 ТРЦ, RU/KZ", "3 500 000 ₸", "2 400 000 ₸"),
-        ("Мобильное приложение (iOS/Android)", "Kaspi ID авторизация по СМС, системный Face ID/код, гостевой режим, Push", "4 500 000 ₸", "2 400 000 ₸"),
-        ("Панель управления (CRM & Админка)", "Учет 16 складов в реальном времени, роли персонала, статусы самовывоза", "2 500 000 ₸", "800 000 ₸"),
-        ("Интеграция Kaspi Pay & ОФД", "Kaspi QR, Kaspi Gold, рассрочка Kaspi Red 0-0-3, фискализация Webkassa", "1 000 000 ₸", "350 000 ₸"),
-        ("Интеграция ИИ-модуля (Vision/NLP)", "AI-товаровед для распознавания одежды, генерации карточек и перевода", "1 500 000 ₸", "250 000 ₸"),
+        ("Интернет-магазин (Web)", "Next.js 15, SSR, умные фильтры, корзина, геолокация 16 филиалов, RU/KZ", "3 500 000 ₸", "2 800 000 ₸"),
+        ("Мобильное приложение (iOS/Android)", "Kaspi ID авторизация по СМС, системный Face ID/код, гостевой режим, Push", "4 500 000 ₸", "3 000 000 ₸"),
+        ("Панель управления (CRM & Админка)", "Сквозной учет 16 складов в реальном времени, листы перемещений, роли кассиров", "2 500 000 ₸", "1 000 000 ₸"),
+        ("Интеграция Kaspi Pay & ОФД", "Kaspi QR, Kaspi Gold, рассрочка Kaspi Red 0-0-3, фискализация Webkassa", "1 000 000 ₸", "450 000 ₸"),
+        ("Интеграция ИИ-модулей платформы", "AI-товаровед, Fashion Studio (виртуальные модели) и семантический поиск", "2 500 000 ₸", "550 000 ₸"),
     ]
 
     for row_idx, r_data in enumerate(dev_rows, start=1):
@@ -324,13 +324,13 @@ def create_presentation(output_paths):
     tx_tot = s5.shapes.add_textbox(Inches(1.0), Inches(6.25), Inches(11.3), Inches(0.75))
     tf_tot = tx_tot.text_frame
     p_tot = tf_tot.paragraphs[0]
-    p_tot.text = "ИТОГО СТОИМОСТЬ РАЗРАБОТКИ ПЛАТФОРМЫ ПОД КЛЮЧ: 6 200 000 ₸ (~$12 400)"
+    p_tot.text = "ИТОГО СТОИМОСТЬ РАЗРАБОТКИ ПЛАТФОРМЫ ПОД КЛЮЧ (ПРЕМИУМ): 7 800 000 ₸ (~$15 600)"
     p_tot.font.size = Pt(13)
     p_tot.font.bold = True
     p_tot.font.color.rgb = C_DARK
 
     p_sub = tf_tot.add_paragraph()
-    p_sub.text = "Экономия заказчика превышает 50% по сравнению со стоимостью аналогичной заказной разработки в агентствах Алматы."
+    p_sub.text = "Экономия заказчика превышает 45% по сравнению со стоимостью аналогичной заказной разработки в агентствах Алматы (15-18 млн ₸)."
     p_sub.font.size = Pt(10)
     p_sub.font.color.rgb = C_PRIMARY
 
@@ -360,11 +360,11 @@ def create_presentation(output_paths):
         p.font.color.rgb = C_WHITE
 
     start_rows = [
-        ("Инфраструктура на 12 мес. (PS.kz)", "VPS в ДЦ Алматы (закон о ПДн РК) + домен .kz + SSL + БД + S3", "12 месяцев", "285 000 ₸"),
+        ("Инфраструктура на 12 мес. (PS.kz)", "VPS в ЦОД Алматы (Закон о ПДн РК) + домен .kz + SSL + БД + S3", "12 месяцев", "285 000 ₸"),
         ("Лицензии Apple & Google Play", "Apple Developer ($99/год) + Google Play Console ($25 разово)", "1 год", "62 000 ₸"),
         ("Kaspi Pay + ОФД Webkassa", "Регистрация мерчанта, боевые ключи Kaspi Pay + онлайн-касса", "12 месяцев", "145 000 ₸"),
-        ("Пакет СМС (10 000 шт.)", "Беспарольный вход клиентов по СМС через казахстанский шлюз", "Стартовый пакет", "78 000 ₸"),
-        ("Оборудование 16 филиалов", "16 беспроводных 2D сканеров штрихкодов для касс ТРЦ", "16 штук", "240 000 ₸"),
+        ("Оборудование филиалов и склад", "16 беспроводных 2D сканеров (240 тыс) + принтер этикеток Xprinter (32 тыс)", "16 сканеров + принтер", "272 000 ₸"),
+        ("Настройка ИИ (WhatsApp 24/7 + Models)", "Разовая интеграция WhatsApp API (180 тыс) + AI Fashion Studio (350 тыс)", "Разово (Setup)", "530 000 ₸"),
     ]
 
     for row_idx, r_data in enumerate(start_rows, start=1):
@@ -386,13 +386,13 @@ def create_presentation(output_paths):
     tx_l = s6.shapes.add_textbox(Inches(1.0), Inches(6.25), Inches(11.3), Inches(0.75))
     tf_l = tx_l.text_frame
     p_l = tf_l.paragraphs[0]
-    p_l.text = "ИТОГО СТОИМОСТЬ ЗАПУСКА ПОД КЛЮЧ (ПАКЕТ «БИЗНЕС»): 1 350 000 ₸"
+    p_l.text = "ИТОГО СТОИМОСТЬ ЗАПУСКА ПОД КЛЮЧ (ТАРИФ «ПРЕМИУМ»): 1 950 000 ₸"
     p_l.font.size = Pt(13)
     p_l.font.bold = True
     p_l.font.color.rgb = C_GREEN
 
     p_lsub = tf_l.add_paragraph()
-    p_lsub.text = "Включает настройку WhatsApp AI-консультанта 24/7 (180 000 ₸) и 3 месяца расширенной техподдержки и мониторинга (260 000 ₸)."
+    p_lsub.text = "Включает стартовый пакет 15 000 СМС (118 000 ₸) и 6 месяцев гарантийного VIP-сопровождения (538 000 ₸)."
     p_lsub.font.size = Pt(10)
     p_lsub.font.color.rgb = C_TEXT_MAIN
 
@@ -414,26 +414,26 @@ def create_presentation(output_paths):
             "1 месяц гарантийного саппорта",
         ], C_TEXT_MUTED),
 
-        ("Тариф «БИЗНЕС»", "ХИТ ПРОДАЖ • РЕКОМЕНДУЕМЫЙ", "6 200 000 ₸", "1 350 000 ₸", "7 550 000 ₸", "~ $15 100", [
+        ("Тариф «БИЗНЕС»", "Оптимальный уровень", "6 200 000 ₸", "1 350 000 ₸", "7 550 000 ₸", "~ $15 100", [
             "Все из тарифа «Стандарт»",
             "WhatsApp AI-продавец 24/7",
             "Подбор размера в мессенджере",
-            "16 сканеров штрихкодов в ТРЦ",
+            "16 сканеров штрихкодов на кассы",
             "Серверы и домен .kz на 1 год",
             "Лицензии Apple & Google",
-            "3 месяца VIP-техподдержки",
+            "3 месяца техподдержки",
             "Обучение персонала 16 точек",
         ], C_GOLD),
 
-        ("Тариф «ENTERPRISE»", "Премиум-максимум", "7 800 000 ₸", "1 950 000 ₸", "9 750 000 ₸", "~ $19 500", [
-            "Все из тарифа «Бизнес»",
+        ("⭐ Тариф «ПРЕМИУМ / ENTERPRISE»", "ХИТ ПРОДАЖ • ВЫБОР СЕТИ", "7 800 000 ₸", "1 950 000 ₸", "9 750 000 ₸", "~ $19 500", [
+            "Все из тарифа «Бизнес» + WhatsApp 24/7",
             "AI Fashion Studio (виртуальные модели)",
             "Полная замена фотосессий одеждой",
-            "16 сканеров + принтер этикеток",
+            "16 сканеров + принтер этикеток Xprinter",
             "Пакет 15 000 СМС для входа",
-            "6 месяцев VIP-сопровождения",
+            "6 месяцев VIP-сопровождения (SLA 30 мин)",
             "Выделенный менеджер проекта",
-            "Приоритетный SLA до 1 часа",
+            "Контроль дефицита и листы перемещений",
         ], RGBColor(0x7C, 0x3A, 0xED)),
     ]
 
@@ -445,7 +445,7 @@ def create_presentation(output_paths):
         card.fill.solid()
         card.fill.fore_color.rgb = C_CARD_BG
         card.line.color.rgb = t_col
-        card.line.width = Pt(2.0 if idx == 1 else 1.0)
+        card.line.width = Pt(2.5 if idx == 2 else 1.0)
 
         # Header bar
         hbar = s7.shapes.add_shape(MSO_SHAPE.RECTANGLE, left, top, Inches(3.8), Inches(0.7))
@@ -469,7 +469,7 @@ def create_presentation(output_paths):
 
         p = tf.paragraphs[0]
         p.text = t_name
-        p.font.size = Pt(14)
+        p.font.size = Pt(13.5)
         p.font.bold = True
         p.font.color.rgb = C_DARK
 
@@ -477,7 +477,7 @@ def create_presentation(output_paths):
         p_sum.text = f"{t_total}"
         p_sum.font.size = Pt(18)
         p_sum.font.bold = True
-        p_sum.font.color.rgb = C_GREEN if idx == 1 else t_col
+        p_sum.font.color.rgb = C_GREEN if idx == 2 else t_col
         p_sum.space_before = Pt(4)
 
         p_usd = tf.add_paragraph()
@@ -499,7 +499,7 @@ def create_presentation(output_paths):
             pb.space_before = Pt(2)
 
     # ----------------------------------------------------
-    # SLIDE 8: ROI and Payback
+    # SLIDE 8: ROI and Payback for ALL TARIFFS
     # ----------------------------------------------------
     s8 = prs.slides.add_slide(blank_layout)
     add_header(s8, "Финансовый эффект сети и сроки окупаемости инвестиций (ROI)")
@@ -515,17 +515,18 @@ def create_presentation(output_paths):
     tf_l.word_wrap = True
 
     p = tf_l.paragraphs[0]
-    p.text = "РАСЧЕТ ДОПОЛНИТЕЛЬНОЙ ПРИБЫЛИ В МЕСЯЦ"
+    p.text = "РАСЧЕТ ДОПОЛНИТЕЛЬНОЙ ПРИБЫЛИ СЕТИ В МЕСЯЦ"
     p.font.size = Pt(13)
     p.font.bold = True
     p.font.color.rgb = C_DARK
 
     rows_fin = [
         ("Онлайн-заказы курьером (20 чек/день)", "+ 2 475 000 ₸ / мес"),
-        ("Самовывоз из 16 ТРЦ Click & Collect (15 чек/день)", "+ 1 850 000 ₸ / мес"),
+        ("Самовывоз из 16 филиалов (Click & Collect)", "+ 1 856 000 ₸ / мес"),
+        ("Ликвидация дефицита (Out-of-Stock) по складам", "+ 1 650 000 ₸ / мес"),
         ("Экономия на комиссиях Kaspi Магазина", "+ 450 000 ₸ / мес"),
-        ("Минус ежемесячный OPEX (сервер, СМС, ИИ)", "- 65 000 ₸ / мес"),
-        ("ИТОГО ЧИСТАЯ ПРИБЫЛЬ СЕТИ:", "+ 4 710 000 ₸ / месяц"),
+        ("Минус ежемесячный OPEX (сервер, СМС, ИИ)", "- 75 000 ₸ / мес"),
+        ("ИТОГО ЧИСТАЯ ПРИБЫЛЬ СЕТИ:", "+ 6 356 000 ₸ / месяц"),
     ]
 
     for title, val in rows_fin:
@@ -534,9 +535,9 @@ def create_presentation(output_paths):
         pt.font.size = Pt(11)
         pt.font.bold = ("ИТОГО" in title)
         pt.font.color.rgb = C_GREEN if ("+" in val or "ИТОГО" in title) else (C_RED if "-" in val else C_TEXT_MAIN)
-        pt.space_before = Pt(8)
+        pt.space_before = Pt(6)
 
-    # Right card: Payback & Retainer
+    # Right card: Payback for ALL TARIFFS & Retainer Rules
     c_right = s8.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(7.1), Inches(1.5), Inches(5.4), Inches(5.4))
     c_right.fill.solid()
     c_right.fill.fore_color.rgb = C_CARD_BG
@@ -548,48 +549,53 @@ def create_presentation(output_paths):
     tf_r.word_wrap = True
 
     pr = tf_r.paragraphs[0]
-    pr.text = "СРОК ОКУПАЕМОСТИ ТАРИФА «БИЗНЕС»"
+    pr.text = "СРОКИ ОКУПАЕМОСТИ ПО ВСЕМ ТАРИФАМ:"
     pr.font.size = Pt(13)
     pr.font.bold = True
     pr.font.color.rgb = C_DARK
 
-    pr_roi = tf_r.add_paragraph()
-    pr_roi.text = "Всего 48–50 дней (менее 1.7 месяца)!"
-    pr_roi.font.size = Pt(18)
-    pr_roi.font.bold = True
-    pr_roi.font.color.rgb = C_GREEN
-    pr_roi.space_before = Pt(6)
+    paybacks = [
+        ("Тариф «СТАНДАРТ» (5 850 000 ₸):", "27–28 дней (0.92 месяца)"),
+        ("Тариф «БИЗНЕС» (7 550 000 ₸):", "36–38 дней (1.19 месяца)"),
+        ("⭐ Тариф «ПРЕМИУМ» (9 750 000 ₸):", "46–48 дней (1.53 месяца)"),
+    ]
 
-    pr_exp = tf_r.add_paragraph()
-    pr_exp.text = "7 550 000 ₸ (инвестиция) / 4 710 000 ₸ (прибыль/мес) = 1.6 мес."
-    pr_exp.font.size = Pt(11)
-    pr_exp.font.color.rgb = C_TEXT_MUTED
-    pr_exp.space_before = Pt(4)
+    for p_name, p_days in paybacks:
+        p_row = tf_r.add_paragraph()
+        p_row.text = f"{p_name}  {p_days}"
+        p_row.font.size = Pt(11)
+        p_row.font.bold = True
+        p_row.font.color.rgb = C_GREEN if "ПРЕМИУМ" in p_name else C_PRIMARY
+        p_row.space_before = Pt(4)
 
     pr_ret = tf_r.add_paragraph()
-    pr_ret.text = "АБОНЕНТСКОЕ СОПРОВОЖДЕНИЕ (MRR)"
+    pr_ret.text = "РЕГЛАМЕНТ АБОНЕНТСКОГО СОПРОВОЖДЕНИЯ"
     pr_ret.font.size = Pt(12)
     pr_ret.font.bold = True
-    pr_ret.font.color.rgb = C_PRIMARY
-    pr_ret.space_before = Pt(16)
+    pr_ret.font.color.rgb = C_DARK
+    pr_ret.space_before = Pt(14)
 
     pr_ret_txt = tf_r.add_paragraph()
-    pr_ret_txt.text = "После гарантийных 3 месяцев заказчик переходит на сервисный контракт:\n• Базовый саппорт: 150 000 ₸ / месяц\n• Бизнес-развитие (+ доработки и обновления iOS/Android): 250 000 – 350 000 ₸ / месяц"
-    pr_ret_txt.font.size = Pt(10.5)
+    pr_ret_txt.text = (
+        "• Базовый саппорт: 150 000 ₸/мес (серверы, бэкапы каждые 6 ч, SSL, домен)\n"
+        "• Премиум DevOps: 250 000 ₸/мес (+ обязательная адаптация под новые версии iOS/Android)\n"
+        "⚠️ Доработка любых новых функций производится исключительно по отдельным Доп. соглашениям по ТЗ. На разработчике никто «не ездит» — каждый новый функционал оплачивается отдельно."
+    )
+    pr_ret_txt.font.size = Pt(10)
     pr_ret_txt.font.color.rgb = C_TEXT_MAIN
     pr_ret_txt.space_before = Pt(4)
 
     # ----------------------------------------------------
-    # SLIDE 9: 14-day Launch & Closing Call to Action
+    # SLIDE 9: 14-day Launch & Closing Call to Action (PREMIUM)
     # ----------------------------------------------------
     s9 = prs.slides.add_slide(blank_layout)
-    add_header(s9, "Дорожная карта запуска за 14 рабочих дней и контакты")
+    add_header(s9, "Дорожная карта запуска Тарифа «Премиум» за 14 рабочих дней")
 
     steps_data = [
-        ("Дни 1 – 3", "Юридический запуск", "Подписание договора, аванс 50%, регистрация домена .kz, аккаунты Apple/Google"),
-        ("Дни 4 – 7", "Шлюзы и инфраструктура", "Боевое подключение Kaspi Pay (Red 0-0-3), ОФД Webkassa, развертывание серверов PS.kz"),
-        ("Дни 8 – 11", "Каталог, ИИ и магазины", "Оцифровка партий одежды через AI, запуск WhatsApp AI-продавца, доставка сканеров в 16 ТРЦ"),
-        ("Дни 12 – 14", "Тестирование и Релиз", "Тестовый платеж 100 ₸ Kaspi QR, публикация в App Store & Google Play, старт рекламы"),
+        ("Дни 1 – 3", "Юридический запуск и инфраструктура", "Подписание договора, аванс 50%, регистрация домена indiatrikotaj.kz, аккаунты Apple/Google, серверы PS.kz в ЦОД Алматы"),
+        ("Дни 4 – 7", "Шлюзы и платежный контур", "Боевое подключение Kaspi Pay (QR, Gold, Red 0-0-3), ОФД Webkassa, подключение WhatsApp Business API и СМС-шлюза Mobizon"),
+        ("Дни 8 – 11", "ИИ Премиум, Склады и Оборудование", "AI Fashion Studio (виртуальные модели), запуск WhatsApp AI 24/7, сквозной учет остатков 16 филиалов, доставка 16 сканеров и принтера"),
+        ("Дни 12 – 14", "Тестирование, Обучение и Релиз", "Тестовый платеж 100 ₸ Kaspi QR с чеком, обучение кассиров 16 филиалов, публикация в App Store & Google Play, старт продаж"),
     ]
 
     for idx, (days, name, desc) in enumerate(steps_data):
@@ -632,15 +638,20 @@ def create_presentation(output_paths):
     pc.font.color.rgb = C_GOLD
 
     pc2 = tf_c.add_paragraph()
-    pc2.text = "Контакты проектной группы: +7 (701) 992-84-12 • г. Алматы • Все исходные коды переходят в собственность заказчика."
+    pc2.text = "Контакты проектной группы: +7 (701) 992-84-12 • г. Алматы • Все исключительные права на код переходят к заказчику."
     pc2.font.size = Pt(11)
     pc2.font.color.rgb = C_WHITE
     pc2.space_before = Pt(3)
 
     for p in output_paths:
         os.makedirs(os.path.dirname(os.path.abspath(p)), exist_ok=True)
-        prs.save(p)
-        print(f"Presentation saved successfully to {p}")
+        try:
+            prs.save(p)
+            print(f"Presentation saved successfully to {p}")
+        except PermissionError:
+            alt_path = p.replace(".pptx", "_updated.pptx")
+            prs.save(alt_path)
+            print(f"Warning: {p} is currently locked (open in PowerPoint). Saved updated version to {alt_path}")
 
 if __name__ == "__main__":
     target_paths = [
