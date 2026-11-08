@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ interface Props {
   selectedStoreId: string;
   locale: 'ru' | 'kz';
   onToggleLocale: () => void;
+  recentlyViewedIds: string[];
 }
 
 export function HomeScreen({
@@ -31,6 +32,7 @@ export function HomeScreen({
   selectedStoreId,
   locale,
   onToggleLocale,
+  recentlyViewedIds,
 }: Props) {
   const currentStore =
     ALMATY_STORES_SEED.find((_, i) => `store-almaty-${String(i + 1).padStart(3, '0')}` === selectedStoreId) ||
@@ -38,6 +40,24 @@ export function HomeScreen({
 
   const bestsellers = MOBILE_PRODUCTS.filter(p => p.isBestseller);
   const newArrivals = MOBILE_PRODUCTS.filter(p => p.isNew);
+
+  // 1. Недавно просмотренные товары
+  const recentlyViewedProducts = useMemo(() => {
+    return recentlyViewedIds
+      .map(id => MOBILE_PRODUCTS.find(p => p.id === id))
+      .filter((p): p is MobileProduct => Boolean(p));
+  }, [recentlyViewedIds]);
+
+  // 2. Рекомендации "Вас могут заинтересовать"
+  const recommendedProducts = useMemo(() => {
+    const viewedCategories = new Set(recentlyViewedProducts.map(p => p.category));
+    const recs = MOBILE_PRODUCTS.filter(
+      p =>
+        !recentlyViewedIds.slice(0, 2).includes(p.id) &&
+        (viewedCategories.has(p.category) || p.isBestseller || p.isNew)
+    );
+    return recs.length > 0 ? recs : MOBILE_PRODUCTS.slice(0, 4);
+  }, [recentlyViewedIds, recentlyViewedProducts]);
 
   const categories = [
     { id: 'all', titleRu: 'Все', titleKz: 'Барлығы', icon: '🛍️' },
@@ -208,6 +228,117 @@ export function HomeScreen({
                   )}
                 </View>
 
+                <View style={styles.kaspiBadgeH}>
+                  <Text style={styles.kaspiTextH}>
+                    Kaspi Red {formatKZT(Math.round(product.priceKzt / 3))} x 3
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+
+      {/* Recently Viewed Section */}
+      {recentlyViewedProducts.length > 0 && (
+        <>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionTitleRow}>
+              <View style={[styles.sectionIconBadge, { backgroundColor: '#fef3c7' }]}>
+                <Ionicons name="time" size={13} color="#b45309" />
+              </View>
+              <Text style={styles.sectionTitle}>
+                {locale === 'kz' ? 'Жақында көргендеріңіз' : 'Вы недавно смотрели'}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={() => onNavigateToCatalog()} activeOpacity={0.7}>
+              <Text style={styles.sectionLink}>
+                {locale === 'kz' ? 'Барлығы' : 'Все'} →
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
+            {recentlyViewedProducts.map(product => {
+              const stock = product.stockByStore[selectedStoreId] ?? 10;
+              return (
+                <TouchableOpacity
+                  key={`recent-${product.id}`}
+                  style={styles.productCardH}
+                  onPress={() => onSelectProduct(product)}
+                  activeOpacity={0.88}
+                >
+                  <View style={styles.imageContainerH}>
+                    <Image source={{ uri: product.imageUrl }} style={styles.productImageH} resizeMode="cover" />
+                  </View>
+                  <View style={styles.productBodyH}>
+                    <View style={styles.stockStatusRow}>
+                      <View style={[styles.stockDot, { backgroundColor: stock > 0 ? '#10b981' : '#f59e0b' }]} />
+                      <Text style={styles.stockTextH}>
+                        {stock > 0
+                          ? locale === 'kz' ? `Қоймада: ${stock} дана` : `В наличии: ${stock} шт.`
+                          : locale === 'kz' ? 'Тапсырыспен' : 'Под заказ'}
+                      </Text>
+                    </View>
+                    <Text style={styles.productTitleH} numberOfLines={2}>
+                      {locale === 'kz' ? product.titleKz : product.titleRu}
+                    </Text>
+                    <Text style={styles.productPriceH}>{formatKZT(product.priceKzt)}</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </>
+      )}
+
+      {/* Recommended Section: Вас могут заинтересовать */}
+      <View style={styles.sectionHeader}>
+        <View style={styles.sectionTitleRow}>
+          <View style={[styles.sectionIconBadge, { backgroundColor: '#eff6ff' }]}>
+            <Ionicons name="sparkles" size={13} color="#2563eb" />
+          </View>
+          <Text style={styles.sectionTitle}>
+            {locale === 'kz' ? 'Сізге ұнауы мүмкін' : 'Вас могут заинтересовать'}
+          </Text>
+        </View>
+        <TouchableOpacity onPress={() => onNavigateToCatalog()} activeOpacity={0.7}>
+          <Text style={styles.sectionLink}>
+            {locale === 'kz' ? 'Барлығы' : 'В каталог'} →
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
+        {recommendedProducts.map(product => {
+          const stock = product.stockByStore[selectedStoreId] ?? 10;
+          return (
+            <TouchableOpacity
+              key={`rec-${product.id}`}
+              style={styles.productCardH}
+              onPress={() => onSelectProduct(product)}
+              activeOpacity={0.88}
+            >
+              <View style={styles.imageContainerH}>
+                <Image source={{ uri: product.imageUrl }} style={styles.productImageH} resizeMode="cover" />
+                <View style={styles.recBadge}>
+                  <Text style={styles.recBadgeText}>✨ TOP</Text>
+                </View>
+              </View>
+
+              <View style={styles.productBodyH}>
+                <View style={styles.stockStatusRow}>
+                  <View style={[styles.stockDot, { backgroundColor: stock > 0 ? '#10b981' : '#f59e0b' }]} />
+                  <Text style={styles.stockTextH}>
+                    {stock > 0
+                      ? locale === 'kz' ? `Қоймада: ${stock} дана` : `В наличии: ${stock} шт.`
+                      : locale === 'kz' ? 'Тапсырыспен' : 'Под заказ'}
+                  </Text>
+                </View>
+                <Text style={styles.productTitleH} numberOfLines={2}>
+                  {locale === 'kz' ? product.titleKz : product.titleRu}
+                </Text>
+                <View style={styles.priceRowH}>
+                  <Text style={styles.productPriceH}>{formatKZT(product.priceKzt)}</Text>
+                </View>
                 <View style={styles.kaspiBadgeH}>
                   <Text style={styles.kaspiTextH}>
                     Kaspi Red {formatKZT(Math.round(product.priceKzt / 3))} x 3
@@ -502,6 +633,16 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   newBadgeText: { color: '#ffffff', fontSize: 10, fontWeight: '800' },
+  recBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: '#1d4ed8',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 5,
+  },
+  recBadgeText: { color: '#ffffff', fontSize: 10, fontWeight: '800' },
   productBodyH: { padding: 10 },
   stockStatusRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
   stockDot: { width: 6, height: 6, borderRadius: 3 },

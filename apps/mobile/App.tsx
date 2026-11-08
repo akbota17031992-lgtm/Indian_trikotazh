@@ -26,11 +26,20 @@ function MainScreen() {
   const [locale, setLocale] = useState<'ru' | 'kz'>('ru');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orders, setOrders] = useState<MobileOrder[]>([]);
+  const [recentlyViewedIds, setRecentlyViewedIds] = useState<string[]>([
+    'prod-002',
+    'prod-003',
+  ]);
   const [userProfile, setUserProfile] = useState<UserProfile>({
     name: 'Достияр',
     phone: '+7 (701) 992-84-12',
     bonusPoints: 3500,
   });
+
+  const handleSelectProduct = (product: MobileProduct) => {
+    setRecentlyViewedIds(prev => [product.id, ...prev.filter(id => id !== product.id)].slice(0, 10));
+    setSelectedProduct(product);
+  };
 
   const handleToggleLocale = () => {
     setLocale(prev => (prev === 'ru' ? 'kz' : 'ru'));
@@ -105,16 +114,17 @@ function MainScreen() {
           />
         ) : activeTab === 'home' ? (
           <HomeScreen
-            onSelectProduct={setSelectedProduct}
+            onSelectProduct={handleSelectProduct}
             onNavigateToCatalog={navigateToCatalogWithCategory}
             onNavigateToStores={() => setActiveTab('stores')}
             selectedStoreId={selectedStoreId}
             locale={locale}
             onToggleLocale={handleToggleLocale}
+            recentlyViewedIds={recentlyViewedIds}
           />
         ) : activeTab === 'catalog' ? (
           <CatalogScreen
-            onSelectProduct={setSelectedProduct}
+            onSelectProduct={handleSelectProduct}
             selectedStoreId={selectedStoreId}
             onSelectStore={setSelectedStoreId}
             locale={locale}
