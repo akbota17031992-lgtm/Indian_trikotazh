@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -23,6 +23,7 @@ interface Props {
   locale: 'ru' | 'kz';
   onToggleLocale: () => void;
   initialCategory?: string;
+  initialSearchQuery?: string;
 }
 
 type SortType = 'popular' | 'price_asc' | 'price_desc' | 'discount';
@@ -37,11 +38,20 @@ export function CatalogScreen({
   locale,
   onToggleLocale,
   initialCategory,
+  initialSearchQuery,
 }: Props) {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery || '');
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState<SortType>('popular');
+
+  useEffect(() => {
+    if (initialCategory !== undefined) setSelectedCategory(initialCategory);
+  }, [initialCategory]);
+
+  useEffect(() => {
+    if (initialSearchQuery !== undefined) setSearchQuery(initialSearchQuery);
+  }, [initialSearchQuery]);
 
   const categories = [
     { id: 'all', titleRu: 'Все товары', titleKz: 'Барлығы' },

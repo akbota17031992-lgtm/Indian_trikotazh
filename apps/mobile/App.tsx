@@ -22,6 +22,7 @@ function MainScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [selectedProduct, setSelectedProduct] = useState<MobileProduct | null>(null);
   const [catalogInitialCategory, setCatalogInitialCategory] = useState<string | undefined>(undefined);
+  const [catalogInitialSearch, setCatalogInitialSearch] = useState<string | undefined>(undefined);
   const [selectedStoreId, setSelectedStoreId] = useState<string>('store-almaty-001');
   const [locale, setLocale] = useState<'ru' | 'kz'>('ru');
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -132,9 +133,10 @@ function MainScreen() {
     });
   };
 
-  const navigateToCatalogWithCategory = (cat?: string) => {
+  const navigateToCatalog = (cat?: string, search?: string) => {
     setSelectedProduct(null);
     setCatalogInitialCategory(cat);
+    setCatalogInitialSearch(search);
     setActiveTab('catalog');
   };
 
@@ -163,7 +165,7 @@ function MainScreen() {
             cartProductQuantities={cartProductQuantities}
             onIncreaseQuantity={handleIncreaseQuantity}
             onDecreaseQuantity={handleDecreaseQuantity}
-            onNavigateToCatalog={navigateToCatalogWithCategory}
+            onNavigateToCatalog={navigateToCatalog}
             onNavigateToStores={() => setActiveTab('stores')}
             onNavigateToProfile={() => setActiveTab('profile')}
             selectedStoreId={selectedStoreId}
@@ -182,6 +184,7 @@ function MainScreen() {
             locale={locale}
             onToggleLocale={handleToggleLocale}
             initialCategory={catalogInitialCategory}
+            initialSearchQuery={catalogInitialSearch}
           />
         ) : activeTab === 'stores' ? (
           <StoresScreen

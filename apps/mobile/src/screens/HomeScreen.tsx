@@ -9,6 +9,7 @@ import {
   Dimensions,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatKZT, ALMATY_STORES_SEED } from '@india-trikotaj/shared';
@@ -23,7 +24,7 @@ interface Props {
   cartProductQuantities: Record<string, number>;
   onIncreaseQuantity: (product: MobileProduct) => void;
   onDecreaseQuantity: (productId: string) => void;
-  onNavigateToCatalog: (category?: string) => void;
+  onNavigateToCatalog: (category?: string, searchQuery?: string) => void;
   onNavigateToStores: () => void;
   onNavigateToProfile?: () => void;
   selectedStoreId: string;
@@ -184,6 +185,23 @@ export function HomeScreen({
 }: Props) {
   const carouselRef = useRef<any>(null);
   const [activeSlide, setActiveSlide] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    return MOBILE_PRODUCTS.filter(p => {
+      const title = locale === 'kz' ? p.titleKz : p.titleRu;
+      const comp = locale === 'kz' ? p.compositionKz : p.compositionRu;
+      const desc = locale === 'kz' ? p.descriptionKz : p.descriptionRu;
+      return (
+        title.toLowerCase().includes(q) ||
+        comp.toLowerCase().includes(q) ||
+        desc.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q)
+      );
+    });
+  }, [searchQuery, locale]);
 
   const heroSlides = useMemo(() => [
     {
@@ -194,6 +212,8 @@ export function HomeScreen({
       titleKz: 'Табиғи Үнді Мақтасы',
       subtitleRu: 'Премиальный гипоаллергенный гребенной трикотаж напрямую с фабрик Мумбаи и Тируппура.',
       subtitleKz: 'Мумбаи және Тируппур фабрикаларынан табиғи гипоаллергенді премиум трикотаж.',
+      perksRu: ['🌱 100% Эко-хлопок', '🇮🇳 Фабрики Мумбаи', '✨ Гипоаллергенно'],
+      perksKz: ['🌱 100% Табиғи мақта', '🇮🇳 Мумбаи фабрикалары', '✨ Гипоаллергенді'],
       buttonTextRu: 'Перейти в каталог',
       buttonTextKz: 'Каталогқа өту',
       buttonBg: '#f59e0b',
@@ -210,6 +230,8 @@ export function HomeScreen({
       titleKz: 'Әр тапсырыстан 5% бонус',
       subtitleRu: 'Копите бонусы с каждой покупки! Оплачивайте баллами до 30% стоимости любого трикотажа.',
       subtitleKz: 'Әр сатып алудан бонус жинаңыз! Тауар құнының 30%-на дейін бонустармен төлеңіз.',
+      perksRu: ['🎁 Кешбэк 5%', '💳 1 бонус = 1 ₸', '⭐ До 30% баллами'],
+      perksKz: ['🎁 5% кешбэк', '💳 1 бонус = 1 ₸', '⭐ 30%-ға дейін'],
       buttonTextRu: 'Моя бонусная карта',
       buttonTextKz: 'Менің бонустық картам',
       buttonBg: '#fbbf24',
@@ -226,6 +248,8 @@ export function HomeScreen({
       titleKz: 'Трикотажға арнайы жеңілдіктер',
       subtitleRu: 'Специальные цены на футболки, туники, пижамы и комплекты для дома из индийского хлопка.',
       subtitleKz: 'Базалық футболкалар, туникалар, пижамалар мен үй жиынтықтарына ең тиімді бағалар.',
+      perksRu: ['🔥 Скидки до -40%', '🛍️ От 3 990 ₸', '🏷️ Сезонные хиты'],
+      perksKz: ['🔥 -40% дейін', '🛍️ 3 990 ₸ бастап', '🏷️ Маусымдық хиттер'],
       buttonTextRu: 'Смотреть все акции',
       buttonTextKz: 'Барлық акцияларды көру',
       buttonBg: '#ea580c',
@@ -242,6 +266,8 @@ export function HomeScreen({
       titleKz: 'Алматы бойынша 16 дүкен',
       subtitleRu: 'Забирайте онлайн-заказы в MEGA, Dostyk Plaza, Grand Park, Moskva и других ТРЦ уже сегодня.',
       subtitleKz: 'MEGA, Dostyk Plaza, Grand Park, Moskva СОО-ларында тапсырысты бүгін тегін алып кетіңіз.',
+      perksRu: ['🏢 16 магазинов в Алматы', '🛍️ MEGA, Dostyk, Grand Park', '📦 Бесплатный самовывоз'],
+      perksKz: ['🏢 Алматыда 16 дүкен', '🛍️ MEGA, Dostyk, Grand Park', '📦 Тегін алып кету'],
       buttonTextRu: 'Посмотреть магазины',
       buttonTextKz: 'Дүкендерді көру',
       buttonBg: '#10b981',
@@ -258,6 +284,8 @@ export function HomeScreen({
       titleKz: 'Kaspi Red және жедел жеткізу',
       subtitleRu: 'Рассрочка без переплат на 3 месяца и быстрая курьерская доставка до двери по всей Алматы.',
       subtitleKz: '3 айға пайызсыз бөліп төлеу және Алматы бойынша есікке дейін 2 сағатта курьермен жеткізу.',
+      perksRu: ['⚡ Kaspi Red 0-0-3', '🚚 Доставка за 2 часа', '🚪 До двери курьером'],
+      perksKz: ['⚡ Kaspi Red 0-0-3', '🚚 2 сағатта жеткізу', '🚪 Есікке дейін курьер'],
       buttonTextRu: 'Заказать с доставкой',
       buttonTextKz: 'Жеткізумен тапсырыс беру',
       buttonBg: '#ef4444',
@@ -346,6 +374,114 @@ export function HomeScreen({
         </TouchableOpacity>
       </View>
 
+      {/* Search Bar */}
+      <View style={styles.searchBarWrapper}>
+        <View style={styles.searchBar}>
+          <Ionicons name="search" size={17} color="#94a3b8" style={{ marginLeft: 12, marginRight: 8 }} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder={
+              locale === 'kz'
+                ? 'Тауарларды, футболкаларды іздеу...'
+                : 'Поиск по трикотажу, футболкам, пижамам...'
+            }
+            placeholderTextColor="#94a3b8"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            returnKeyType="search"
+            onSubmitEditing={() => {
+              if (searchQuery.trim()) {
+                onNavigateToCatalog(undefined, searchQuery.trim());
+              }
+            }}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setSearchQuery('')}
+              style={styles.searchClearBtn}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="close-circle" size={18} color="#94a3b8" />
+            </TouchableOpacity>
+          )}
+        </View>
+        {searchQuery.trim().length > 0 && (
+          <TouchableOpacity
+            style={styles.searchGoBtn}
+            onPress={() => onNavigateToCatalog(undefined, searchQuery.trim())}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.searchGoBtnText}>
+              {locale === 'kz' ? 'Табу' : 'Найти'}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {searchQuery.trim().length > 0 ? (
+        <View style={styles.searchResultsContainer}>
+          <View style={styles.searchResultsHeader}>
+            <Text style={styles.searchResultsCountText}>
+              {locale === 'kz'
+                ? `Табылды: ${searchResults.length} тауар`
+                : `Найдено: ${searchResults.length} ${
+                    searchResults.length === 1 ? 'товар' : 'товаров'
+                  }`}
+            </Text>
+            {searchResults.length > 0 && (
+              <TouchableOpacity
+                onPress={() => onNavigateToCatalog(undefined, searchQuery.trim())}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.searchResultsLink}>
+                  {locale === 'kz' ? 'Каталогта ашу →' : 'Открыть в каталоге →'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {searchResults.length > 0 ? (
+            <View style={styles.searchResultsGrid}>
+              {searchResults.map(product => (
+                <View key={product.id} style={styles.searchResultItem}>
+                  <HomeProductCard
+                    product={product}
+                    selectedStoreId={selectedStoreId}
+                    locale={locale}
+                    quantityInCart={cartProductQuantities[product.id] || 0}
+                    badgeType={product.isNew ? 'new' : product.oldPriceKzt ? 'discount' : 'none'}
+                    onSelectProduct={onSelectProduct}
+                    onIncreaseQuantity={onIncreaseQuantity}
+                    onDecreaseQuantity={onDecreaseQuantity}
+                  />
+                </View>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.searchEmptyBox}>
+              <Text style={styles.searchEmptyEmoji}>🔍</Text>
+              <Text style={styles.searchEmptyTitle}>
+                {locale === 'kz' ? 'Ештеңе табылмады' : 'Ничего не найдено'}
+              </Text>
+              <Text style={styles.searchEmptySubtitle}>
+                {locale === 'kz'
+                  ? 'Сұрауды басқа сөздермен енгізіп көріңіз'
+                  : 'Попробуйте изменить поисковый запрос'}
+              </Text>
+              <TouchableOpacity
+                style={styles.searchResetBtn}
+                onPress={() => setSearchQuery('')}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.searchResetBtnText}>
+                  {locale === 'kz' ? 'Іздеуді тазарту' : 'Очистить поиск'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      ) : (
+        <>
       {/* Selected Branch Banner */}
       <TouchableOpacity style={styles.storeBanner} onPress={onNavigateToStores} activeOpacity={0.85}>
         <View style={styles.pinCircle}>
@@ -426,6 +562,15 @@ export function HomeScreen({
               <Text style={styles.heroSubtitle}>
                 {locale === 'kz' ? slide.subtitleKz : slide.subtitleRu}
               </Text>
+
+              {/* Slide Perks / Benefits Pills */}
+              <View style={styles.heroPerksRow}>
+                {(locale === 'kz' ? slide.perksKz : slide.perksRu).map((perk, pIdx) => (
+                  <View key={pIdx} style={styles.heroPerkPill}>
+                    <Text style={styles.heroPerkText}>{perk}</Text>
+                  </View>
+                ))}
+              </View>
 
               <TouchableOpacity
                 style={[styles.heroButton, { backgroundColor: slide.buttonBg }]}
@@ -619,6 +764,72 @@ export function HomeScreen({
           />
         ))}
       </ScrollView>
+      {/* Trust & Value Props (Почему выбирают наш трикотаж?) */}
+      <View style={styles.trustBox}>
+        <View style={styles.trustHeaderRow}>
+          <Text style={styles.trustMainTitle}>
+            {locale === 'kz' ? 'Неге біздің трикотаж?' : 'Почему выбирают наш трикотаж?'}
+          </Text>
+        </View>
+
+        <View style={styles.trustList}>
+          <View style={styles.trustRowItem}>
+            <Text style={styles.trustEmoji}>🌱</Text>
+            <View style={styles.trustTextContainer}>
+              <Text style={styles.trustTitle}>
+                {locale === 'kz' ? '100% Табиғи мақта' : '100% Эко-хлопок'}
+              </Text>
+              <Text style={styles.trustSubtitle}>
+                {locale === 'kz'
+                  ? 'Үндістаннан тікелей жеткізілім. Гипоаллергенді тарақталған мақта.'
+                  : 'Прямые поставки из Индии. Гипоаллергенный гребенной хлопок.'}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.trustRowItem}>
+            <Text style={styles.trustEmoji}>🏢</Text>
+            <View style={styles.trustTextContainer}>
+              <Text style={styles.trustTitle}>
+                {locale === 'kz' ? '16 дүкен' : '16 магазинов'}
+              </Text>
+              <Text style={styles.trustSubtitle}>
+                {locale === 'kz'
+                  ? 'Алматының әр ауданында (MEGA, Dostyk Plaza, Grand Park...).'
+                  : 'В каждом районе Алматы (MEGA, Dostyk Plaza, Grand Park...).'}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.trustRowItem}>
+            <Text style={styles.trustEmoji}>⚡</Text>
+            <View style={styles.trustTextContainer}>
+              <Text style={styles.trustTitle}>Kaspi Red 0-0-3</Text>
+              <Text style={styles.trustSubtitle}>
+                {locale === 'kz'
+                  ? 'Артық төлемсіз және жасырын комиссиясыз бөліп төлеу.'
+                  : 'Рассрочка без переплат и скрытых комиссий.'}
+              </Text>
+            </View>
+          </View>
+
+          <View style={[styles.trustRowItem, { borderBottomWidth: 0, paddingBottom: 0 }]}>
+            <Text style={styles.trustEmoji}>🚚</Text>
+            <View style={styles.trustTextContainer}>
+              <Text style={styles.trustTitle}>
+                {locale === 'kz' ? '2 сағатта жеткізу' : 'Доставка за 2 часа'}
+              </Text>
+              <Text style={styles.trustSubtitle}>
+                {locale === 'kz'
+                  ? 'Бүкіл қала бойынша есікке дейін курьермен жедел жеткізу.'
+                  : 'Быстрая доставка курьером до двери по всему городу.'}
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+        </>
+      )}
 
       {/* Bottom spacer */}
       <View style={{ height: 28 }} />
@@ -648,6 +859,120 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.25)',
   },
   langText: { color: '#ffffff', fontSize: 12, fontWeight: '700' },
+  searchBarWrapper: {
+    backgroundColor: '#78350f',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  searchBar: {
+    flex: 1,
+    height: 42,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  searchInput: {
+    flex: 1,
+    height: '100%',
+    fontSize: 13,
+    color: '#0f172a',
+    paddingVertical: 0,
+    fontWeight: '500',
+  },
+  searchClearBtn: {
+    paddingHorizontal: 10,
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  searchGoBtn: {
+    backgroundColor: '#f59e0b',
+    height: 42,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  searchGoBtnText: {
+    color: '#451a03',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  searchResultsContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  searchResultsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  searchResultsCountText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
+  searchResultsLink: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#b45309',
+  },
+  searchResultsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  searchResultItem: {
+    width: '48%',
+    marginBottom: 12,
+  },
+  searchEmptyBox: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  searchEmptyEmoji: {
+    fontSize: 44,
+    marginBottom: 10,
+  },
+  searchEmptyTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0f172a',
+    marginBottom: 4,
+  },
+  searchEmptySubtitle: {
+    fontSize: 12,
+    color: '#64748b',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  searchResetBtn: {
+    backgroundColor: '#b45309',
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  searchResetBtnText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '700',
+  },
   storeBanner: {
     backgroundColor: '#fffbeb',
     paddingHorizontal: 16,
@@ -929,4 +1254,75 @@ const styles = StyleSheet.create({
     borderColor: '#fee2e2',
   },
   kaspiTextH: { color: '#dc2626', fontSize: 9, fontWeight: '700' },
+  heroPerksRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 14,
+  },
+  heroPerkPill: {
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.22)',
+  },
+  heroPerkText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  trustBox: {
+    marginHorizontal: 16,
+    marginTop: 24,
+    marginBottom: 6,
+    padding: 18,
+    backgroundColor: '#ffffff',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  trustHeaderRow: {
+    marginBottom: 16,
+  },
+  trustMainTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
+  trustList: {
+    gap: 16,
+  },
+  trustRowItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  trustEmoji: {
+    fontSize: 22,
+    marginRight: 12,
+    marginTop: 1,
+  },
+  trustTextContainer: {
+    flex: 1,
+  },
+  trustTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0f172a',
+    marginBottom: 2,
+  },
+  trustSubtitle: {
+    fontSize: 11,
+    color: '#64748b',
+    lineHeight: 16,
+  },
 });
