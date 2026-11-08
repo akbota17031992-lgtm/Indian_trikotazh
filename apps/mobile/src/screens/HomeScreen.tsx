@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,13 +11,15 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { formatKZT, ALMATY_STORES_SEED } from '@india-trikotaj/shared';
 import { MOBILE_PRODUCTS } from '../data/mock-products';
-import type { MobileProduct, ProductColor } from '../types';
+import type { MobileProduct } from '../types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface Props {
   onSelectProduct: (product: MobileProduct) => void;
-  onAddToCart: (product: MobileProduct, size: string, color: ProductColor) => void;
+  cartProductQuantities: Record<string, number>;
+  onIncreaseQuantity: (product: MobileProduct) => void;
+  onDecreaseQuantity: (productId: string) => void;
   onNavigateToCatalog: (category?: string) => void;
   onNavigateToStores: () => void;
   selectedStoreId: string;
@@ -26,9 +28,145 @@ interface Props {
   recentlyViewedIds: string[];
 }
 
+interface HomeProductCardProps {
+  product: MobileProduct;
+  selectedStoreId: string;
+  locale: 'ru' | 'kz';
+  quantityInCart: number;
+  badgeType?: 'discount' | 'new' | 'rec' | 'none';
+  showKaspi?: boolean;
+  onSelectProduct: (product: MobileProduct) => void;
+  onIncreaseQuantity: (product: MobileProduct) => void;
+  onDecreaseQuantity: (productId: string) => void;
+}
+
+function HomeProductCard({
+  product,
+  selectedStoreId,
+  locale,
+  quantityInCart,
+  badgeType = 'none',
+  showKaspi = true,
+  onSelectProduct,
+  onIncreaseQuantity,
+  onDecreaseQuantity,
+}: HomeProductCardProps) {
+  const stock = product.stockByStore[selectedStoreId] ?? 10;
+
+  return (
+    <TouchableOpacity
+      style={[styles.productCardH, quantityInCart > 0 && styles.productCardInCart]}
+      onPress={() => onSelectProduct(product)}
+      activeOpacity={0.88}
+    >
+      <View style={styles.imageContainerH}>
+        <Image source={{ uri: product.imageUrl }} style={styles.productImageH} resizeMode="cover" />
+
+        {/* Top-Left Badges */}
+        {badgeType === 'discount' && product.oldPriceKzt && (
+          <View style={styles.discountBadge}>
+            <Text style={styles.discountText}>
+              -{Math.round(((product.oldPriceKzt - product.priceKzt) / product.oldPriceKzt) * 100)}%
+            </Text>
+          </View>
+        )}
+        {badgeType === 'new' && (
+          <View style={styles.newBadge}>
+            <Text style={styles.newBadgeText}>NEW</Text>
+          </View>
+        )}
+        {badgeType === 'rec' && (
+          <View style={styles.recBadge}>
+            <Text style={styles.recBadgeText}>✨ TOP</Text>
+          </View>
+        )}
+
+        {/* Top-Right Permanent In-Cart Badge Marker */}
+        {quantityInCart > 0 && (
+          <View style={styles.inCartBadge}>
+            <Ionicons name="checkmark-circle" size={10} color="#ffffff" />
+            <Text style={styles.inCartBadgeText}>
+              {quantityInCart} {locale === 'kz' ? 'себетте' : 'в корзине'}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      <View style={styles.productBodyH}>
+        <View style={styles.stockStatusRow}>
+          <View style={[styles.stockDot, { backgroundColor: stock > 0 ? '#10b981' : '#f59e0b' }]} />
+          <Text style={styles.stockTextH}>
+            {stock > 0
+              ? locale === 'kz' ? `Қоймада: ${stock} дана` : `В наличии: ${stock} шт.`
+              : locale === 'kz' ? 'Тапсырыспен' : 'Под заказ'}
+          </Text>
+        </View>
+
+        <Text style={styles.productTitleH} numberOfLines={2}>
+          {locale === 'kz' ? product.titleKz : product.titleRu}
+        </Text>
+
+        <View style={styles.priceRowH}>
+          <View style={{ flex: 1, paddingRight: 4 }}>
+            <Text style={styles.productPriceH}>{formatKZT(product.priceKzt)}</Text>
+            {product.oldPriceKzt && (
+              <Text style={styles.productOldPriceH}>{formatKZT(product.oldPriceKzt)}</Text>
+            )}
+          </View>
+
+          {quantityInCart > 0 ? (
+            <View style={styles.stepperContainerH}>
+              <TouchableOpacity
+                style={styles.stepperBtnH}
+                onPress={() => onDecreaseQuantity(product.id)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+              >
+                <Ionicons name="remove" size={12} color="#065f46" />
+              </TouchableOpacity>
+
+              <View style={styles.stepperCountWrapH}>
+                <Text style={styles.stepperCountTextH}>{quantityInCart}</Text>
+              </View>
+
+              <TouchableOpacity
+                style={[styles.stepperBtnH, styles.stepperBtnPlusH]}
+                onPress={() => onIncreaseQuantity(product)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+              >
+                <Ionicons name="add" size={12} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.quickAddBtnH}
+              onPress={() => onIncreaseQuantity(product)}
+              activeOpacity={0.8}
+              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+            >
+              <Ionicons name="cart" size={14} color="#b45309" />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {showKaspi && (
+          <View style={styles.kaspiBadgeH}>
+            <Text style={styles.kaspiTextH}>
+              Kaspi Red {formatKZT(Math.round(product.priceKzt / 3))} x 3
+            </Text>
+          </View>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 export function HomeScreen({
   onSelectProduct,
-  onAddToCart,
+  cartProductQuantities,
+  onIncreaseQuantity,
+  onDecreaseQuantity,
   onNavigateToCatalog,
   onNavigateToStores,
   selectedStoreId,
@@ -36,22 +174,6 @@ export function HomeScreen({
   onToggleLocale,
   recentlyViewedIds,
 }: Props) {
-  const [addedProductIds, setAddedProductIds] = useState<Record<string, boolean>>({});
-
-  const handleQuickAdd = (product: MobileProduct) => {
-    const defaultSize = product.sizes[0] || 'M';
-    const defaultColor = product.colors[0] || {
-      id: 'default',
-      nameRu: 'Основной',
-      nameKz: 'Негізгі',
-      hex: '#78350f',
-    };
-    onAddToCart(product, defaultSize, defaultColor);
-    setAddedProductIds(prev => ({ ...prev, [product.id]: true }));
-    setTimeout(() => {
-      setAddedProductIds(prev => ({ ...prev, [product.id]: false }));
-    }, 1500);
-  };
   const currentStore =
     ALMATY_STORES_SEED.find((_, i) => `store-almaty-${String(i + 1).padStart(3, '0')}` === selectedStoreId) ||
     ALMATY_STORES_SEED[0]!;
@@ -201,77 +323,19 @@ export function HomeScreen({
         </TouchableOpacity>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
-        {bestsellers.map(product => {
-          const stock = product.stockByStore[selectedStoreId] ?? 10;
-          return (
-            <TouchableOpacity
-              key={product.id}
-              style={styles.productCardH}
-              onPress={() => onSelectProduct(product)}
-              activeOpacity={0.88}
-            >
-              <View style={styles.imageContainerH}>
-                <Image source={{ uri: product.imageUrl }} style={styles.productImageH} resizeMode="cover" />
-                {product.oldPriceKzt && (
-                  <View style={styles.discountBadge}>
-                    <Text style={styles.discountText}>
-                      -{Math.round(((product.oldPriceKzt - product.priceKzt) / product.oldPriceKzt) * 100)}%
-                    </Text>
-                  </View>
-                )}
-              </View>
-
-              <View style={styles.productBodyH}>
-                <View style={styles.stockStatusRow}>
-                  <View style={[styles.stockDot, { backgroundColor: stock > 0 ? '#10b981' : '#f59e0b' }]} />
-                  <Text style={styles.stockTextH}>
-                    {stock > 0
-                      ? locale === 'kz'
-                        ? `Қоймада: ${stock} дана`
-                        : `В наличии: ${stock} шт.`
-                      : locale === 'kz'
-                      ? 'Тапсырыспен'
-                      : 'Под заказ'}
-                  </Text>
-                </View>
-
-                <Text style={styles.productTitleH} numberOfLines={2}>
-                  {locale === 'kz' ? product.titleKz : product.titleRu}
-                </Text>
-
-                <View style={styles.priceRowH}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.productPriceH}>{formatKZT(product.priceKzt)}</Text>
-                    {product.oldPriceKzt && (
-                      <Text style={styles.productOldPriceH}>{formatKZT(product.oldPriceKzt)}</Text>
-                    )}
-                  </View>
-                  <TouchableOpacity
-                    style={[
-                      styles.quickAddBtnH,
-                      addedProductIds[product.id] && styles.quickAddBtnSuccess,
-                    ]}
-                    onPress={() => handleQuickAdd(product)}
-                    activeOpacity={0.8}
-                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                  >
-                    <Ionicons
-                      name={addedProductIds[product.id] ? 'checkmark' : 'cart'}
-                      size={13}
-                      color={addedProductIds[product.id] ? '#ffffff' : '#b45309'}
-                    />
-                  </TouchableOpacity>
-                </View>
-
-                <View style={styles.kaspiBadgeH}>
-                  <Text style={styles.kaspiTextH}>
-                    Kaspi Red {formatKZT(Math.round(product.priceKzt / 3))} x 3
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
+        {bestsellers.map(product => (
+          <HomeProductCard
+            key={product.id}
+            product={product}
+            selectedStoreId={selectedStoreId}
+            locale={locale}
+            quantityInCart={cartProductQuantities[product.id] || 0}
+            badgeType="discount"
+            onSelectProduct={onSelectProduct}
+            onIncreaseQuantity={onIncreaseQuantity}
+            onDecreaseQuantity={onDecreaseQuantity}
+          />
+        ))}
       </ScrollView>
 
       {/* Recently Viewed Section */}
@@ -293,52 +357,20 @@ export function HomeScreen({
             </TouchableOpacity>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
-            {recentlyViewedProducts.map(product => {
-              const stock = product.stockByStore[selectedStoreId] ?? 10;
-              return (
-                <TouchableOpacity
-                  key={`recent-${product.id}`}
-                  style={styles.productCardH}
-                  onPress={() => onSelectProduct(product)}
-                  activeOpacity={0.88}
-                >
-                  <View style={styles.imageContainerH}>
-                    <Image source={{ uri: product.imageUrl }} style={styles.productImageH} resizeMode="cover" />
-                  </View>
-                  <View style={styles.productBodyH}>
-                    <View style={styles.stockStatusRow}>
-                      <View style={[styles.stockDot, { backgroundColor: stock > 0 ? '#10b981' : '#f59e0b' }]} />
-                      <Text style={styles.stockTextH}>
-                        {stock > 0
-                          ? locale === 'kz' ? `Қоймада: ${stock} дана` : `В наличии: ${stock} шт.`
-                          : locale === 'kz' ? 'Тапсырыспен' : 'Под заказ'}
-                      </Text>
-                    </View>
-                    <Text style={styles.productTitleH} numberOfLines={2}>
-                      {locale === 'kz' ? product.titleKz : product.titleRu}
-                    </Text>
-                    <View style={styles.priceRowH}>
-                      <Text style={[styles.productPriceH, { flex: 1 }]}>{formatKZT(product.priceKzt)}</Text>
-                      <TouchableOpacity
-                        style={[
-                          styles.quickAddBtnH,
-                          addedProductIds[product.id] && styles.quickAddBtnSuccess,
-                        ]}
-                        onPress={() => handleQuickAdd(product)}
-                        activeOpacity={0.8}
-                        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                      >
-                        <Ionicons
-                          name={addedProductIds[product.id] ? 'checkmark' : 'cart'}
-                          size={13}
-                          color={addedProductIds[product.id] ? '#ffffff' : '#b45309'}
-                        />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
+            {recentlyViewedProducts.map(product => (
+              <HomeProductCard
+                key={`recent-${product.id}`}
+                product={product}
+                selectedStoreId={selectedStoreId}
+                locale={locale}
+                quantityInCart={cartProductQuantities[product.id] || 0}
+                badgeType="none"
+                showKaspi={false}
+                onSelectProduct={onSelectProduct}
+                onIncreaseQuantity={onIncreaseQuantity}
+                onDecreaseQuantity={onDecreaseQuantity}
+              />
+            ))}
           </ScrollView>
         </>
       )}
@@ -360,61 +392,19 @@ export function HomeScreen({
         </TouchableOpacity>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
-        {recommendedProducts.map(product => {
-          const stock = product.stockByStore[selectedStoreId] ?? 10;
-          return (
-            <TouchableOpacity
-              key={`rec-${product.id}`}
-              style={styles.productCardH}
-              onPress={() => onSelectProduct(product)}
-              activeOpacity={0.88}
-            >
-              <View style={styles.imageContainerH}>
-                <Image source={{ uri: product.imageUrl }} style={styles.productImageH} resizeMode="cover" />
-                <View style={styles.recBadge}>
-                  <Text style={styles.recBadgeText}>✨ TOP</Text>
-                </View>
-              </View>
-
-              <View style={styles.productBodyH}>
-                <View style={styles.stockStatusRow}>
-                  <View style={[styles.stockDot, { backgroundColor: stock > 0 ? '#10b981' : '#f59e0b' }]} />
-                  <Text style={styles.stockTextH}>
-                    {stock > 0
-                      ? locale === 'kz' ? `Қоймада: ${stock} дана` : `В наличии: ${stock} шт.`
-                      : locale === 'kz' ? 'Тапсырыспен' : 'Под заказ'}
-                  </Text>
-                </View>
-                <Text style={styles.productTitleH} numberOfLines={2}>
-                  {locale === 'kz' ? product.titleKz : product.titleRu}
-                </Text>
-                <View style={styles.priceRowH}>
-                  <Text style={[styles.productPriceH, { flex: 1 }]}>{formatKZT(product.priceKzt)}</Text>
-                  <TouchableOpacity
-                    style={[
-                      styles.quickAddBtnH,
-                      addedProductIds[product.id] && styles.quickAddBtnSuccess,
-                    ]}
-                    onPress={() => handleQuickAdd(product)}
-                    activeOpacity={0.8}
-                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                  >
-                    <Ionicons
-                      name={addedProductIds[product.id] ? 'checkmark' : 'cart'}
-                      size={13}
-                      color={addedProductIds[product.id] ? '#ffffff' : '#b45309'}
-                    />
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.kaspiBadgeH}>
-                  <Text style={styles.kaspiTextH}>
-                    Kaspi Red {formatKZT(Math.round(product.priceKzt / 3))} x 3
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
+        {recommendedProducts.map(product => (
+          <HomeProductCard
+            key={`rec-${product.id}`}
+            product={product}
+            selectedStoreId={selectedStoreId}
+            locale={locale}
+            quantityInCart={cartProductQuantities[product.id] || 0}
+            badgeType="rec"
+            onSelectProduct={onSelectProduct}
+            onIncreaseQuantity={onIncreaseQuantity}
+            onDecreaseQuantity={onDecreaseQuantity}
+          />
+        ))}
       </ScrollView>
 
       {/* New Arrivals Section */}
@@ -434,47 +424,20 @@ export function HomeScreen({
         </TouchableOpacity>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
-        {newArrivals.map(product => {
-          return (
-            <TouchableOpacity
-              key={product.id}
-              style={styles.productCardH}
-              onPress={() => onSelectProduct(product)}
-              activeOpacity={0.88}
-            >
-              <View style={styles.imageContainerH}>
-                <Image source={{ uri: product.imageUrl }} style={styles.productImageH} resizeMode="cover" />
-                <View style={styles.newBadge}>
-                  <Text style={styles.newBadgeText}>NEW</Text>
-                </View>
-              </View>
-
-              <View style={styles.productBodyH}>
-                <Text style={styles.productTitleH} numberOfLines={2}>
-                  {locale === 'kz' ? product.titleKz : product.titleRu}
-                </Text>
-                <View style={styles.priceRowH}>
-                  <Text style={[styles.productPriceH, { flex: 1 }]}>{formatKZT(product.priceKzt)}</Text>
-                  <TouchableOpacity
-                    style={[
-                      styles.quickAddBtnH,
-                      addedProductIds[product.id] && styles.quickAddBtnSuccess,
-                    ]}
-                    onPress={() => handleQuickAdd(product)}
-                    activeOpacity={0.8}
-                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                  >
-                    <Ionicons
-                      name={addedProductIds[product.id] ? 'checkmark' : 'cart'}
-                      size={13}
-                      color={addedProductIds[product.id] ? '#ffffff' : '#b45309'}
-                    />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
+        {newArrivals.map(product => (
+          <HomeProductCard
+            key={`new-${product.id}`}
+            product={product}
+            selectedStoreId={selectedStoreId}
+            locale={locale}
+            quantityInCart={cartProductQuantities[product.id] || 0}
+            badgeType="new"
+            showKaspi={false}
+            onSelectProduct={onSelectProduct}
+            onIncreaseQuantity={onIncreaseQuantity}
+            onDecreaseQuantity={onDecreaseQuantity}
+          />
+        ))}
       </ScrollView>
 
       {/* Value Propositions / Trust Grid (Clean bottom section) */}
@@ -695,6 +658,10 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 2,
   },
+  productCardInCart: {
+    borderColor: '#10b981',
+    borderWidth: 1.5,
+  },
   imageContainerH: { position: 'relative', width: '100%', height: 160, backgroundColor: '#f1f5f9' },
   productImageH: { width: '100%', height: '100%' },
   discountBadge: {
@@ -727,6 +694,28 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   recBadgeText: { color: '#ffffff', fontSize: 10, fontWeight: '800' },
+  inCartBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#059669',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+  inCartBadgeText: {
+    color: '#ffffff',
+    fontSize: 9,
+    fontWeight: '700',
+  },
   productBodyH: { padding: 10 },
   stockStatusRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
   stockDot: { width: 6, height: 6, borderRadius: 3 },
@@ -735,6 +724,37 @@ const styles = StyleSheet.create({
   priceRowH: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
   productPriceH: { fontSize: 14, fontWeight: '800', color: '#b45309' },
   productOldPriceH: { fontSize: 11, color: '#94a3b8', textDecorationLine: 'line-through' },
+  stepperContainerH: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ecfdf5',
+    borderRadius: 7,
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+    overflow: 'hidden',
+    height: 26,
+  },
+  stepperBtnH: {
+    width: 22,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#d1fae5',
+  },
+  stepperCountWrapH: {
+    minWidth: 18,
+    paddingHorizontal: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepperCountTextH: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#065f46',
+  },
+  stepperBtnPlusH: {
+    backgroundColor: '#059669',
+  },
   quickAddBtnH: {
     width: 28,
     height: 28,

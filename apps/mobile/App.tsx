@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -90,6 +90,48 @@ function MainScreen() {
     }));
   };
 
+  const cartProductQuantities = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const item of cart) {
+      map[item.product.id] = (map[item.product.id] || 0) + item.quantity;
+    }
+    return map;
+  }, [cart]);
+
+  const handleIncreaseQuantity = (product: MobileProduct) => {
+    setCart(prev => {
+      const idx = prev.findIndex(item => item.product.id === product.id);
+      if (idx > -1) {
+        const next = [...prev];
+        next[idx] = { ...next[idx]!, quantity: next[idx]!.quantity + 1 };
+        return next;
+      }
+      const defaultSize = product.sizes[0] || 'M';
+      const defaultColor = product.colors[0] || {
+        id: 'default',
+        nameRu: 'Основной',
+        nameKz: 'Негізгі',
+        hex: '#78350f',
+      };
+      return [...prev, { product, size: defaultSize, color: defaultColor, quantity: 1 }];
+    });
+  };
+
+  const handleDecreaseQuantity = (productId: string) => {
+    setCart(prev => {
+      const idx = prev.map(item => item.product.id).lastIndexOf(productId);
+      if (idx === -1) return prev;
+      const item = prev[idx]!;
+      if (item.quantity > 1) {
+        const next = [...prev];
+        next[idx] = { ...item, quantity: item.quantity - 1 };
+        return next;
+      } else {
+        return prev.filter((_, i) => i !== idx);
+      }
+    });
+  };
+
   const navigateToCatalogWithCategory = (cat?: string) => {
     setSelectedProduct(null);
     setCatalogInitialCategory(cat);
@@ -115,7 +157,9 @@ function MainScreen() {
         ) : activeTab === 'home' ? (
           <HomeScreen
             onSelectProduct={handleSelectProduct}
-            onAddToCart={handleAddToCart}
+            cartProductQuantities={cartProductQuantities}
+            onIncreaseQuantity={handleIncreaseQuantity}
+            onDecreaseQuantity={handleDecreaseQuantity}
             onNavigateToCatalog={navigateToCatalogWithCategory}
             onNavigateToStores={() => setActiveTab('stores')}
             selectedStoreId={selectedStoreId}
@@ -126,7 +170,9 @@ function MainScreen() {
         ) : activeTab === 'catalog' ? (
           <CatalogScreen
             onSelectProduct={handleSelectProduct}
-            onAddToCart={handleAddToCart}
+            cartProductQuantities={cartProductQuantities}
+            onIncreaseQuantity={handleIncreaseQuantity}
+            onDecreaseQuantity={handleDecreaseQuantity}
             selectedStoreId={selectedStoreId}
             onSelectStore={setSelectedStoreId}
             locale={locale}

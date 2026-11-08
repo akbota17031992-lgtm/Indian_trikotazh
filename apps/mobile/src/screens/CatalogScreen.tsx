@@ -11,11 +11,13 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { formatKZT, ALMATY_STORES_SEED } from '@india-trikotaj/shared';
 import { MOBILE_PRODUCTS } from '../data/mock-products';
-import type { MobileProduct, ProductColor } from '../types';
+import type { MobileProduct } from '../types';
 
 interface Props {
   onSelectProduct: (product: MobileProduct) => void;
-  onAddToCart: (product: MobileProduct, size: string, color: ProductColor) => void;
+  cartProductQuantities: Record<string, number>;
+  onIncreaseQuantity: (product: MobileProduct) => void;
+  onDecreaseQuantity: (productId: string) => void;
   selectedStoreId: string;
   onSelectStore: (storeId: string) => void;
   locale: 'ru' | 'kz';
@@ -27,7 +29,9 @@ type SortType = 'popular' | 'price_asc' | 'price_desc' | 'discount';
 
 export function CatalogScreen({
   onSelectProduct,
-  onAddToCart,
+  cartProductQuantities,
+  onIncreaseQuantity,
+  onDecreaseQuantity,
   selectedStoreId,
   onSelectStore,
   locale,
@@ -38,22 +42,6 @@ export function CatalogScreen({
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState<SortType>('popular');
-  const [addedProductIds, setAddedProductIds] = useState<Record<string, boolean>>({});
-
-  const handleQuickAdd = (product: MobileProduct) => {
-    const defaultSize = product.sizes[0] || 'M';
-    const defaultColor = product.colors[0] || {
-      id: 'default',
-      nameRu: 'Основной',
-      nameKz: 'Негізгі',
-      hex: '#78350f',
-    };
-    onAddToCart(product, defaultSize, defaultColor);
-    setAddedProductIds(prev => ({ ...prev, [product.id]: true }));
-    setTimeout(() => {
-      setAddedProductIds(prev => ({ ...prev, [product.id]: false }));
-    }, 1500);
-  };
 
   const categories = [
     { id: 'all', titleRu: 'Все товары', titleKz: 'Барлығы' },
@@ -231,9 +219,10 @@ export function CatalogScreen({
         }
         renderItem={({ item }) => {
           const stock = item.stockByStore[selectedStoreId] ?? 0;
+          const quantityInCart = cartProductQuantities[item.id] || 0;
           return (
             <TouchableOpacity
-              style={styles.card}
+              style={[styles.card, quantityInCart > 0 && styles.cardInCart]}
               onPress={() => onSelectProduct(item)}
               activeOpacity={0.88}
             >
@@ -245,6 +234,16 @@ export function CatalogScreen({
                   <View style={styles.discountBadge}>
                     <Text style={styles.discountBadgeText}>
                       -{Math.round(((item.oldPriceKzt - item.priceKzt) / item.oldPriceKzt) * 100)}%
+                    </Text>
+                  </View>
+                )}
+
+                {/* In-Cart Badge Marker */}
+                {quantityInCart > 0 && (
+                  <View style={styles.inCartBadge}>
+                    <Ionicons name="checkmark-circle" size={11} color="#ffffff" />
+                    <Text style={styles.inCartBadgeText}>
+                      {quantityInCart} {locale === 'kz' ? 'себетте' : 'в корзине'}
                     </Text>
                   </View>
                 )}
@@ -269,28 +268,51 @@ export function CatalogScreen({
                 </Text>
 
                 <View style={styles.priceRow}>
-                  <View style={{ flex: 1 }}>
+                  <View style={{ flex: 1, paddingRight: 4 }}>
                     <Text style={styles.cardPrice}>{formatKZT(item.priceKzt)}</Text>
                     {item.oldPriceKzt && (
                       <Text style={styles.cardOldPrice}>{formatKZT(item.oldPriceKzt)}</Text>
                     )}
                   </View>
 
-                  <TouchableOpacity
-                    style={[
-                      styles.quickAddBtn,
-                      addedProductIds[item.id] && styles.quickAddBtnSuccess,
-                    ]}
-                    onPress={() => handleQuickAdd(item)}
-                    activeOpacity={0.8}
-                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                  >
-                    <Ionicons
-                      name={addedProductIds[item.id] ? 'checkmark' : 'cart'}
-                      size={15}
-                      color={addedProductIds[item.id] ? '#ffffff' : '#b45309'}
-                    />
-                  </TouchableOpacity>
+                  {quantityInCart > 0 ? (
+                    <View style={styles.stepperContainer}>
+                      <TouchableOpacity
+                        style={styles.stepperBtn}
+                        onPress={() => onDecreaseQuantity(item.id)}
+                        activeOpacity={0.7}
+                        hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+                      >
+                        <Ionicons name="remove" size={13} color="#065f46" />
+                      </TouchableOpacity>
+
+                      <View style={styles.stepperCountWrap}>
+                        <Text style={styles.stepperCountText}>{quantityInCart}</Text>
+                      </View>
+
+                      <TouchableOpacity
+                        style={[styles.stepperBtn, styles.stepperBtnPlus]}
+                        onPress={() => onIncreaseQuantity(item)}
+                        activeOpacity={0.7}
+                        hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+                      >
+                        <Ionicons name="add" size={13} color="#ffffff" />
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      style={styles.quickAddBtn}
+                      onPress={() => onIncreaseQuantity(item)}
+                      activeOpacity={0.8}
+                      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                    >
+                      <Ionicons
+                        name="cart"
+                        size={15}
+                        color="#b45309"
+                      />
+                    </TouchableOpacity>
+                  )}
                 </View>
 
                 <View style={styles.kaspiRedBadge}>
@@ -426,6 +448,10 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+  cardInCart: {
+    borderColor: '#10b981',
+    borderWidth: 1.5,
+  },
   cardImageContainer: { position: 'relative', width: '100%', height: 165, backgroundColor: '#f1f5f9' },
   cardImage: { width: '100%', height: '100%' },
   discountBadge: {
@@ -438,6 +464,28 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   discountBadgeText: { color: '#ffffff', fontSize: 10, fontWeight: '800' },
+  inCartBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#059669',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+  inCartBadgeText: {
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: '700',
+  },
   cardBody: { padding: 10 },
   stockBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
   stockDot: { width: 6, height: 6, borderRadius: 3 },
@@ -447,6 +495,37 @@ const styles = StyleSheet.create({
   priceRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
   cardPrice: { fontSize: 14, fontWeight: '800', color: '#b45309' },
   cardOldPrice: { fontSize: 11, color: '#94a3b8', textDecorationLine: 'line-through' },
+  stepperContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ecfdf5',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+    overflow: 'hidden',
+    height: 28,
+  },
+  stepperBtn: {
+    width: 24,
+    height: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#d1fae5',
+  },
+  stepperCountWrap: {
+    minWidth: 20,
+    paddingHorizontal: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepperCountText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#065f46',
+  },
+  stepperBtnPlus: {
+    backgroundColor: '#059669',
+  },
   quickAddBtn: {
     width: 30,
     height: 30,
@@ -456,10 +535,6 @@ const styles = StyleSheet.create({
     borderColor: '#fde68a',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  quickAddBtnSuccess: {
-    backgroundColor: '#059669',
-    borderColor: '#059669',
   },
   kaspiRedBadge: {
     backgroundColor: '#fef2f2',
