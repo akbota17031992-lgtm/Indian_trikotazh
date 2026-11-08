@@ -11,10 +11,11 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { formatKZT, ALMATY_STORES_SEED } from '@india-trikotaj/shared';
 import { MOBILE_PRODUCTS } from '../data/mock-products';
-import type { MobileProduct } from '../types';
+import type { MobileProduct, ProductColor } from '../types';
 
 interface Props {
   onSelectProduct: (product: MobileProduct) => void;
+  onAddToCart: (product: MobileProduct, size: string, color: ProductColor) => void;
   selectedStoreId: string;
   onSelectStore: (storeId: string) => void;
   locale: 'ru' | 'kz';
@@ -26,6 +27,7 @@ type SortType = 'popular' | 'price_asc' | 'price_desc' | 'discount';
 
 export function CatalogScreen({
   onSelectProduct,
+  onAddToCart,
   selectedStoreId,
   onSelectStore,
   locale,
@@ -36,6 +38,22 @@ export function CatalogScreen({
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState<SortType>('popular');
+  const [addedProductIds, setAddedProductIds] = useState<Record<string, boolean>>({});
+
+  const handleQuickAdd = (product: MobileProduct) => {
+    const defaultSize = product.sizes[0] || 'M';
+    const defaultColor = product.colors[0] || {
+      id: 'default',
+      nameRu: 'Основной',
+      nameKz: 'Негізгі',
+      hex: '#78350f',
+    };
+    onAddToCart(product, defaultSize, defaultColor);
+    setAddedProductIds(prev => ({ ...prev, [product.id]: true }));
+    setTimeout(() => {
+      setAddedProductIds(prev => ({ ...prev, [product.id]: false }));
+    }, 1500);
+  };
 
   const categories = [
     { id: 'all', titleRu: 'Все товары', titleKz: 'Барлығы' },
@@ -251,10 +269,28 @@ export function CatalogScreen({
                 </Text>
 
                 <View style={styles.priceRow}>
-                  <Text style={styles.cardPrice}>{formatKZT(item.priceKzt)}</Text>
-                  {item.oldPriceKzt && (
-                    <Text style={styles.cardOldPrice}>{formatKZT(item.oldPriceKzt)}</Text>
-                  )}
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.cardPrice}>{formatKZT(item.priceKzt)}</Text>
+                    {item.oldPriceKzt && (
+                      <Text style={styles.cardOldPrice}>{formatKZT(item.oldPriceKzt)}</Text>
+                    )}
+                  </View>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.quickAddBtn,
+                      addedProductIds[item.id] && styles.quickAddBtnSuccess,
+                    ]}
+                    onPress={() => handleQuickAdd(item)}
+                    activeOpacity={0.8}
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                  >
+                    <Ionicons
+                      name={addedProductIds[item.id] ? 'checkmark' : 'cart'}
+                      size={15}
+                      color={addedProductIds[item.id] ? '#ffffff' : '#b45309'}
+                    />
+                  </TouchableOpacity>
                 </View>
 
                 <View style={styles.kaspiRedBadge}>
@@ -411,6 +447,20 @@ const styles = StyleSheet.create({
   priceRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
   cardPrice: { fontSize: 14, fontWeight: '800', color: '#b45309' },
   cardOldPrice: { fontSize: 11, color: '#94a3b8', textDecorationLine: 'line-through' },
+  quickAddBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    backgroundColor: '#fffbeb',
+    borderWidth: 1,
+    borderColor: '#fde68a',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickAddBtnSuccess: {
+    backgroundColor: '#059669',
+    borderColor: '#059669',
+  },
   kaspiRedBadge: {
     backgroundColor: '#fef2f2',
     paddingHorizontal: 5,

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -11,12 +11,13 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { formatKZT, ALMATY_STORES_SEED } from '@india-trikotaj/shared';
 import { MOBILE_PRODUCTS } from '../data/mock-products';
-import type { MobileProduct } from '../types';
+import type { MobileProduct, ProductColor } from '../types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface Props {
   onSelectProduct: (product: MobileProduct) => void;
+  onAddToCart: (product: MobileProduct, size: string, color: ProductColor) => void;
   onNavigateToCatalog: (category?: string) => void;
   onNavigateToStores: () => void;
   selectedStoreId: string;
@@ -27,6 +28,7 @@ interface Props {
 
 export function HomeScreen({
   onSelectProduct,
+  onAddToCart,
   onNavigateToCatalog,
   onNavigateToStores,
   selectedStoreId,
@@ -34,6 +36,22 @@ export function HomeScreen({
   onToggleLocale,
   recentlyViewedIds,
 }: Props) {
+  const [addedProductIds, setAddedProductIds] = useState<Record<string, boolean>>({});
+
+  const handleQuickAdd = (product: MobileProduct) => {
+    const defaultSize = product.sizes[0] || 'M';
+    const defaultColor = product.colors[0] || {
+      id: 'default',
+      nameRu: 'Основной',
+      nameKz: 'Негізгі',
+      hex: '#78350f',
+    };
+    onAddToCart(product, defaultSize, defaultColor);
+    setAddedProductIds(prev => ({ ...prev, [product.id]: true }));
+    setTimeout(() => {
+      setAddedProductIds(prev => ({ ...prev, [product.id]: false }));
+    }, 1500);
+  };
   const currentStore =
     ALMATY_STORES_SEED.find((_, i) => `store-almaty-${String(i + 1).padStart(3, '0')}` === selectedStoreId) ||
     ALMATY_STORES_SEED[0]!;
@@ -222,10 +240,27 @@ export function HomeScreen({
                 </Text>
 
                 <View style={styles.priceRowH}>
-                  <Text style={styles.productPriceH}>{formatKZT(product.priceKzt)}</Text>
-                  {product.oldPriceKzt && (
-                    <Text style={styles.productOldPriceH}>{formatKZT(product.oldPriceKzt)}</Text>
-                  )}
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.productPriceH}>{formatKZT(product.priceKzt)}</Text>
+                    {product.oldPriceKzt && (
+                      <Text style={styles.productOldPriceH}>{formatKZT(product.oldPriceKzt)}</Text>
+                    )}
+                  </View>
+                  <TouchableOpacity
+                    style={[
+                      styles.quickAddBtnH,
+                      addedProductIds[product.id] && styles.quickAddBtnSuccess,
+                    ]}
+                    onPress={() => handleQuickAdd(product)}
+                    activeOpacity={0.8}
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                  >
+                    <Ionicons
+                      name={addedProductIds[product.id] ? 'checkmark' : 'cart'}
+                      size={13}
+                      color={addedProductIds[product.id] ? '#ffffff' : '#b45309'}
+                    />
+                  </TouchableOpacity>
                 </View>
 
                 <View style={styles.kaspiBadgeH}>
@@ -282,7 +317,24 @@ export function HomeScreen({
                     <Text style={styles.productTitleH} numberOfLines={2}>
                       {locale === 'kz' ? product.titleKz : product.titleRu}
                     </Text>
-                    <Text style={styles.productPriceH}>{formatKZT(product.priceKzt)}</Text>
+                    <View style={styles.priceRowH}>
+                      <Text style={[styles.productPriceH, { flex: 1 }]}>{formatKZT(product.priceKzt)}</Text>
+                      <TouchableOpacity
+                        style={[
+                          styles.quickAddBtnH,
+                          addedProductIds[product.id] && styles.quickAddBtnSuccess,
+                        ]}
+                        onPress={() => handleQuickAdd(product)}
+                        activeOpacity={0.8}
+                        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                      >
+                        <Ionicons
+                          name={addedProductIds[product.id] ? 'checkmark' : 'cart'}
+                          size={13}
+                          color={addedProductIds[product.id] ? '#ffffff' : '#b45309'}
+                        />
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </TouchableOpacity>
               );
@@ -337,7 +389,22 @@ export function HomeScreen({
                   {locale === 'kz' ? product.titleKz : product.titleRu}
                 </Text>
                 <View style={styles.priceRowH}>
-                  <Text style={styles.productPriceH}>{formatKZT(product.priceKzt)}</Text>
+                  <Text style={[styles.productPriceH, { flex: 1 }]}>{formatKZT(product.priceKzt)}</Text>
+                  <TouchableOpacity
+                    style={[
+                      styles.quickAddBtnH,
+                      addedProductIds[product.id] && styles.quickAddBtnSuccess,
+                    ]}
+                    onPress={() => handleQuickAdd(product)}
+                    activeOpacity={0.8}
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                  >
+                    <Ionicons
+                      name={addedProductIds[product.id] ? 'checkmark' : 'cart'}
+                      size={13}
+                      color={addedProductIds[product.id] ? '#ffffff' : '#b45309'}
+                    />
+                  </TouchableOpacity>
                 </View>
                 <View style={styles.kaspiBadgeH}>
                   <Text style={styles.kaspiTextH}>
@@ -386,7 +453,24 @@ export function HomeScreen({
                 <Text style={styles.productTitleH} numberOfLines={2}>
                   {locale === 'kz' ? product.titleKz : product.titleRu}
                 </Text>
-                <Text style={styles.productPriceH}>{formatKZT(product.priceKzt)}</Text>
+                <View style={styles.priceRowH}>
+                  <Text style={[styles.productPriceH, { flex: 1 }]}>{formatKZT(product.priceKzt)}</Text>
+                  <TouchableOpacity
+                    style={[
+                      styles.quickAddBtnH,
+                      addedProductIds[product.id] && styles.quickAddBtnSuccess,
+                    ]}
+                    onPress={() => handleQuickAdd(product)}
+                    activeOpacity={0.8}
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                  >
+                    <Ionicons
+                      name={addedProductIds[product.id] ? 'checkmark' : 'cart'}
+                      size={13}
+                      color={addedProductIds[product.id] ? '#ffffff' : '#b45309'}
+                    />
+                  </TouchableOpacity>
+                </View>
               </View>
             </TouchableOpacity>
           );
@@ -651,6 +735,21 @@ const styles = StyleSheet.create({
   priceRowH: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
   productPriceH: { fontSize: 14, fontWeight: '800', color: '#b45309' },
   productOldPriceH: { fontSize: 11, color: '#94a3b8', textDecorationLine: 'line-through' },
+  quickAddBtnH: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: '#fffbeb',
+    borderWidth: 1,
+    borderColor: '#fde68a',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 6,
+  },
+  quickAddBtnSuccess: {
+    backgroundColor: '#059669',
+    borderColor: '#059669',
+  },
   kaspiBadgeH: {
     backgroundColor: '#fef2f2',
     paddingHorizontal: 5,

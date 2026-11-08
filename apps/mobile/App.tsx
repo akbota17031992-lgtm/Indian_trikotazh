@@ -115,6 +115,7 @@ function MainScreen() {
         ) : activeTab === 'home' ? (
           <HomeScreen
             onSelectProduct={handleSelectProduct}
+            onAddToCart={handleAddToCart}
             onNavigateToCatalog={navigateToCatalogWithCategory}
             onNavigateToStores={() => setActiveTab('stores')}
             selectedStoreId={selectedStoreId}
@@ -125,6 +126,7 @@ function MainScreen() {
         ) : activeTab === 'catalog' ? (
           <CatalogScreen
             onSelectProduct={handleSelectProduct}
+            onAddToCart={handleAddToCart}
             selectedStoreId={selectedStoreId}
             onSelectStore={setSelectedStoreId}
             locale={locale}
