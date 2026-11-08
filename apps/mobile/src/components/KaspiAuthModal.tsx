@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -105,6 +105,7 @@ export function KaspiAuthModal({
   const [smsCode, setSmsCode] = useState('');
   const [generatedSms, setGeneratedSms] = useState('7429');
   const [timerSeconds, setTimerSeconds] = useState(45);
+  const otpInputRef = useRef<any>(null);
 
   // Matched existing user (if logging back in)
   const [matchedUser, setMatchedUser] = useState<StoredUser | null>(null);
@@ -166,6 +167,16 @@ export function KaspiAuthModal({
     }
     return () => clearInterval(interval);
   }, [step, timerSeconds]);
+
+  // Auto-focus OTP input when entering OTP step
+  useEffect(() => {
+    if (step === 'otp') {
+      const timer = setTimeout(() => {
+        otpInputRef.current?.focus();
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [step]);
 
   // Step 1: Send SMS
   const handleSendSms = () => {
@@ -479,33 +490,59 @@ export function KaspiAuthModal({
                 </Text>
               </TouchableOpacity>
 
-              {/* 4 Digit Boxes */}
-              <View style={styles.otpBoxesRow}>
-                {[0, 1, 2, 3].map(i => {
-                  const digit = smsCode[i] || '';
-                  return (
-                    <View
-                      key={i}
-                      style={[
-                        styles.otpBox,
-                        digit ? styles.otpBoxFilled : i === smsCode.length ? styles.otpBoxActive : null,
-                      ]}
-                    >
-                      <Text style={styles.otpBoxText}>{digit}</Text>
-                    </View>
-                  );
-                })}
-              </View>
+              {/* 4 Digit Boxes with Tap-to-Focus */}
+              <TouchableOpacity
+                style={styles.otpInputWrapper}
+                activeOpacity={1}
+                onPress={() => {
+                  otpInputRef.current?.focus();
+                }}
+              >
+                <View style={styles.otpBoxesRow}>
+                  {[0, 1, 2, 3].map(i => {
+                    const digit = smsCode[i] || '';
+                    const isCurrent = i === smsCode.length;
+                    return (
+                      <View
+                        key={i}
+                        style={[
+                          styles.otpBox,
+                          digit ? styles.otpBoxFilled : isCurrent ? styles.otpBoxActive : null,
+                        ]}
+                      >
+                        <Text style={styles.otpBoxText}>{digit}</Text>
+                        {isCurrent && smsCode.length < 4 && (
+                          <View style={styles.cursorBlink} />
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
 
-              {/* Hidden or direct input for typing digits */}
-              <TextInput
-                style={styles.hiddenOtpInput}
-                keyboardType="number-pad"
-                maxLength={4}
-                value={smsCode}
-                onChangeText={handleVerifyOtp}
-                autoFocus={true}
-              />
+                {/* Underlying direct TextInput */}
+                <TextInput
+                  ref={otpInputRef}
+                  style={styles.hiddenOtpInput}
+                  keyboardType="number-pad"
+                  maxLength={4}
+                  value={smsCode}
+                  onChangeText={handleVerifyOtp}
+                  autoFocus={true}
+                  caretHidden={true}
+                />
+              </TouchableOpacity>
+
+              {/* Helper pill to open keyboard */}
+              <TouchableOpacity
+                style={styles.openKeyboardPill}
+                onPress={() => otpInputRef.current?.focus()}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="keypad-outline" size={15} color="#b45309" />
+                <Text style={styles.openKeyboardText}>
+                  {locale === 'kz' ? 'Пернетақтаны ашу үшін басыңыз' : 'Нажмите здесь для вызова клавиатуры'}
+                </Text>
+              </TouchableOpacity>
 
               {/* Resend Timer */}
               <View style={styles.timerRow}>
@@ -950,11 +987,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#065f46',
   },
+  otpInputWrapper: {
+    position: 'relative',
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 10,
+  },
   otpBoxesRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 12,
-    marginVertical: 14,
   },
   otpBox: {
     width: 60,
@@ -965,6 +1008,7 @@ const styles = StyleSheet.create({
     borderColor: '#cbd5e1',
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
   },
   otpBoxActive: {
     borderColor: '#b45309',
@@ -979,13 +1023,40 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#0f172a',
   },
-  hiddenOtpInput: {
-    height: 40,
-    opacity: 0.01,
+  cursorBlink: {
     position: 'absolute',
-    left: 20,
-    right: 20,
-    top: 150,
+    bottom: 12,
+    width: 20,
+    height: 2.5,
+    backgroundColor: '#b45309',
+    borderRadius: 2,
+  },
+  hiddenOtpInput: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    opacity: 0.01,
+  },
+  openKeyboardPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    backgroundColor: '#fffbeb',
+    borderWidth: 1,
+    borderColor: '#fde68a',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginBottom: 10,
+    gap: 6,
+  },
+  openKeyboardText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#b45309',
   },
   timerRow: {
     alignItems: 'center',
