@@ -8,6 +8,7 @@ import {
   StyleSheet,
   TextInput,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { formatKZT, ALMATY_STORES_SEED } from '@india-trikotaj/shared';
 import { MOBILE_PRODUCTS } from '../data/mock-products';
 import type { MobileProduct } from '../types';
@@ -35,7 +36,6 @@ export function CatalogScreen({
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState<SortType>('popular');
-  const [isSortModalOpen, setIsSortModalOpen] = useState(false);
 
   const categories = [
     { id: 'all', titleRu: 'Все товары', titleKz: 'Барлығы' },
@@ -56,7 +56,7 @@ export function CatalogScreen({
     return matchesCat && matchesSearch && matchesStock;
   });
 
-  // Sorting
+  // Sorting logic
   filtered = [...filtered].sort((a, b) => {
     if (sortBy === 'price_asc') return a.priceKzt - b.priceKzt;
     if (sortBy === 'price_desc') return b.priceKzt - a.priceKzt;
@@ -76,7 +76,7 @@ export function CatalogScreen({
     popular: { ru: 'По популярности', kz: 'Танымалдығы бойынша' },
     price_asc: { ru: 'Сначала дешевле', kz: 'Алдымен арзандары' },
     price_desc: { ru: 'Сначала дороже', kz: 'Алдымен қымбаттары' },
-    discount: { ru: 'По размеру скидки', kz: 'Жеңілдік бойынша' },
+    discount: { ru: 'По скидке', kz: 'Жеңілдік бойынша' },
   };
 
   return (
@@ -86,57 +86,66 @@ export function CatalogScreen({
         <View>
           <Text style={styles.brandTitle}>КАТАЛОГ ТОВАРОВ</Text>
           <Text style={styles.brandSubtitle}>
-            {locale === 'kz' ? `${filtered.length} тауар табылды` : `${filtered.length} товаров найдено`}
+            {locale === 'kz' ? `${filtered.length} тауар табылды` : `${filtered.length} моделей в наличии`}
           </Text>
         </View>
-        <TouchableOpacity style={styles.langBadge} onPress={onToggleLocale}>
+        <TouchableOpacity style={styles.langBadge} onPress={onToggleLocale} activeOpacity={0.8}>
           <Text style={styles.langText}>{locale === 'ru' ? 'KZ 🇰🇿' : 'RU 🇷🇺'}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Selected Store Bar */}
       <View style={styles.storeBar}>
-        <Text style={styles.storeIcon}>📍</Text>
+        <Ionicons name="location-sharp" size={14} color="#b45309" style={{ marginRight: 6 }} />
         <View style={styles.storeInfo}>
-          <Text style={styles.storeLabel}>{locale === 'kz' ? 'Филиалдағы қалдықтар:' : 'Остатки в филиале:'}</Text>
+          <Text style={styles.storeLabel}>
+            {locale === 'kz' ? 'Филиалдағы қалдықтар:' : 'Наличие в филиале:'}
+          </Text>
           <Text style={styles.storeName}>{locale === 'kz' ? currentStore.nameKz : currentStore.nameRu}</Text>
         </View>
       </View>
 
-      {/* Search Input */}
+      {/* Search Input Bar */}
       <View style={styles.searchContainer}>
-        <TextInput
-          placeholder={locale === 'kz' ? 'Тауарларды іздеу...' : 'Поиск по трикотажу...'}
-          placeholderTextColor="#9ca3af"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          style={styles.searchInput}
-        />
-        {searchQuery.length > 0 && (
-          <TouchableOpacity style={styles.clearSearchBtn} onPress={() => setSearchQuery('')}>
-            <Text style={styles.clearSearchText}>✕</Text>
-          </TouchableOpacity>
-        )}
+        <View style={styles.searchInner}>
+          <Ionicons name="search" size={16} color="#94a3b8" style={{ marginRight: 8 }} />
+          <TextInput
+            placeholder={locale === 'kz' ? 'Тауарларды іздеу...' : 'Поиск по трикотажу...'}
+            placeholderTextColor="#94a3b8"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            style={styles.searchInput}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Ionicons name="close-circle" size={16} color="#94a3b8" />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
-      {/* Category Pills */}
-      <View>
+      {/* Category Horizontal Pills */}
+      <View style={{ marginBottom: 4 }}>
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
           data={categories}
           keyExtractor={c => c.id}
           contentContainerStyle={styles.categoryList}
-          renderItem={({ item: c }) => (
-            <TouchableOpacity
-              style={[styles.categoryPill, selectedCategory === c.id && styles.categoryPillActive]}
-              onPress={() => setSelectedCategory(c.id)}
-            >
-              <Text style={[styles.categoryText, selectedCategory === c.id && styles.categoryTextActive]}>
-                {locale === 'kz' ? c.titleKz : c.titleRu}
-              </Text>
-            </TouchableOpacity>
-          )}
+          renderItem={({ item: c }) => {
+            const isActive = selectedCategory === c.id;
+            return (
+              <TouchableOpacity
+                style={[styles.categoryPill, isActive && styles.categoryPillActive]}
+                onPress={() => setSelectedCategory(c.id)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.categoryText, isActive && styles.categoryTextActive]}>
+                  {locale === 'kz' ? c.titleKz : c.titleRu}
+                </Text>
+              </TouchableOpacity>
+            );
+          }}
         />
       </View>
 
@@ -145,9 +154,16 @@ export function CatalogScreen({
         <TouchableOpacity
           style={[styles.stockFilterBtn, inStockOnly && styles.stockFilterBtnActive]}
           onPress={() => setInStockOnly(!inStockOnly)}
+          activeOpacity={0.8}
         >
+          <Ionicons
+            name={inStockOnly ? 'checkbox' : 'square-outline'}
+            size={14}
+            color={inStockOnly ? '#059669' : '#64748b'}
+            style={{ marginRight: 5 }}
+          />
           <Text style={[styles.stockFilterText, inStockOnly && styles.stockFilterTextActive]}>
-            {inStockOnly ? '✓ В наличии' : '○ Только в наличии'}
+            {locale === 'kz' ? 'Қоймадағылар' : 'В наличии'}
           </Text>
         </TouchableOpacity>
 
@@ -159,9 +175,11 @@ export function CatalogScreen({
             const nextIdx = (sequence.indexOf(sortBy) + 1) % sequence.length;
             setSortBy(sequence[nextIdx]!);
           }}
+          activeOpacity={0.8}
         >
+          <Ionicons name="swap-vertical" size={13} color="#475569" style={{ marginRight: 4 }} />
           <Text style={styles.sortBtnText}>
-            ↕ {locale === 'kz' ? sortLabels[sortBy].kz : sortLabels[sortBy].ru}
+            {locale === 'kz' ? sortLabels[sortBy].kz : sortLabels[sortBy].ru}
           </Text>
         </TouchableOpacity>
       </View>
@@ -185,6 +203,7 @@ export function CatalogScreen({
                 setSearchQuery('');
                 setInStockOnly(false);
               }}
+              activeOpacity={0.85}
             >
               <Text style={styles.resetFilterText}>
                 {locale === 'kz' ? 'Сүзгілерді тазарту' : 'Сбросить фильтры'}
@@ -195,20 +214,27 @@ export function CatalogScreen({
         renderItem={({ item }) => {
           const stock = item.stockByStore[selectedStoreId] ?? 0;
           return (
-            <TouchableOpacity style={styles.card} onPress={() => onSelectProduct(item)} activeOpacity={0.85}>
-              <Image source={{ uri: item.imageUrl }} style={styles.cardImage} />
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => onSelectProduct(item)}
+              activeOpacity={0.88}
+            >
+              <View style={styles.cardImageContainer}>
+                <Image source={{ uri: item.imageUrl }} style={styles.cardImage} resizeMode="cover" />
 
-              {/* Discount / Bestseller Badges */}
-              {item.oldPriceKzt && (
-                <View style={styles.discountBadge}>
-                  <Text style={styles.discountBadgeText}>
-                    -{Math.round(((item.oldPriceKzt - item.priceKzt) / item.oldPriceKzt) * 100)}%
-                  </Text>
-                </View>
-              )}
+                {/* Discount Badge */}
+                {item.oldPriceKzt && (
+                  <View style={styles.discountBadge}>
+                    <Text style={styles.discountBadgeText}>
+                      -{Math.round(((item.oldPriceKzt - item.priceKzt) / item.oldPriceKzt) * 100)}%
+                    </Text>
+                  </View>
+                )}
+              </View>
 
               <View style={styles.cardBody}>
-                <View style={styles.stockBadge}>
+                <View style={styles.stockBadgeRow}>
+                  <View style={[styles.stockDot, { backgroundColor: stock > 0 ? '#10b981' : '#f59e0b' }]} />
                   <Text style={[styles.stockText, stock === 0 && styles.stockTextZero]}>
                     {stock > 0
                       ? locale === 'kz'
@@ -216,18 +242,21 @@ export function CatalogScreen({
                         : `В наличии: ${stock} шт.`
                       : locale === 'kz'
                       ? 'Басқа дүкендерде бар'
-                      : 'В других магазинах'}
+                      : 'В других филиалах'}
                   </Text>
                 </View>
+
                 <Text style={styles.cardTitle} numberOfLines={2}>
                   {locale === 'kz' ? item.titleKz : item.titleRu}
                 </Text>
+
                 <View style={styles.priceRow}>
                   <Text style={styles.cardPrice}>{formatKZT(item.priceKzt)}</Text>
                   {item.oldPriceKzt && (
                     <Text style={styles.cardOldPrice}>{formatKZT(item.oldPriceKzt)}</Text>
                   )}
                 </View>
+
                 <View style={styles.kaspiRedBadge}>
                   <Text style={styles.kaspiRedText}>
                     Kaspi Red {formatKZT(Math.round(item.priceKzt / 3))} x 3
@@ -243,11 +272,11 @@ export function CatalogScreen({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
+  container: { flex: 1, backgroundColor: '#f8fafc' },
   header: {
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 10,
+    paddingTop: 10,
+    paddingBottom: 12,
     backgroundColor: '#78350f',
     flexDirection: 'row',
     alignItems: 'center',
@@ -256,10 +285,12 @@ const styles = StyleSheet.create({
   brandTitle: { color: '#fef3c7', fontSize: 16, fontWeight: '800', letterSpacing: 0.5 },
   brandSubtitle: { color: '#fde68a', fontSize: 11, marginTop: 1 },
   langBadge: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.18)',
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
   },
   langText: { color: '#ffffff', fontSize: 12, fontWeight: '700' },
   storeBar: {
@@ -269,76 +300,98 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#fef3c7',
+    borderBottomColor: '#fde68a',
   },
-  storeIcon: { fontSize: 16, marginRight: 8 },
   storeInfo: { flex: 1 },
-  storeLabel: { fontSize: 10, color: '#92400e', textTransform: 'uppercase', fontWeight: '600' },
-  storeName: { fontSize: 12, color: '#451a03', fontWeight: '700' },
-  searchContainer: { paddingHorizontal: 16, paddingTop: 10, position: 'relative' },
-  searchInput: {
+  storeLabel: { fontSize: 10, color: '#92400e', textTransform: 'uppercase', fontWeight: '700' },
+  storeName: { fontSize: 12, color: '#451a03', fontWeight: '800' },
+  searchContainer: { paddingHorizontal: 14, paddingTop: 10, paddingBottom: 6 },
+  searchInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 10,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    paddingRight: 32,
-    fontSize: 13,
-    color: '#111827',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 3,
+    elevation: 1,
   },
-  clearSearchBtn: { position: 'absolute', right: 26, top: 18 },
-  clearSearchText: { color: '#9ca3af', fontSize: 14, fontWeight: '700' },
-  categoryList: { paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
+  searchInput: {
+    flex: 1,
+    fontSize: 13,
+    color: '#0f172a',
+    padding: 0,
+  },
+  categoryList: { paddingHorizontal: 14, paddingVertical: 8, gap: 8 },
   categoryPill: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: '#e2e8f0',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.02,
+    shadowRadius: 2,
+    elevation: 1,
   },
   categoryPillActive: { backgroundColor: '#b45309', borderColor: '#b45309' },
-  categoryText: { fontSize: 12, color: '#4b5563', fontWeight: '500' },
+  categoryText: { fontSize: 12, color: '#475569', fontWeight: '600' },
   categoryTextActive: { color: '#ffffff', fontWeight: '700' },
   filterToolbar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingBottom: 8,
     gap: 8,
   },
   stockFilterBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 6,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: '#e2e8f0',
     backgroundColor: '#ffffff',
   },
-  stockFilterBtnActive: { backgroundColor: '#ecfdf5', borderColor: '#10b981' },
-  stockFilterText: { fontSize: 11, color: '#4b5563', fontWeight: '600' },
-  stockFilterTextActive: { color: '#047857' },
+  stockFilterBtnActive: { backgroundColor: '#ecfdf5', borderColor: '#a7f3d0' },
+  stockFilterText: { fontSize: 11, color: '#475569', fontWeight: '600' },
+  stockFilterTextActive: { color: '#047857', fontWeight: '700' },
   sortBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 6,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: '#e2e8f0',
     backgroundColor: '#ffffff',
   },
-  sortBtnText: { fontSize: 11, color: '#374151', fontWeight: '600' },
-  listContent: { paddingHorizontal: 12, paddingBottom: 24 },
+  sortBtnText: { fontSize: 11, color: '#334155', fontWeight: '600' },
+  listContent: { paddingHorizontal: 10, paddingBottom: 24 },
   card: {
     flex: 1,
     margin: 4,
     backgroundColor: '#ffffff',
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: '#e2e8f0',
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  cardImage: { width: '100%', height: 160, backgroundColor: '#f3f4f6' },
+  cardImageContainer: { position: 'relative', width: '100%', height: 165, backgroundColor: '#f1f5f9' },
+  cardImage: { width: '100%', height: '100%' },
   discountBadge: {
     position: 'absolute',
     top: 8,
@@ -346,35 +399,31 @@ const styles = StyleSheet.create({
     backgroundColor: '#dc2626',
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: 5,
   },
   discountBadgeText: { color: '#ffffff', fontSize: 10, fontWeight: '800' },
   cardBody: { padding: 10 },
-  stockBadge: {
-    backgroundColor: '#ecfdf5',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginBottom: 6,
-  },
+  stockBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
+  stockDot: { width: 6, height: 6, borderRadius: 3 },
   stockText: { color: '#047857', fontSize: 10, fontWeight: '600' },
   stockTextZero: { color: '#9a3412' },
-  cardTitle: { fontSize: 12, fontWeight: '600', color: '#1f2937', minHeight: 32 },
+  cardTitle: { fontSize: 12, fontWeight: '600', color: '#1e293b', minHeight: 32, lineHeight: 16 },
   priceRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
   cardPrice: { fontSize: 14, fontWeight: '800', color: '#b45309' },
-  cardOldPrice: { fontSize: 11, color: '#9ca3af', textDecorationLine: 'line-through' },
+  cardOldPrice: { fontSize: 11, color: '#94a3b8', textDecorationLine: 'line-through' },
   kaspiRedBadge: {
     backgroundColor: '#fef2f2',
-    paddingHorizontal: 4,
+    paddingHorizontal: 5,
     paddingVertical: 2,
     borderRadius: 4,
     marginTop: 6,
+    borderWidth: 0.5,
+    borderColor: '#fee2e2',
   },
-  kaspiRedText: { color: '#dc2626', fontSize: 10, fontWeight: '700' },
+  kaspiRedText: { color: '#dc2626', fontSize: 9, fontWeight: '700' },
   emptyContainer: { alignItems: 'center', paddingVertical: 40 },
   emptyEmoji: { fontSize: 40, marginBottom: 8 },
-  emptyText: { fontSize: 14, color: '#6b7280', fontWeight: '600' },
+  emptyText: { fontSize: 14, color: '#64748b', fontWeight: '600' },
   resetFilterBtn: {
     marginTop: 12,
     backgroundColor: '#b45309',

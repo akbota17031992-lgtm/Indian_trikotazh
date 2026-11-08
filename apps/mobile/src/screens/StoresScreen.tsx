@@ -8,6 +8,7 @@ import {
   Linking,
   TextInput,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { ALMATY_STORES_SEED, type AlmatyStoreSeed } from '@india-trikotaj/shared';
 
 interface Props {
@@ -69,40 +70,52 @@ export function StoresScreen({ selectedStoreId, onSelectStore, locale, onToggleL
               : 'Выберите удобный филиал сети «Индийский Трикотаж»'}
           </Text>
         </View>
-        <TouchableOpacity style={styles.langBadge} onPress={onToggleLocale}>
+        <TouchableOpacity style={styles.langBadge} onPress={onToggleLocale} activeOpacity={0.8}>
           <Text style={styles.langText}>{locale === 'ru' ? 'KZ 🇰🇿' : 'RU 🇷🇺'}</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Search Input */}
+      {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <TextInput
-          placeholder={locale === 'kz' ? 'СОО немесе көше бойынша іздеу...' : 'Поиск по ТРЦ или адресу...'}
-          placeholderTextColor="#9ca3af"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          style={styles.searchInput}
-        />
+        <View style={styles.searchInner}>
+          <Ionicons name="search" size={16} color="#94a3b8" style={{ marginRight: 8 }} />
+          <TextInput
+            placeholder={locale === 'kz' ? 'СОО немесе көше бойынша іздеу...' : 'Поиск по ТРЦ или адресу...'}
+            placeholderTextColor="#94a3b8"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            style={styles.searchInput}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Ionicons name="close-circle" size={16} color="#94a3b8" />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       {/* District Filter Chips */}
-      <View>
+      <View style={{ marginBottom: 4 }}>
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
           data={districts}
           keyExtractor={d => d.id}
           contentContainerStyle={styles.districtList}
-          renderItem={({ item: d }) => (
-            <TouchableOpacity
-              style={[styles.districtChip, selectedDistrict === d.id && styles.districtChipActive]}
-              onPress={() => setSelectedDistrict(d.id)}
-            >
-              <Text style={[styles.districtText, selectedDistrict === d.id && styles.districtTextActive]}>
-                {locale === 'kz' ? d.titleKz : d.titleRu}
-              </Text>
-            </TouchableOpacity>
-          )}
+          renderItem={({ item: d }) => {
+            const isActive = selectedDistrict === d.id;
+            return (
+              <TouchableOpacity
+                style={[styles.districtChip, isActive && styles.districtChipActive]}
+                onPress={() => setSelectedDistrict(d.id)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.districtText, isActive && styles.districtTextActive]}>
+                  {locale === 'kz' ? d.titleKz : d.titleRu}
+                </Text>
+              </TouchableOpacity>
+            );
+          }}
         />
       </View>
 
@@ -131,20 +144,27 @@ export function StoresScreen({ selectedStoreId, onSelectStore, locale, onToggleL
                 </View>
                 {isSelected && (
                   <View style={styles.activeCheck}>
-                    <Text style={styles.activeCheckText}>✓</Text>
+                    <Ionicons name="checkmark" size={14} color="#ffffff" />
                   </View>
                 )}
               </View>
 
               <View style={styles.metaRow}>
-                <Text style={styles.metaLabel}>🕒 {item.openHoursRu}</Text>
-                <Text style={styles.metaLabel}>📞 {item.phone}</Text>
+                <View style={styles.metaItem}>
+                  <Ionicons name="time-outline" size={13} color="#64748b" />
+                  <Text style={styles.metaLabel}>{item.openHoursRu}</Text>
+                </View>
+                <View style={styles.metaItem}>
+                  <Ionicons name="call-outline" size={13} color="#64748b" />
+                  <Text style={styles.metaLabel}>{item.phone}</Text>
+                </View>
               </View>
 
               <View style={styles.buttonRow}>
                 <TouchableOpacity
                   style={[styles.selectBtn, isSelected && styles.selectBtnActive]}
                   onPress={() => onSelectStore(storeId)}
+                  activeOpacity={0.8}
                 >
                   <Text style={[styles.selectBtnText, isSelected && styles.selectBtnTextActive]}>
                     {isSelected
@@ -160,6 +180,7 @@ export function StoresScreen({ selectedStoreId, onSelectStore, locale, onToggleL
                 <TouchableOpacity
                   style={styles.twoGisBtn}
                   onPress={() => handleOpen2Gis(item)}
+                  activeOpacity={0.8}
                 >
                   <Text style={styles.twoGisText}>2ГИС</Text>
                 </TouchableOpacity>
@@ -167,8 +188,9 @@ export function StoresScreen({ selectedStoreId, onSelectStore, locale, onToggleL
                 <TouchableOpacity
                   style={styles.callBtn}
                   onPress={() => handleCall(item.phone)}
+                  activeOpacity={0.8}
                 >
-                  <Text style={styles.callText}>📞</Text>
+                  <Ionicons name="call" size={15} color="#047857" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -180,10 +202,10 @@ export function StoresScreen({ selectedStoreId, onSelectStore, locale, onToggleL
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
+  container: { flex: 1, backgroundColor: '#f8fafc' },
   header: {
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: 10,
     paddingBottom: 12,
     backgroundColor: '#78350f',
     flexDirection: 'row',
@@ -193,59 +215,72 @@ const styles = StyleSheet.create({
   title: { color: '#fef3c7', fontSize: 18, fontWeight: '800' },
   subtitle: { color: '#fde68a', fontSize: 11, marginTop: 2 },
   langBadge: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.18)',
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
   },
   langText: { color: '#ffffff', fontSize: 12, fontWeight: '700' },
-  searchContainer: { paddingHorizontal: 16, paddingTop: 10 },
-  searchInput: {
+  searchContainer: { paddingHorizontal: 14, paddingTop: 10, paddingBottom: 6 },
+  searchInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 10,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    fontSize: 13,
-    color: '#111827',
   },
-  districtList: { paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
+  searchInput: {
+    flex: 1,
+    fontSize: 13,
+    color: '#0f172a',
+    padding: 0,
+  },
+  districtList: { paddingHorizontal: 14, paddingVertical: 8, gap: 8 },
   districtChip: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: '#e2e8f0',
     paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 16,
+    paddingVertical: 6,
+    borderRadius: 18,
   },
   districtChipActive: { backgroundColor: '#b45309', borderColor: '#b45309' },
-  districtText: { fontSize: 12, color: '#4b5563', fontWeight: '500' },
+  districtText: { fontSize: 12, color: '#475569', fontWeight: '500' },
   districtTextActive: { color: '#ffffff', fontWeight: '700' },
-  list: { padding: 16, paddingBottom: 32 },
+  list: { padding: 14, paddingBottom: 28 },
   card: {
     backgroundColor: '#ffffff',
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 14,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 3,
+    elevation: 1,
   },
-  cardSelected: { borderColor: '#b45309', borderWidth: 2, backgroundColor: '#fffbeb' },
+  cardSelected: { borderColor: '#b45309', borderWidth: 1.5, backgroundColor: '#fffbeb' },
   cardHeader: { flexDirection: 'row', alignItems: 'flex-start' },
   badgeIndex: {
     backgroundColor: '#fef3c7',
-    paddingHorizontal: 6,
+    paddingHorizontal: 7,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: 5,
     marginRight: 8,
     marginTop: 2,
   },
-  badgeIndexText: { color: '#92400e', fontSize: 11, fontWeight: '700' },
+  badgeIndexText: { color: '#92400e', fontSize: 11, fontWeight: '800' },
   cardTitles: { flex: 1 },
-  cardName: { fontSize: 14, fontWeight: '700', color: '#1f2937' },
-  cardAddress: { fontSize: 12, color: '#6b7280', marginTop: 2 },
-  districtLabel: { fontSize: 11, color: '#b45309', fontWeight: '600', marginTop: 2 },
+  cardName: { fontSize: 14, fontWeight: '700', color: '#0f172a' },
+  cardAddress: { fontSize: 12, color: '#64748b', marginTop: 2 },
+  districtLabel: { fontSize: 11, color: '#b45309', fontWeight: '700', marginTop: 2 },
   activeCheck: {
     backgroundColor: '#047857',
     width: 22,
@@ -254,9 +289,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  activeCheckText: { color: '#ffffff', fontSize: 12, fontWeight: '800' },
-  metaRow: { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#f3f4f6', gap: 4 },
-  metaLabel: { fontSize: 11, color: '#4b5563' },
+  metaRow: { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#f1f5f9', gap: 6 },
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  metaLabel: { fontSize: 11, color: '#475569' },
   buttonRow: { flexDirection: 'row', gap: 8, marginTop: 12 },
   selectBtn: {
     flex: 1,
@@ -280,12 +315,13 @@ const styles = StyleSheet.create({
   },
   twoGisText: { color: '#ffffff', fontSize: 11, fontWeight: '800' },
   callBtn: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#ecfdf5',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
   },
-  callText: { fontSize: 14 },
 });

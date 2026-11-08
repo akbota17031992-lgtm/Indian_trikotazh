@@ -11,6 +11,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { formatKZT, ALMATY_STORES_SEED } from '@india-trikotaj/shared';
 import type { CartItem, FulfillmentType, MobileOrder, UserProfile } from '../types';
 
@@ -132,15 +133,14 @@ export function CartScreen({
       setCompletedOrder(newOrder);
       onOrderCreated(newOrder);
       onClearCart();
-    }, 1800);
+    }, 1600);
   };
 
-  // If order was just placed, show success screen
   if (completedOrder) {
     return (
       <View style={styles.successContainer}>
         <View style={styles.successIconBox}>
-          <Text style={styles.successIcon}>🎉</Text>
+          <Ionicons name="checkmark-done" size={36} color="#059669" />
         </View>
         <Text style={styles.successTitle}>
           {locale === 'kz' ? 'Тапсырыс сәтті қабылданды!' : 'Заказ успешно оформлен!'}
@@ -150,7 +150,7 @@ export function CartScreen({
           {completedOrder.fulfillmentType === 'pickup'
             ? locale === 'kz'
               ? `Тауар сізді «${currentStore.nameKz}» дүкенінде күтеді. СМС-хабарлама жіберілді.`
-              : `Товар будет ожидать вас в филиале «${currentStore.nameRu}». Мы отправили SMS.`
+              : `Товар ожидает вас в филиале «${currentStore.nameRu}». Мы отправили SMS-подтверждение.`
             : locale === 'kz'
             ? `Курьер мекенжай бойынша жеткізеді: ${completedOrder.courierAddress?.district}, ${completedOrder.courierAddress?.street}.`
             : `Курьер доставит заказ по адресу: ${completedOrder.courierAddress?.district}, ${completedOrder.courierAddress?.street}.`}
@@ -165,7 +165,7 @@ export function CartScreen({
           </Text>
           <Text style={styles.summaryRow}>
             {locale === 'kz' ? 'Жалпы сомасы:' : 'Итого к оплате:'}{' '}
-            <Text style={{ fontWeight: '800', color: '#111827' }}>{formatKZT(completedOrder.totalKzt)}</Text>
+            <Text style={{ fontWeight: '800', color: '#0f172a' }}>{formatKZT(completedOrder.totalKzt)}</Text>
           </Text>
         </View>
 
@@ -175,6 +175,7 @@ export function CartScreen({
             setCompletedOrder(null);
             onNavigateToCatalog();
           }}
+          activeOpacity={0.88}
         >
           <Text style={styles.continueShopBtnText}>
             {locale === 'kz' ? 'Каталогқа оралу' : 'Вернуться к покупкам'}
@@ -191,7 +192,7 @@ export function CartScreen({
         <Text style={styles.title}>{locale === 'kz' ? 'Себет' : 'Корзина покупок'}</Text>
         <Text style={styles.subtitle}>
           {cart.length > 0
-            ? `${cart.length} ${locale === 'kz' ? 'тауар' : 'позиции'}`
+            ? `${cart.length} ${locale === 'kz' ? 'тауар' : 'позиций'}`
             : locale === 'kz'
             ? 'Себет бос'
             : 'Пусто'}
@@ -200,7 +201,9 @@ export function CartScreen({
 
       {cart.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyEmoji}>🛍️</Text>
+          <View style={styles.emptyIconCircle}>
+            <Ionicons name="cart-outline" size={44} color="#94a3b8" />
+          </View>
           <Text style={styles.emptyTitle}>
             {locale === 'kz' ? 'Сіздің себетіңіз бос' : 'Ваша корзина пуста'}
           </Text>
@@ -209,7 +212,7 @@ export function CartScreen({
               ? 'Каталогтан сапалы үнді трикотажын таңдаңыз'
               : 'Выберите качественный трикотаж из каталога'}
           </Text>
-          <TouchableOpacity style={styles.emptyBtn} onPress={onNavigateToCatalog}>
+          <TouchableOpacity style={styles.emptyBtn} onPress={onNavigateToCatalog} activeOpacity={0.85}>
             <Text style={styles.emptyBtnText}>
               {locale === 'kz' ? 'Каталогқа өту →' : 'В каталог товаров →'}
             </Text>
@@ -224,13 +227,13 @@ export function CartScreen({
             </Text>
             {cart.map(item => (
               <View key={`${item.product.id}-${item.size}-${item.color.id}`} style={styles.itemRow}>
-                <Image source={{ uri: item.product.imageUrl }} style={styles.itemImage} />
+                <Image source={{ uri: item.product.imageUrl }} style={styles.itemImage} resizeMode="cover" />
                 <View style={styles.itemBody}>
                   <Text style={styles.itemTitle} numberOfLines={2}>
                     {locale === 'kz' ? item.product.titleKz : item.product.titleRu}
                   </Text>
                   <View style={styles.itemMeta}>
-                    <Text style={styles.metaBadge}>Размер: {item.size}</Text>
+                    <Text style={styles.metaBadge}>{item.size}</Text>
                     <View style={styles.colorPill}>
                       <View style={[styles.colorDot, { backgroundColor: item.color.hex }]} />
                       <Text style={styles.colorText}>
@@ -246,6 +249,7 @@ export function CartScreen({
                       <TouchableOpacity
                         style={styles.qtyBtn}
                         onPress={() => onUpdateQuantity(item.product.id, item.size, -1)}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                       >
                         <Text style={styles.qtyBtnText}>−</Text>
                       </TouchableOpacity>
@@ -253,6 +257,7 @@ export function CartScreen({
                       <TouchableOpacity
                         style={styles.qtyBtn}
                         onPress={() => onUpdateQuantity(item.product.id, item.size, 1)}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                       >
                         <Text style={styles.qtyBtnText}>+</Text>
                       </TouchableOpacity>
@@ -261,8 +266,9 @@ export function CartScreen({
                     <TouchableOpacity
                       style={styles.deleteBtn}
                       onPress={() => onRemoveItem(item.product.id, item.size)}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
-                      <Text style={styles.deleteBtnText}>🗑️</Text>
+                      <Ionicons name="trash-outline" size={17} color="#ef4444" />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -279,8 +285,14 @@ export function CartScreen({
               <TouchableOpacity
                 style={[styles.typeBtn, fulfillmentType === 'pickup' && styles.typeBtnActive]}
                 onPress={() => setFulfillmentType('pickup')}
+                activeOpacity={0.8}
               >
-                <Text style={styles.typeBtnIcon}>🏬</Text>
+                <Ionicons
+                  name="storefront-outline"
+                  size={18}
+                  color={fulfillmentType === 'pickup' ? '#b45309' : '#64748b'}
+                  style={{ marginBottom: 3 }}
+                />
                 <Text style={[styles.typeBtnText, fulfillmentType === 'pickup' && styles.typeBtnTextActive]}>
                   {locale === 'kz' ? 'Өзіңіз алып кету' : 'Самовывоз'}
                 </Text>
@@ -290,10 +302,16 @@ export function CartScreen({
               <TouchableOpacity
                 style={[styles.typeBtn, fulfillmentType === 'courier' && styles.typeBtnActive]}
                 onPress={() => setFulfillmentType('courier')}
+                activeOpacity={0.8}
               >
-                <Text style={styles.typeBtnIcon}>🚚</Text>
+                <Ionicons
+                  name="car-outline"
+                  size={18}
+                  color={fulfillmentType === 'courier' ? '#b45309' : '#64748b'}
+                  style={{ marginBottom: 3 }}
+                />
                 <Text style={[styles.typeBtnText, fulfillmentType === 'courier' && styles.typeBtnTextActive]}>
-                  {locale === 'kz' ? 'Курьермен' : 'Курьер по Алматы'}
+                  {locale === 'kz' ? 'Курьермен' : 'Курьер Алматы'}
                 </Text>
                 <Text style={styles.typeBtnSub}>
                   {subtotalKzt > 15000 ? 'Бесплатно' : '1 500 ₸'}
@@ -325,6 +343,7 @@ export function CartScreen({
                       key={d.id}
                       style={[styles.districtPill, selectedDistrict === d.ru && styles.districtPillActive]}
                       onPress={() => setSelectedDistrict(d.ru)}
+                      activeOpacity={0.8}
                     >
                       <Text style={[styles.districtPillText, selectedDistrict === d.ru && styles.districtPillTextActive]}>
                         {locale === 'kz' ? d.kz : d.ru}
@@ -336,7 +355,7 @@ export function CartScreen({
                 <Text style={styles.fieldLabel}>{locale === 'kz' ? 'Көше, үй:' : 'Улица и номер дома:'}</Text>
                 <TextInput
                   placeholder="Например: пр. Абая, 150"
-                  placeholderTextColor="#9ca3af"
+                  placeholderTextColor="#94a3b8"
                   value={streetAddress}
                   onChangeText={setStreetAddress}
                   style={styles.textInput}
@@ -345,7 +364,7 @@ export function CartScreen({
                 <Text style={styles.fieldLabel}>{locale === 'kz' ? 'Пәтер / Кеңсе:' : 'Квартира / Офис (необязательно):'}</Text>
                 <TextInput
                   placeholder="Например: кв. 42, 3 этаж"
-                  placeholderTextColor="#9ca3af"
+                  placeholderTextColor="#94a3b8"
                   value={apartment}
                   onChangeText={setApartment}
                   style={styles.textInput}
@@ -363,7 +382,7 @@ export function CartScreen({
             <Text style={styles.fieldLabel}>{locale === 'kz' ? 'Сіздің атыңыз:' : 'Ваше имя:'}</Text>
             <TextInput
               placeholder="Как к вам обращаться"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor="#94a3b8"
               value={customerName}
               onChangeText={setCustomerName}
               style={styles.textInput}
@@ -372,7 +391,7 @@ export function CartScreen({
             <Text style={styles.fieldLabel}>{locale === 'kz' ? 'Телефон нөмірі (СМС үшін):' : 'Номер телефона (для SMS):'}</Text>
             <TextInput
               placeholder="+7 (7xx) xxx-xx-xx"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor="#94a3b8"
               value={customerPhone}
               onChangeText={setCustomerPhone}
               keyboardType="phone-pad"
@@ -381,8 +400,8 @@ export function CartScreen({
 
             <Text style={styles.fieldLabel}>{locale === 'kz' ? 'Тапсырысқа түсініктеме:' : 'Комментарий к заказу:'}</Text>
             <TextInput
-              placeholder="Код домофона, пожелания к упаковке..."
-              placeholderTextColor="#9ca3af"
+              placeholder="Код домофона, пожелания..."
+              placeholderTextColor="#94a3b8"
               value={comment}
               onChangeText={setComment}
               style={styles.textInput}
@@ -398,6 +417,7 @@ export function CartScreen({
             <TouchableOpacity
               style={[styles.paymentMethodRow, paymentMethod === 'kaspi_pay' && styles.paymentMethodRowActive]}
               onPress={() => setPaymentMethod('kaspi_pay')}
+              activeOpacity={0.8}
             >
               <View style={styles.radioDot}>
                 {paymentMethod === 'kaspi_pay' && <View style={styles.radioDotInner} />}
@@ -413,6 +433,7 @@ export function CartScreen({
             <TouchableOpacity
               style={[styles.paymentMethodRow, paymentMethod === 'cash_on_delivery' && styles.paymentMethodRowActive]}
               onPress={() => setPaymentMethod('cash_on_delivery')}
+              activeOpacity={0.8}
             >
               <View style={styles.radioDot}>
                 {paymentMethod === 'cash_on_delivery' && <View style={styles.radioDotInner} />}
@@ -446,7 +467,7 @@ export function CartScreen({
             <TouchableOpacity
               style={styles.checkoutBtn}
               onPress={handleStartCheckout}
-              activeOpacity={0.85}
+              activeOpacity={0.88}
             >
               <Text style={styles.checkoutBtnText}>
                 {paymentMethod === 'kaspi_pay'
@@ -456,7 +477,7 @@ export function CartScreen({
             </TouchableOpacity>
           </View>
 
-          <View style={{ height: 40 }} />
+          <View style={{ height: 30 }} />
         </ScrollView>
       )}
 
@@ -471,8 +492,8 @@ export function CartScreen({
           <View style={styles.kaspiModalBox}>
             <View style={styles.kaspiHeader}>
               <Text style={styles.kaspiBrand}>Kaspi.kz</Text>
-              <TouchableOpacity onPress={() => setIsKaspiModalOpen(false)}>
-                <Text style={styles.kaspiClose}>✕</Text>
+              <TouchableOpacity onPress={() => setIsKaspiModalOpen(false)} activeOpacity={0.7}>
+                <Ionicons name="close" size={22} color="#64748b" />
               </TouchableOpacity>
             </View>
 
@@ -482,7 +503,7 @@ export function CartScreen({
 
             {/* Simulated QR Code box */}
             <View style={styles.qrCodeBox}>
-              <Text style={styles.qrCodeEmoji}>📱</Text>
+              <Ionicons name="qr-code" size={60} color="#0f172a" style={{ marginBottom: 8 }} />
               <Text style={styles.qrCodeText}>Отсканируйте Kaspi QR в приложении</Text>
               <View style={styles.kaspiRedBadge}>
                 <Text style={styles.kaspiRedBadgeText}>
@@ -496,6 +517,7 @@ export function CartScreen({
               style={[styles.kaspiPayNowBtn, isProcessing && { opacity: 0.6 }]}
               onPress={() => finalizeOrder('kaspi_pay')}
               disabled={isProcessing}
+              activeOpacity={0.88}
             >
               <Text style={styles.kaspiPayNowText}>
                 {isProcessing ? '⏳ Подтверждение оплаты...' : '✓ Подтвердить оплату через Kaspi.kz'}
@@ -509,68 +531,71 @@ export function CartScreen({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
+  container: { flex: 1, backgroundColor: '#f8fafc' },
   header: {
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: 10,
     paddingBottom: 12,
     backgroundColor: '#78350f',
   },
   title: { color: '#fef3c7', fontSize: 18, fontWeight: '800' },
   subtitle: { color: '#fde68a', fontSize: 12, marginTop: 2 },
-  scrollContent: { padding: 16, gap: 14 },
+  scrollContent: { padding: 14, gap: 12 },
   sectionCard: {
     backgroundColor: '#ffffff',
     borderRadius: 14,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.02,
+    shadowRadius: 3,
+    elevation: 1,
   },
-  sectionHeading: { fontSize: 14, fontWeight: '800', color: '#111827', marginBottom: 12 },
+  sectionHeading: { fontSize: 14, fontWeight: '800', color: '#0f172a', marginBottom: 10 },
   itemRow: {
     flexDirection: 'row',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: '#f1f5f9',
   },
-  itemImage: { width: 70, height: 70, borderRadius: 8, backgroundColor: '#f3f4f6', marginRight: 12 },
+  itemImage: { width: 70, height: 70, borderRadius: 10, backgroundColor: '#f1f5f9', marginRight: 12 },
   itemBody: { flex: 1 },
-  itemTitle: { fontSize: 13, fontWeight: '600', color: '#1f2937' },
+  itemTitle: { fontSize: 13, fontWeight: '600', color: '#1e293b' },
   itemMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
-  metaBadge: { fontSize: 11, color: '#6b7280', backgroundColor: '#f3f4f6', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  metaBadge: { fontSize: 11, color: '#475569', backgroundColor: '#f1f5f9', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5, fontWeight: '600' },
   colorPill: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   colorDot: { width: 10, height: 10, borderRadius: 5 },
-  colorText: { fontSize: 11, color: '#6b7280' },
+  colorText: { fontSize: 11, color: '#64748b' },
   itemPrice: { fontSize: 14, fontWeight: '800', color: '#b45309', marginTop: 4 },
-  quantityRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 },
+  quantityRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 },
   counterBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#f8fafc',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: '#e2e8f0',
   },
-  qtyBtn: { paddingHorizontal: 10, paddingVertical: 4 },
-  qtyBtnText: { fontSize: 16, fontWeight: '700', color: '#374151' },
-  qtyVal: { paddingHorizontal: 8, fontSize: 13, fontWeight: '700', color: '#111827' },
+  qtyBtn: { paddingHorizontal: 12, paddingVertical: 4 },
+  qtyBtnText: { fontSize: 16, fontWeight: '700', color: '#334155' },
+  qtyVal: { paddingHorizontal: 8, fontSize: 13, fontWeight: '800', color: '#0f172a' },
   deleteBtn: { padding: 4 },
-  deleteBtnText: { fontSize: 16 },
   typeSwitcher: { flexDirection: 'row', gap: 10, marginBottom: 12 },
   typeBtn: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#f8fafc',
     borderWidth: 1.5,
-    borderColor: '#e5e7eb',
-    borderRadius: 10,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
     padding: 10,
     alignItems: 'center',
   },
   typeBtnActive: { borderColor: '#b45309', backgroundColor: '#fffbeb' },
-  typeBtnIcon: { fontSize: 20, marginBottom: 2 },
-  typeBtnText: { fontSize: 12, fontWeight: '700', color: '#374151' },
-  typeBtnTextActive: { color: '#92400e' },
-  typeBtnSub: { fontSize: 10, color: '#6b7280', marginTop: 2 },
+  typeBtnText: { fontSize: 12, fontWeight: '700', color: '#334155' },
+  typeBtnTextActive: { color: '#92400e', fontWeight: '800' },
+  typeBtnSub: { fontSize: 10, color: '#64748b', marginTop: 2 },
   pickupBox: {
     backgroundColor: '#fffbeb',
     borderRadius: 10,
@@ -593,26 +618,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   districtPillActive: { backgroundColor: '#b45309', borderColor: '#b45309' },
-  districtPillText: { fontSize: 11, color: '#4b5563', fontWeight: '600' },
-  districtPillTextActive: { color: '#ffffff' },
-  fieldLabel: { fontSize: 11, fontWeight: '700', color: '#4b5563', marginTop: 4 },
+  districtPillText: { fontSize: 11, color: '#475569', fontWeight: '600' },
+  districtPillTextActive: { color: '#ffffff', fontWeight: '700' },
+  fieldLabel: { fontSize: 11, fontWeight: '700', color: '#475569', marginTop: 4 },
   textInput: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: '#cbd5e1',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
     fontSize: 13,
-    color: '#111827',
+    color: '#0f172a',
   },
   paymentMethodRow: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 10,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
     marginBottom: 8,
   },
   paymentMethodRowActive: { borderColor: '#dc2626', backgroundColor: '#fef2f2' },
@@ -621,38 +646,43 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 9,
     borderWidth: 2,
-    borderColor: '#9ca3af',
+    borderColor: '#94a3b8',
     alignItems: 'center',
     justifyContent: 'center',
   },
   radioDotInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#dc2626' },
-  paymentMethodTitle: { fontSize: 13, fontWeight: '700', color: '#111827' },
-  paymentMethodSub: { fontSize: 11, color: '#6b7280', marginTop: 2 },
+  paymentMethodTitle: { fontSize: 13, fontWeight: '700', color: '#0f172a' },
+  paymentMethodSub: { fontSize: 11, color: '#64748b', marginTop: 2 },
   summaryCard: {
     backgroundColor: '#ffffff',
     borderRadius: 14,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: '#e2e8f0',
   },
   calcRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  calcRowTotal: { borderTopWidth: 1, borderTopColor: '#f3f4f6', paddingTop: 10, marginTop: 4 },
-  calcLabel: { fontSize: 13, color: '#6b7280' },
-  calcVal: { fontSize: 13, fontWeight: '600', color: '#111827' },
-  calcLabelTotal: { fontSize: 16, fontWeight: '800', color: '#111827' },
-  calcValTotal: { fontSize: 18, fontWeight: '800', color: '#b45309' },
+  calcRowTotal: { borderTopWidth: 1, borderTopColor: '#f1f5f9', paddingTop: 10, marginTop: 4 },
+  calcLabel: { fontSize: 13, color: '#64748b' },
+  calcVal: { fontSize: 13, fontWeight: '600', color: '#0f172a' },
+  calcLabelTotal: { fontSize: 15, fontWeight: '800', color: '#0f172a' },
+  calcValTotal: { fontSize: 18, fontWeight: '900', color: '#b45309' },
   checkoutBtn: {
     marginTop: 14,
     backgroundColor: '#dc2626',
     paddingVertical: 14,
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: 'center',
+    shadowColor: '#dc2626',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    elevation: 3,
   },
   checkoutBtnText: { color: '#ffffff', fontSize: 15, fontWeight: '800' },
   emptyContainer: { alignItems: 'center', paddingVertical: 80, paddingHorizontal: 20 },
-  emptyEmoji: { fontSize: 50, marginBottom: 12 },
-  emptyTitle: { fontSize: 18, fontWeight: '800', color: '#111827', marginBottom: 6 },
-  emptySub: { fontSize: 13, color: '#6b7280', textAlign: 'center', marginBottom: 20 },
+  emptyIconCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#f1f5f9', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
+  emptyTitle: { fontSize: 18, fontWeight: '800', color: '#0f172a', marginBottom: 6 },
+  emptySub: { fontSize: 13, color: '#64748b', textAlign: 'center', marginBottom: 20 },
   emptyBtn: {
     backgroundColor: '#b45309',
     paddingHorizontal: 20,
@@ -670,46 +700,43 @@ const styles = StyleSheet.create({
   kaspiModalBox: {
     width: '100%',
     backgroundColor: '#ffffff',
-    borderRadius: 18,
+    borderRadius: 20,
     padding: 20,
     alignItems: 'center',
   },
   kaspiHeader: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   kaspiBrand: { fontSize: 18, fontWeight: '900', color: '#dc2626' },
-  kaspiClose: { fontSize: 18, color: '#9ca3af', fontWeight: '700' },
-  kaspiAmountTitle: { fontSize: 12, color: '#6b7280', marginTop: 12 },
-  kaspiAmountValue: { fontSize: 26, fontWeight: '900', color: '#111827', marginTop: 2 },
-  kaspiStoreName: { fontSize: 12, color: '#4b5563', marginTop: 2 },
+  kaspiAmountTitle: { fontSize: 12, color: '#64748b', marginTop: 12 },
+  kaspiAmountValue: { fontSize: 26, fontWeight: '900', color: '#0f172a', marginTop: 2 },
+  kaspiStoreName: { fontSize: 12, color: '#475569', marginTop: 2 },
   qrCodeBox: {
     marginVertical: 18,
     padding: 16,
-    backgroundColor: '#f9fafb',
-    borderRadius: 12,
+    backgroundColor: '#f8fafc',
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: '#e2e8f0',
     alignItems: 'center',
     width: '100%',
   },
-  qrCodeEmoji: { fontSize: 54, marginBottom: 6 },
-  qrCodeText: { fontSize: 12, fontWeight: '600', color: '#374151' },
+  qrCodeText: { fontSize: 12, fontWeight: '600', color: '#334155' },
   kaspiRedBadge: { backgroundColor: '#fef2f2', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, marginTop: 8 },
   kaspiRedBadgeText: { fontSize: 11, fontWeight: '700', color: '#dc2626' },
   kaspiPayNowBtn: {
     width: '100%',
     backgroundColor: '#dc2626',
     paddingVertical: 14,
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: 'center',
   },
   kaspiPayNowText: { color: '#ffffff', fontSize: 14, fontWeight: '800' },
   successContainer: { flex: 1, backgroundColor: '#ffffff', padding: 24, alignItems: 'center', justifyContent: 'center' },
   successIconBox: { width: 70, height: 70, borderRadius: 35, backgroundColor: '#ecfdf5', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
-  successIcon: { fontSize: 36 },
-  successTitle: { fontSize: 20, fontWeight: '900', color: '#047857', textAlign: 'center', marginBottom: 4 },
+  successTitle: { fontSize: 20, fontWeight: '900', color: '#059669', textAlign: 'center', marginBottom: 4 },
   successOrderNumber: { fontSize: 16, fontWeight: '800', color: '#b45309', marginBottom: 12 },
-  successDesc: { fontSize: 13, color: '#4b5563', textAlign: 'center', lineHeight: 18, marginBottom: 20 },
-  orderSummaryCard: { width: '100%', backgroundColor: '#f9fafb', padding: 14, borderRadius: 10, borderWidth: 1, borderColor: '#e5e7eb', marginBottom: 24 },
-  summaryRow: { fontSize: 13, color: '#4b5563', marginBottom: 6 },
-  continueShopBtn: { width: '100%', backgroundColor: '#78350f', paddingVertical: 14, borderRadius: 10, alignItems: 'center' },
+  successDesc: { fontSize: 13, color: '#475569', textAlign: 'center', lineHeight: 18, marginBottom: 20 },
+  orderSummaryCard: { width: '100%', backgroundColor: '#f8fafc', padding: 14, borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0', marginBottom: 24 },
+  summaryRow: { fontSize: 13, color: '#475569', marginBottom: 6 },
+  continueShopBtn: { width: '100%', backgroundColor: '#78350f', paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
   continueShopBtnText: { color: '#ffffff', fontSize: 14, fontWeight: '700' },
 });

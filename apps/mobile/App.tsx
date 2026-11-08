@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  SafeAreaView,
   View,
   Text,
   TouchableOpacity,
@@ -8,6 +7,8 @@ import {
   Platform,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { CatalogScreen } from './src/screens/CatalogScreen';
 import { ProductDetailScreen } from './src/screens/ProductDetailScreen';
@@ -16,7 +17,8 @@ import { StoresScreen } from './src/screens/StoresScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import type { MobileProduct, CartItem, TabType, ProductColor, MobileOrder, UserProfile } from './src/types';
 
-export default function App() {
+function MainScreen() {
+  const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [selectedProduct, setSelectedProduct] = useState<MobileProduct | null>(null);
   const [catalogInitialCategory, setCatalogInitialCategory] = useState<string | undefined>(undefined);
@@ -72,7 +74,6 @@ export default function App() {
 
   const handleOrderCreated = (order: MobileOrder) => {
     setOrders(prev => [order, ...prev]);
-    // Award 5% loyalty points
     const earnedPoints = Math.round(order.totalKzt * 0.05);
     setUserProfile(prev => ({
       ...prev,
@@ -89,7 +90,7 @@ export default function App() {
   const totalCartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar style="light" />
 
       {/* Screen Content */}
@@ -152,17 +153,22 @@ export default function App() {
         )}
       </View>
 
-      {/* Bottom 5-Tab Navigation Bar */}
+      {/* Bottom 5-Tab Navigation Bar with Native Ionicons */}
       {!selectedProduct && (
-        <View style={styles.tabBar}>
+        <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
           <TouchableOpacity
             style={styles.tabItem}
             onPress={() => {
               setSelectedProduct(null);
               setActiveTab('home');
             }}
+            activeOpacity={0.7}
           >
-            <Text style={[styles.tabIcon, activeTab === 'home' && styles.tabIconActive]}>🏠</Text>
+            <Ionicons
+              name={activeTab === 'home' ? 'home' : 'home-outline'}
+              size={22}
+              color={activeTab === 'home' ? '#b45309' : '#64748b'}
+            />
             <Text style={[styles.tabLabel, activeTab === 'home' && styles.tabLabelActive]}>
               {locale === 'kz' ? 'Басты' : 'Главная'}
             </Text>
@@ -175,8 +181,13 @@ export default function App() {
               setCatalogInitialCategory(undefined);
               setActiveTab('catalog');
             }}
+            activeOpacity={0.7}
           >
-            <Text style={[styles.tabIcon, activeTab === 'catalog' && styles.tabIconActive]}>🛍️</Text>
+            <Ionicons
+              name={activeTab === 'catalog' ? 'grid' : 'grid-outline'}
+              size={22}
+              color={activeTab === 'catalog' ? '#b45309' : '#64748b'}
+            />
             <Text style={[styles.tabLabel, activeTab === 'catalog' && styles.tabLabelActive]}>
               {locale === 'kz' ? 'Каталог' : 'Каталог'}
             </Text>
@@ -188,8 +199,13 @@ export default function App() {
               setSelectedProduct(null);
               setActiveTab('stores');
             }}
+            activeOpacity={0.7}
           >
-            <Text style={[styles.tabIcon, activeTab === 'stores' && styles.tabIconActive]}>📍</Text>
+            <Ionicons
+              name={activeTab === 'stores' ? 'location' : 'location-outline'}
+              size={22}
+              color={activeTab === 'stores' ? '#b45309' : '#64748b'}
+            />
             <Text style={[styles.tabLabel, activeTab === 'stores' && styles.tabLabelActive]}>
               {locale === 'kz' ? 'Дүкендер' : 'Магазины'}
             </Text>
@@ -201,9 +217,14 @@ export default function App() {
               setSelectedProduct(null);
               setActiveTab('cart');
             }}
+            activeOpacity={0.7}
           >
             <View style={styles.tabCartIconWrapper}>
-              <Text style={[styles.tabIcon, activeTab === 'cart' && styles.tabIconActive]}>🛒</Text>
+              <Ionicons
+                name={activeTab === 'cart' ? 'cart' : 'cart-outline'}
+                size={22}
+                color={activeTab === 'cart' ? '#b45309' : '#64748b'}
+              />
               {totalCartCount > 0 && (
                 <View style={styles.cartBadge}>
                   <Text style={styles.cartBadgeText}>{totalCartCount}</Text>
@@ -221,15 +242,28 @@ export default function App() {
               setSelectedProduct(null);
               setActiveTab('profile');
             }}
+            activeOpacity={0.7}
           >
-            <Text style={[styles.tabIcon, activeTab === 'profile' && styles.tabIconActive]}>👤</Text>
+            <Ionicons
+              name={activeTab === 'profile' ? 'person' : 'person-outline'}
+              size={22}
+              color={activeTab === 'profile' ? '#b45309' : '#64748b'}
+            />
             <Text style={[styles.tabLabel, activeTab === 'profile' && styles.tabLabelActive]}>
               {locale === 'kz' ? 'Кабинет' : 'Профиль'}
             </Text>
           </TouchableOpacity>
         </View>
       )}
-    </SafeAreaView>
+    </View>
+  );
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <MainScreen />
+    </SafeAreaProvider>
   );
 }
 
@@ -240,33 +274,31 @@ const styles = StyleSheet.create({
   },
   screenContainer: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#f8fafc',
   },
   tabBar: {
     flexDirection: 'row',
     backgroundColor: '#ffffff',
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-    paddingVertical: 8,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 8,
+    borderTopColor: '#e2e8f0',
+    paddingTop: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
     elevation: 8,
   },
   tabItem: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  tabIcon: {
-    fontSize: 20,
-    marginBottom: 3,
-  },
-  tabIconActive: {
-    transform: [{ scale: 1.15 }],
+    paddingVertical: 2,
   },
   tabLabel: {
     fontSize: 10,
-    color: '#6b7280',
+    color: '#64748b',
     fontWeight: '600',
+    marginTop: 3,
   },
   tabLabelActive: {
     color: '#b45309',
@@ -277,7 +309,7 @@ const styles = StyleSheet.create({
   },
   cartBadge: {
     position: 'absolute',
-    top: -4,
+    top: -5,
     right: -10,
     backgroundColor: '#dc2626',
     borderRadius: 9,
@@ -286,10 +318,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,
+    borderWidth: 1.5,
+    borderColor: '#ffffff',
   },
   cartBadgeText: {
     color: '#ffffff',
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '800',
   },
 });

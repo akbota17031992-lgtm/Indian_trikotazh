@@ -9,6 +9,7 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { formatKZT, ALMATY_STORES_SEED } from '@india-trikotaj/shared';
 import type { MobileOrder, UserProfile } from '../types';
 
@@ -66,7 +67,7 @@ export function ProfileScreen({
           <Text style={styles.title}>{locale === 'kz' ? 'Жеке кабинет' : 'Личный кабинет'}</Text>
           <Text style={styles.subtitle}>{userProfile.phone}</Text>
         </View>
-        <TouchableOpacity style={styles.langBadge} onPress={onToggleLocale}>
+        <TouchableOpacity style={styles.langBadge} onPress={onToggleLocale} activeOpacity={0.8}>
           <Text style={styles.langText}>{locale === 'ru' ? 'KZ 🇰🇿' : 'RU 🇷🇺'}</Text>
         </TouchableOpacity>
       </View>
@@ -82,7 +83,8 @@ export function ProfileScreen({
               <Text style={styles.bonusVal}>{formatKZT(userProfile.bonusPoints)}</Text>
             </View>
             <View style={styles.bonusBadge}>
-              <Text style={styles.bonusBadgeText}>★ Gold 5%</Text>
+              <Ionicons name="star" size={12} color="#451a03" style={{ marginRight: 3 }} />
+              <Text style={styles.bonusBadgeText}>Gold 5%</Text>
             </View>
           </View>
           <Text style={styles.bonusDesc}>
@@ -95,10 +97,13 @@ export function ProfileScreen({
         {/* User Profile Form */}
         <View style={styles.card}>
           <View style={styles.cardHeaderRow}>
-            <Text style={styles.cardTitle}>
-              {locale === 'kz' ? 'Менің деректерім' : 'Мои данные'}
-            </Text>
-            <TouchableOpacity onPress={() => setIsEditing(!isEditing)}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Ionicons name="person-circle-outline" size={18} color="#b45309" />
+              <Text style={styles.cardTitle}>
+                {locale === 'kz' ? 'Менің деректерім' : 'Мои данные'}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={() => setIsEditing(!isEditing)} activeOpacity={0.7}>
               <Text style={styles.editBtnText}>
                 {isEditing
                   ? locale === 'kz'
@@ -128,7 +133,7 @@ export function ProfileScreen({
                 keyboardType="phone-pad"
                 placeholder="+7 (7xx) xxx-xx-xx"
               />
-              <TouchableOpacity style={styles.saveBtn} onPress={handleSaveProfile}>
+              <TouchableOpacity style={styles.saveBtn} onPress={handleSaveProfile} activeOpacity={0.88}>
                 <Text style={styles.saveBtnText}>
                   {locale === 'kz' ? 'Сақтау' : 'Сохранить изменения'}
                 </Text>
@@ -154,24 +159,27 @@ export function ProfileScreen({
 
         {/* Order History */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>
-            {locale === 'kz' ? 'Менің тапсырыстарым' : 'История заказов'} ({orders.length})
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+            <Ionicons name="receipt-outline" size={17} color="#b45309" />
+            <Text style={styles.cardTitle}>
+              {locale === 'kz' ? 'Менің тапсырыстарым' : 'История заказов'} ({orders.length})
+            </Text>
+          </View>
 
           {orders.length === 0 ? (
             <View style={styles.emptyOrders}>
-              <Text style={styles.emptyOrdersEmoji}>📦</Text>
+              <Ionicons name="cube-outline" size={36} color="#94a3b8" style={{ marginBottom: 6 }} />
               <Text style={styles.emptyOrdersTitle}>
                 {locale === 'kz' ? 'Әзірге тапсырыстар жоқ' : 'У вас пока нет заказов'}
               </Text>
-              <TouchableOpacity style={styles.startShopBtn} onPress={onNavigateToCatalog}>
+              <TouchableOpacity style={styles.startShopBtn} onPress={onNavigateToCatalog} activeOpacity={0.8}>
                 <Text style={styles.startShopBtnText}>
                   {locale === 'kz' ? 'Каталогқа өту' : 'Перейти в каталог'}
                 </Text>
               </TouchableOpacity>
             </View>
           ) : (
-            <View style={{ gap: 12, marginTop: 10 }}>
+            <View style={{ gap: 10, marginTop: 10 }}>
               {orders.map(order => {
                 const st = statusMap[order.status] || statusMap['processing']!;
                 return (
@@ -224,8 +232,9 @@ export function ProfileScreen({
               : 'Наши консультанты помогут подобрать размер, цвет и сориентируют по доставке.'}
           </Text>
 
-          <TouchableOpacity style={styles.whatsappBtn} onPress={handleWhatsAppSupport}>
-            <Text style={styles.whatsappBtnText}>💬 Написать в WhatsApp</Text>
+          <TouchableOpacity style={styles.whatsappBtn} onPress={handleWhatsAppSupport} activeOpacity={0.88}>
+            <Ionicons name="logo-whatsapp" size={18} color="#ffffff" style={{ marginRight: 6 }} />
+            <Text style={styles.whatsappBtnText}>Написать в WhatsApp</Text>
           </TouchableOpacity>
         </View>
 
@@ -235,21 +244,21 @@ export function ProfileScreen({
           <Text style={styles.brandAboutText}>
             Прямые поставки трикотажа от ведущих фабрик Индии (Тируппур, Мумбаи). 16 розничных магазинов в торговых центрах Алматы.
           </Text>
-          <Text style={styles.brandAboutVersion}>Версия мобильного приложения: 1.2.0 (SDK 58)</Text>
+          <Text style={styles.brandAboutVersion}>Версия мобильного приложения: 1.2.1 (SDK 58)</Text>
         </View>
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 30 }} />
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
+  container: { flex: 1, backgroundColor: '#f8fafc' },
   header: {
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 16,
+    paddingTop: 10,
+    paddingBottom: 14,
     backgroundColor: '#78350f',
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -258,27 +267,29 @@ const styles = StyleSheet.create({
   title: { color: '#fef3c7', fontSize: 18, fontWeight: '800' },
   subtitle: { color: '#fde68a', fontSize: 12, marginTop: 2 },
   langBadge: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.18)',
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
   },
   langText: { color: '#ffffff', fontSize: 12, fontWeight: '700' },
-  content: { padding: 16, gap: 14 },
+  content: { padding: 14, gap: 12 },
   bonusCard: {
     backgroundColor: '#78350f',
     borderRadius: 16,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowColor: '#78350f',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
     shadowRadius: 6,
     elevation: 3,
   },
   bonusHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  bonusLabel: { color: '#fde68a', fontSize: 11, textTransform: 'uppercase', fontWeight: '600' },
+  bonusLabel: { color: '#fde68a', fontSize: 11, textTransform: 'uppercase', fontWeight: '700' },
   bonusVal: { color: '#ffffff', fontSize: 26, fontWeight: '900', marginTop: 2 },
-  bonusBadge: { backgroundColor: '#f59e0b', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  bonusBadge: { backgroundColor: '#f59e0b', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
   bonusBadgeText: { color: '#451a03', fontSize: 11, fontWeight: '800' },
   bonusDesc: { color: '#fef3c7', fontSize: 11, marginTop: 10, lineHeight: 16 },
   card: {
@@ -286,20 +297,20 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: '#e2e8f0',
   },
   cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  cardTitle: { fontSize: 15, fontWeight: '800', color: '#111827' },
+  cardTitle: { fontSize: 14, fontWeight: '800', color: '#0f172a' },
   editBtnText: { color: '#b45309', fontSize: 12, fontWeight: '700' },
   profileInfoList: { gap: 8, marginTop: 6 },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  infoLabel: { fontSize: 12, color: '#6b7280' },
-  infoVal: { fontSize: 12, fontWeight: '700', color: '#111827' },
-  inputLabel: { fontSize: 11, fontWeight: '600', color: '#4b5563' },
+  infoLabel: { fontSize: 12, color: '#64748b' },
+  infoVal: { fontSize: 12, fontWeight: '700', color: '#0f172a' },
+  inputLabel: { fontSize: 11, fontWeight: '600', color: '#475569' },
   input: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: '#cbd5e1',
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 7,
@@ -314,26 +325,25 @@ const styles = StyleSheet.create({
   },
   saveBtnText: { color: '#ffffff', fontSize: 13, fontWeight: '700' },
   emptyOrders: { alignItems: 'center', paddingVertical: 24 },
-  emptyOrdersEmoji: { fontSize: 36, marginBottom: 6 },
-  emptyOrdersTitle: { fontSize: 13, color: '#6b7280', fontWeight: '600', marginBottom: 10 },
+  emptyOrdersTitle: { fontSize: 13, color: '#64748b', fontWeight: '600', marginBottom: 10 },
   startShopBtn: { backgroundColor: '#fffbeb', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: '#fde68a' },
   startShopBtnText: { color: '#b45309', fontSize: 12, fontWeight: '700' },
   orderItem: {
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#f8fafc',
     borderRadius: 10,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: '#e2e8f0',
   },
   orderItemHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  orderId: { fontSize: 13, fontWeight: '800', color: '#111827' },
+  orderId: { fontSize: 13, fontWeight: '800', color: '#0f172a' },
   statusBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
   statusBadgeText: { fontSize: 10, fontWeight: '700' },
-  orderDate: { fontSize: 11, color: '#6b7280', marginTop: 2 },
-  orderType: { fontSize: 11, color: '#374151', marginTop: 4, fontWeight: '500' },
-  orderDivider: { height: 1, backgroundColor: '#e5e7eb', marginVertical: 8 },
+  orderDate: { fontSize: 11, color: '#64748b', marginTop: 2 },
+  orderType: { fontSize: 11, color: '#334155', marginTop: 4, fontWeight: '500' },
+  orderDivider: { height: 1, backgroundColor: '#e2e8f0', marginVertical: 8 },
   orderFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  orderItemsCount: { fontSize: 11, color: '#6b7280' },
+  orderItemsCount: { fontSize: 11, color: '#64748b' },
   orderTotal: { fontSize: 14, fontWeight: '800', color: '#b45309' },
   supportCard: {
     backgroundColor: '#ecfdf5',
@@ -347,14 +357,15 @@ const styles = StyleSheet.create({
   whatsappBtn: {
     marginTop: 12,
     backgroundColor: '#10b981',
-    paddingVertical: 10,
-    borderRadius: 8,
+    paddingVertical: 11,
+    borderRadius: 10,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   whatsappBtnText: { color: '#ffffff', fontSize: 13, fontWeight: '700' },
   brandAbout: { padding: 12, alignItems: 'center' },
-  brandAboutTitle: { fontSize: 12, fontWeight: '700', color: '#6b7280' },
-  brandAboutText: { fontSize: 11, color: '#9ca3af', textAlign: 'center', marginTop: 4, lineHeight: 15 },
-  brandAboutVersion: { fontSize: 10, color: '#9ca3af', marginTop: 8 },
+  brandAboutTitle: { fontSize: 12, fontWeight: '700', color: '#64748b' },
+  brandAboutText: { fontSize: 11, color: '#94a3b8', textAlign: 'center', marginTop: 4, lineHeight: 15 },
+  brandAboutVersion: { fontSize: 10, color: '#94a3b8', marginTop: 8 },
 });
-
