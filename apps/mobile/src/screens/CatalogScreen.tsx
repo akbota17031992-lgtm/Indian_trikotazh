@@ -86,6 +86,13 @@ const PRICE_PRESETS = [
   { label: 'От 15 000 ₸', min: '15000', max: '' },
 ];
 
+const SORT_OPTIONS: { id: SortType; icon: any; ru: string; kz: string }[] = [
+  { id: 'popular', icon: 'flame', ru: 'По популярности', kz: 'Танымалдығы бойынша' },
+  { id: 'price_asc', icon: 'trending-down', ru: 'Сначала дешевле', kz: 'Алдымен арзандары' },
+  { id: 'price_desc', icon: 'trending-up', ru: 'Сначала дороже', kz: 'Алдымен қымбаттары' },
+  { id: 'discount', icon: 'pricetag', ru: 'По скидке', kz: 'Жеңілдік бойынша' },
+];
+
 export function CatalogScreen({
   onSelectProduct,
   cartProductQuantities,
@@ -113,6 +120,7 @@ export function CatalogScreen({
 
   // Modal and tabs state
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
   const [sizeTab, setSizeTab] = useState<'all' | 'adult' | 'dual'>('all');
 
   useEffect(() => {
@@ -427,20 +435,22 @@ export function CatalogScreen({
           </Text>
         </TouchableOpacity>
 
-        {/* Sort Pill */}
+        {/* Sort Dropdown Button */}
         <TouchableOpacity
-          style={styles.sortBtn}
-          onPress={() => {
-            const sequence: SortType[] = ['popular', 'price_asc', 'price_desc', 'discount'];
-            const nextIdx = (sequence.indexOf(sortBy) + 1) % sequence.length;
-            setSortBy(sequence[nextIdx]!);
-          }}
+          style={[styles.sortBtn, isSortDropdownOpen && styles.sortBtnActive]}
+          onPress={() => setIsSortDropdownOpen(true)}
           activeOpacity={0.8}
         >
           <Ionicons name="swap-vertical" size={13} color="#475569" style={{ marginRight: 4 }} />
-          <Text style={styles.sortBtnText}>
+          <Text style={styles.sortBtnText} numberOfLines={1}>
             {locale === 'kz' ? sortLabels[sortBy].kz : sortLabels[sortBy].ru}
           </Text>
+          <Ionicons
+            name="chevron-down"
+            size={12}
+            color="#64748b"
+            style={{ marginLeft: 3 }}
+          />
         </TouchableOpacity>
       </View>
 
@@ -1117,6 +1127,87 @@ export function CatalogScreen({
           </View>
         </SafeAreaView>
       </Modal>
+
+      {/* Sort Dropdown Modal */}
+      <Modal
+        visible={isSortDropdownOpen}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsSortDropdownOpen(false)}
+      >
+        <TouchableOpacity
+          style={styles.sortDropdownBackdrop}
+          activeOpacity={1}
+          onPress={() => setIsSortDropdownOpen(false)}
+        >
+          <View style={styles.sortDropdownCard}>
+            <View style={styles.sortDropdownHeader}>
+              <View style={styles.sortDropdownHeaderLeft}>
+                <Ionicons name="swap-vertical" size={15} color="#b45309" style={{ marginRight: 6 }} />
+                <Text style={styles.sortDropdownHeaderTitle}>
+                  {locale === 'kz' ? 'Сұрыптау тәртібі' : 'Сортировка товаров'}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setIsSortDropdownOpen(false)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="close-circle" size={18} color="#94a3b8" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.sortDropdownOptionsList}>
+              {SORT_OPTIONS.map((opt, idx) => {
+                const isSelected = sortBy === opt.id;
+                return (
+                  <TouchableOpacity
+                    key={opt.id}
+                    style={[
+                      styles.sortDropdownOption,
+                      idx < SORT_OPTIONS.length - 1 && styles.sortDropdownOptionBorder,
+                      isSelected && styles.sortDropdownOptionActive,
+                    ]}
+                    onPress={() => {
+                      setSortBy(opt.id);
+                      setIsSortDropdownOpen(false);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <View
+                      style={[
+                        styles.sortOptionIconBox,
+                        isSelected && styles.sortOptionIconBoxActive,
+                      ]}
+                    >
+                      <Ionicons
+                        name={opt.icon}
+                        size={14}
+                        color={isSelected ? '#b45309' : '#64748b'}
+                      />
+                    </View>
+                    <Text
+                      style={[
+                        styles.sortDropdownOptionText,
+                        isSelected && styles.sortDropdownOptionTextActive,
+                      ]}
+                    >
+                      {locale === 'kz' ? opt.kz : opt.ru}
+                    </Text>
+                    <View
+                      style={[
+                        styles.sortRadioOuter,
+                        isSelected && styles.sortRadioOuterActive,
+                      ]}
+                    >
+                      {isSelected && <View style={styles.sortRadioInner} />}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -1761,5 +1852,106 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 14,
     fontWeight: '800',
+  },
+  sortBtnActive: {
+    borderColor: '#b45309',
+    backgroundColor: '#fffbeb',
+  },
+  sortDropdownBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.45)',
+    justifyContent: 'flex-start',
+    paddingHorizontal: 16,
+    paddingTop: 185,
+  },
+  sortDropdownCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    width: '100%',
+    maxWidth: 320,
+    alignSelf: 'flex-end',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 14,
+    elevation: 8,
+    overflow: 'hidden',
+  },
+  sortDropdownHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+    backgroundColor: '#fffbeb',
+  },
+  sortDropdownHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sortDropdownHeaderTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#78350f',
+  },
+  sortDropdownOptionsList: {
+    paddingVertical: 4,
+  },
+  sortDropdownOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+  },
+  sortDropdownOptionBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#f8fafc',
+  },
+  sortDropdownOptionActive: {
+    backgroundColor: '#fef3c7',
+  },
+  sortOptionIconBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: '#f1f5f9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  sortOptionIconBoxActive: {
+    backgroundColor: '#fde68a',
+  },
+  sortDropdownOptionText: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#334155',
+  },
+  sortDropdownOptionTextActive: {
+    color: '#78350f',
+    fontWeight: '800',
+  },
+  sortRadioOuter: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1.5,
+    borderColor: '#cbd5e1',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sortRadioOuterActive: {
+    borderColor: '#b45309',
+  },
+  sortRadioInner: {
+    width: 9,
+    height: 9,
+    borderRadius: 4.5,
+    backgroundColor: '#b45309',
   },
 });
