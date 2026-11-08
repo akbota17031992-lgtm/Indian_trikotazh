@@ -8,9 +8,10 @@ import {
   Linking,
   TextInput,
   Alert,
+  Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { formatKZT, ALMATY_STORES_SEED } from '@india-trikotaj/shared';
+import { formatKZT } from '@india-trikotaj/shared';
 import type { MobileOrder, UserProfile } from '../types';
 
 interface Props {
@@ -20,6 +21,9 @@ interface Props {
   locale: 'ru' | 'kz';
   onToggleLocale: () => void;
   onNavigateToCatalog: () => void;
+  onLockApp: () => void;
+  onOpenAuthModal: () => void;
+  onLogout: () => void;
 }
 
 export function ProfileScreen({
@@ -29,16 +33,21 @@ export function ProfileScreen({
   locale,
   onToggleLocale,
   onNavigateToCatalog,
+  onLockApp,
+  onOpenAuthModal,
+  onLogout,
 }: Props) {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(userProfile.name);
   const [phone, setPhone] = useState(userProfile.phone);
+  const [email, setEmail] = useState(userProfile.email || 'dostiyar@gmail.com');
 
   const handleSaveProfile = () => {
     onUpdateProfile({
       ...userProfile,
       name,
       phone,
+      email,
     });
     setIsEditing(false);
     Alert.alert(
@@ -47,8 +56,18 @@ export function ProfileScreen({
     );
   };
 
+  const handleToggleBiometrics = (val: boolean) => {
+    onUpdateProfile({
+      ...userProfile,
+      biometricsEnabled: val,
+    });
+  };
+
   const handleWhatsAppSupport = () => {
-    Linking.openURL('https://wa.me/77019928412?text=' + encodeURIComponent('Здравствуйте! Вопрос по заказу в приложении «Индийский Трикотаж».'));
+    Linking.openURL(
+      'https://wa.me/77019928412?text=' +
+        encodeURIComponent('Здравствуйте! Вопрос по заказу в приложении «Индийский Трикотаж».')
+    );
   };
 
   const statusMap: Record<string, { ru: string; kz: string; color: string; bg: string }> = {
@@ -94,6 +113,90 @@ export function ProfileScreen({
           </Text>
         </View>
 
+        {/* Security & Kaspi ID Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeaderRow}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Ionicons name="shield-checkmark" size={18} color="#dc2626" />
+              <Text style={styles.cardTitle}>
+                {locale === 'kz' ? 'Қауіпсіздік және Kaspi ID' : 'Безопасность и вход (Kaspi ID)'}
+              </Text>
+            </View>
+            <View style={styles.secureTag}>
+              <Text style={styles.secureTagText}>Активно</Text>
+            </View>
+          </View>
+
+          <View style={styles.securityList}>
+            {/* Biometrics Toggle */}
+            <View style={styles.securityRow}>
+              <View style={styles.securityRowLeft}>
+                <Ionicons name="scan-outline" size={20} color="#b45309" style={{ marginRight: 10 }} />
+                <View>
+                  <Text style={styles.securityRowTitle}>Face ID / Touch ID</Text>
+                  <Text style={styles.securityRowSub}>
+                    {locale === 'kz' ? 'Биометриямен жылдам ашу' : 'Разблокировка лицом или отпечатком'}
+                  </Text>
+                </View>
+              </View>
+              <Switch
+                value={Boolean(userProfile.biometricsEnabled)}
+                onValueChange={handleToggleBiometrics}
+                trackColor={{ false: '#cbd5e1', true: '#059669' }}
+                thumbColor="#ffffff"
+              />
+            </View>
+
+            {/* PIN Code Setup */}
+            <View style={styles.securityRow}>
+              <View style={styles.securityRowLeft}>
+                <Ionicons name="keypad-outline" size={20} color="#b45309" style={{ marginRight: 10 }} />
+                <View>
+                  <Text style={styles.securityRowTitle}>
+                    {locale === 'kz' ? '4 санды ПИН-код' : '4-значный ПИН-код'}
+                  </Text>
+                  <Text style={styles.securityRowSub}>
+                    {userProfile.pinCode ? '••••' : 'Не установлен'}
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity style={styles.actionPill} onPress={onOpenAuthModal} activeOpacity={0.7}>
+                <Text style={styles.actionPillText}>
+                  {locale === 'kz' ? 'Өзгерту' : 'Изменить'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Graphic Pattern */}
+            <View style={styles.securityRow}>
+              <View style={styles.securityRowLeft}>
+                <Ionicons name="grid-outline" size={20} color="#b45309" style={{ marginRight: 10 }} />
+                <View>
+                  <Text style={styles.securityRowTitle}>
+                    {locale === 'kz' ? 'Графикалық кілт (сурет)' : 'Графический ключ'}
+                  </Text>
+                  <Text style={styles.securityRowSub}>
+                    {userProfile.patternCode ? 'Настроен (3x3)' : 'Не задан'}
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity style={styles.actionPill} onPress={onOpenAuthModal} activeOpacity={0.7}>
+                <Text style={styles.actionPillText}>
+                  {locale === 'kz' ? 'Өзгерту' : 'Изменить'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Quick Lock Button */}
+            <TouchableOpacity style={styles.lockNowBtn} onPress={onLockApp} activeOpacity={0.8}>
+              <Ionicons name="lock-closed" size={16} color="#ffffff" style={{ marginRight: 6 }} />
+              <Text style={styles.lockNowBtnText}>
+                {locale === 'kz' ? 'Қосымшаны бұғаттау (Экран блокировки)' : 'Заблокировать приложение сейчас'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* User Profile Form */}
         <View style={styles.card}>
           <View style={styles.cardHeaderRow}>
@@ -118,7 +221,7 @@ export function ProfileScreen({
 
           {isEditing ? (
             <View style={{ gap: 10, marginTop: 8 }}>
-              <Text style={styles.inputLabel}>{locale === 'kz' ? 'Аты-жөні:' : 'Имя:'}</Text>
+              <Text style={styles.inputLabel}>{locale === 'kz' ? 'Аты-жөні:' : 'ФИО:'}</Text>
               <TextInput
                 style={styles.input}
                 value={name}
@@ -133,6 +236,15 @@ export function ProfileScreen({
                 keyboardType="phone-pad"
                 placeholder="+7 (7xx) xxx-xx-xx"
               />
+              <Text style={styles.inputLabel}>{locale === 'kz' ? 'Электрондық пошта:' : 'Email:'}</Text>
+              <TextInput
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                placeholder="dostiyar@gmail.com"
+              />
               <TouchableOpacity style={styles.saveBtn} onPress={handleSaveProfile} activeOpacity={0.88}>
                 <Text style={styles.saveBtnText}>
                   {locale === 'kz' ? 'Сақтау' : 'Сохранить изменения'}
@@ -142,12 +254,16 @@ export function ProfileScreen({
           ) : (
             <View style={styles.profileInfoList}>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>{locale === 'kz' ? 'Аты:' : 'Имя:'}</Text>
+                <Text style={styles.infoLabel}>{locale === 'kz' ? 'Аты-жөні:' : 'ФИО:'}</Text>
                 <Text style={styles.infoVal}>{userProfile.name}</Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>{locale === 'kz' ? 'Телефон:' : 'Телефон:'}</Text>
                 <Text style={styles.infoVal}>{userProfile.phone}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>{locale === 'kz' ? 'Пошта:' : 'Почта:'}</Text>
+                <Text style={styles.infoVal}>{userProfile.email || 'dostiyar@gmail.com'}</Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>{locale === 'kz' ? 'Қала:' : 'Город:'}</Text>
@@ -238,13 +354,21 @@ export function ProfileScreen({
           </TouchableOpacity>
         </View>
 
+        {/* Log Out Button */}
+        <TouchableOpacity style={styles.logoutBtn} onPress={onLogout} activeOpacity={0.8}>
+          <Ionicons name="log-out-outline" size={18} color="#ef4444" style={{ marginRight: 6 }} />
+          <Text style={styles.logoutBtnText}>
+            {locale === 'kz' ? 'Аккаунттан шығу' : 'Выйти из аккаунта'}
+          </Text>
+        </TouchableOpacity>
+
         {/* Brand Information */}
         <View style={styles.brandAbout}>
           <Text style={styles.brandAboutTitle}>«Индийский Трикотаж» в Алматы</Text>
           <Text style={styles.brandAboutText}>
             Прямые поставки трикотажа от ведущих фабрик Индии (Тируппур, Мумбаи). 16 розничных магазинов в торговых центрах Алматы.
           </Text>
-          <Text style={styles.brandAboutVersion}>Версия мобильного приложения: 1.2.1 (SDK 58)</Text>
+          <Text style={styles.brandAboutVersion}>Версия: 1.3.0 • Kaspi ID Security Enabled</Text>
         </View>
 
         <View style={{ height: 30 }} />
@@ -299,73 +423,150 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e2e8f0',
   },
-  cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardTitle: { fontSize: 14, fontWeight: '800', color: '#0f172a' },
-  editBtnText: { color: '#b45309', fontSize: 12, fontWeight: '700' },
-  profileInfoList: { gap: 8, marginTop: 6 },
-  infoRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  infoLabel: { fontSize: 12, color: '#64748b' },
-  infoVal: { fontSize: 12, fontWeight: '700', color: '#0f172a' },
-  inputLabel: { fontSize: 11, fontWeight: '600', color: '#475569' },
-  input: {
-    backgroundColor: '#ffffff',
+  editBtnText: { fontSize: 12, fontWeight: '700', color: '#b45309' },
+  secureTag: {
+    backgroundColor: '#fef2f2',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#cbd5e1',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
+    borderColor: '#fca5a5',
+  },
+  secureTagText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#dc2626',
+  },
+  securityList: {
+    marginTop: 12,
+    gap: 12,
+  },
+  securityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  securityRowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  securityRowTitle: {
     fontSize: 13,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  securityRowSub: {
+    fontSize: 11,
+    color: '#64748b',
+    marginTop: 1,
+  },
+  actionPill: {
+    backgroundColor: '#fffbeb',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#fde68a',
+  },
+  actionPillText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#b45309',
+  },
+  lockNowBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#475569',
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginTop: 4,
+  },
+  lockNowBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  profileInfoList: { marginTop: 10, gap: 8 },
+  infoRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
+  infoLabel: { fontSize: 13, color: '#64748b' },
+  infoVal: { fontSize: 13, fontWeight: '600', color: '#0f172a' },
+  inputLabel: { fontSize: 12, fontWeight: '600', color: '#475569' },
+  input: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 13,
+    color: '#0f172a',
   },
   saveBtn: {
     backgroundColor: '#b45309',
     paddingVertical: 10,
     borderRadius: 8,
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: 6,
   },
   saveBtnText: { color: '#ffffff', fontSize: 13, fontWeight: '700' },
-  emptyOrders: { alignItems: 'center', paddingVertical: 24 },
-  emptyOrdersTitle: { fontSize: 13, color: '#64748b', fontWeight: '600', marginBottom: 10 },
-  startShopBtn: { backgroundColor: '#fffbeb', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: '#fde68a' },
-  startShopBtnText: { color: '#b45309', fontSize: 12, fontWeight: '700' },
-  orderItem: {
-    backgroundColor: '#f8fafc',
-    borderRadius: 10,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-  },
+  emptyOrders: { alignItems: 'center', paddingVertical: 20 },
+  emptyOrdersTitle: { fontSize: 13, color: '#64748b', marginBottom: 12 },
+  startShopBtn: { backgroundColor: '#fef3c7', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
+  startShopBtnText: { fontSize: 12, fontWeight: '700', color: '#92400e' },
+  orderItem: { backgroundColor: '#f8fafc', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: '#e2e8f0' },
   orderItemHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   orderId: { fontSize: 13, fontWeight: '800', color: '#0f172a' },
-  statusBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-  statusBadgeText: { fontSize: 10, fontWeight: '700' },
-  orderDate: { fontSize: 11, color: '#64748b', marginTop: 2 },
-  orderType: { fontSize: 11, color: '#334155', marginTop: 4, fontWeight: '500' },
+  statusBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 5 },
+  statusBadgeText: { fontSize: 11, fontWeight: '700' },
+  orderDate: { fontSize: 11, color: '#94a3b8', marginTop: 4 },
+  orderType: { fontSize: 11, color: '#475569', marginTop: 6, fontWeight: '500' },
   orderDivider: { height: 1, backgroundColor: '#e2e8f0', marginVertical: 8 },
   orderFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  orderItemsCount: { fontSize: 11, color: '#64748b' },
+  orderItemsCount: { fontSize: 12, color: '#64748b' },
   orderTotal: { fontSize: 14, fontWeight: '800', color: '#b45309' },
   supportCard: {
-    backgroundColor: '#ecfdf5',
+    backgroundColor: '#ffffff',
     borderRadius: 14,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#a7f3d0',
+    borderColor: '#e2e8f0',
   },
-  supportTitle: { fontSize: 14, fontWeight: '800', color: '#065f46' },
-  supportSub: { fontSize: 11, color: '#047857', marginTop: 4, lineHeight: 16 },
+  supportTitle: { fontSize: 14, fontWeight: '800', color: '#0f172a' },
+  supportSub: { fontSize: 12, color: '#64748b', marginTop: 4, lineHeight: 16 },
   whatsappBtn: {
-    marginTop: 12,
-    backgroundColor: '#10b981',
-    paddingVertical: 11,
-    borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#059669',
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginTop: 12,
   },
   whatsappBtnText: { color: '#ffffff', fontSize: 13, fontWeight: '700' },
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#fca5a5',
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  logoutBtnText: {
+    color: '#ef4444',
+    fontSize: 13,
+    fontWeight: '700',
+  },
   brandAbout: { padding: 12, alignItems: 'center' },
   brandAboutTitle: { fontSize: 12, fontWeight: '700', color: '#64748b' },
   brandAboutText: { fontSize: 11, color: '#94a3b8', textAlign: 'center', marginTop: 4, lineHeight: 15 },
-  brandAboutVersion: { fontSize: 10, color: '#94a3b8', marginTop: 8 },
+  brandAboutVersion: { fontSize: 10, color: '#cbd5e1', marginTop: 6 },
 });

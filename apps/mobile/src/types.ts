@@ -59,5 +59,11 @@ export interface MobileOrder {
 export interface UserProfile {
   name: string;
   phone: string;
+  email?: string;
   bonusPoints: number;
+  isRegistered: boolean;
+  pinCode?: string;
+  patternCode?: string;
+  biometricsEnabled?: boolean;
+  preferredUnlockMode?: 'pin' | 'pattern';
 }

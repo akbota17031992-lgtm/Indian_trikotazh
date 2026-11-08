@@ -15,6 +15,8 @@ import { ProductDetailScreen } from './src/screens/ProductDetailScreen';
 import { CartScreen } from './src/screens/CartScreen';
 import { StoresScreen } from './src/screens/StoresScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
+import { KaspiAuthModal } from './src/components/KaspiAuthModal';
+import { KaspiLockScreen } from './src/components/KaspiLockScreen';
 import type { MobileProduct, CartItem, TabType, ProductColor, MobileOrder, UserProfile } from './src/types';
 
 function MainScreen() {
@@ -32,10 +34,32 @@ function MainScreen() {
     'prod-003',
   ]);
   const [userProfile, setUserProfile] = useState<UserProfile>({
-    name: 'Достияр',
+    name: 'Достияр Алиев',
     phone: '+7 (701) 992-84-12',
+    email: 'dostiyar@gmail.com',
     bonusPoints: 3500,
+    isRegistered: true,
+    pinCode: '1234',
+    patternCode: '0-1-2-5-8',
+    biometricsEnabled: true,
+    preferredUnlockMode: 'pin',
   });
+  const [isLocked, setIsLocked] = useState(false);
+  const [isAuthModalVisible, setIsAuthModalVisible] = useState(false);
+
+  if (isLocked) {
+    return (
+      <KaspiLockScreen
+        userProfile={userProfile}
+        onUnlock={() => setIsLocked(false)}
+        onSwitchAccount={() => {
+          setIsLocked(false);
+          setIsAuthModalVisible(true);
+        }}
+        locale={locale}
+      />
+    );
+  }
 
   const handleSelectProduct = (product: MobileProduct) => {
     setRecentlyViewedIds(prev => [product.id, ...prev.filter(id => id !== product.id)].slice(0, 10));
@@ -243,9 +267,30 @@ function MainScreen() {
             locale={locale}
             onToggleLocale={handleToggleLocale}
             onNavigateToCatalog={() => setActiveTab('catalog')}
+            onLockApp={() => setIsLocked(true)}
+            onOpenAuthModal={() => setIsAuthModalVisible(true)}
+            onLogout={() => {
+              setUserProfile(prev => ({
+                ...prev,
+                isRegistered: false,
+              }));
+              setIsAuthModalVisible(true);
+            }}
           />
         )}
       </View>
+
+      {/* Kaspi Auth & Registration Modal */}
+      <KaspiAuthModal
+        visible={isAuthModalVisible}
+        onClose={() => setIsAuthModalVisible(false)}
+        onSuccess={newProfile => {
+          setUserProfile(newProfile);
+          setIsAuthModalVisible(false);
+          setIsLocked(false);
+        }}
+        locale={locale}
+      />
 
       {/* Bottom 5-Tab Navigation Bar with Native Ionicons */}
       {!selectedProduct && (
