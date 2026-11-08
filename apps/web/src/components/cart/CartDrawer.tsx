@@ -21,7 +21,14 @@ interface CartDrawerProps {
 }
 
 export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
-  const { cart, itemCount, formattedSubtotal, clearCart } = useCart();
+  const {
+    cart,
+    itemCount,
+    formattedSubtotal,
+    selectedItemCount,
+    formattedSelectedSubtotal,
+    clearCart,
+  } = useCart();
   const { t } = useLocale();
 
   return (
@@ -76,7 +83,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           <DialogFooter className="pt-4 border-t border-border flex flex-col sm:flex-col gap-3">
             <div className="flex items-center justify-between text-base font-bold text-foreground w-full">
               <span>{t('subtotal')}:</span>
-              <span className="text-lg text-primary">{formattedSubtotal}</span>
+              <span className="text-lg text-primary">{formattedSelectedSubtotal}</span>
             </div>
 
             <div className="grid grid-cols-2 gap-2 w-full">
@@ -94,13 +101,14 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               <Button
                 variant="default"
                 size="sm"
+                disabled={selectedItemCount === 0}
                 onClick={() => {
                   onClose();
                   if (typeof window !== 'undefined') window.location.href = '/checkout';
                 }}
                 className="w-full text-xs font-semibold flex items-center justify-center gap-1.5"
               >
-                <span>{t('checkout')}</span>
+                <span>{selectedItemCount > 0 ? `${t('checkout')} (${selectedItemCount})` : t('checkout')}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Button>
             </div>
