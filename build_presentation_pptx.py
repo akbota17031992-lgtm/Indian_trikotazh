@@ -363,7 +363,7 @@ def create_presentation(output_paths):
         ("Инфраструктура на 12 мес. (PS.kz)", "VPS в ЦОД Алматы (Закон о ПДн РК) + домен .kz + SSL + БД + S3", "12 месяцев", "285 000 ₸"),
         ("Лицензии Apple & Google Play", "Apple Developer ($99/год) + Google Play Console ($25 разово)", "1 год", "62 000 ₸"),
         ("Kaspi Pay + ОФД Webkassa", "Регистрация мерчанта, боевые ключи Kaspi Pay + онлайн-касса", "12 месяцев", "145 000 ₸"),
-        ("Оборудование филиалов и склад", "16 беспроводных 2D сканеров (240 тыс) + принтер этикеток Xprinter (32 тыс)", "16 сканеров + принтер", "272 000 ₸"),
+        ("Оборудование филиалов и склад", "Парк Заказчика: 16 сканеров + принтер (сопряжение 0 ₸)", "В наличии у сети", "0 ₸ (Экономия: -272 000 ₸)"),
         ("Настройка ИИ (WhatsApp 24/7 + Models)", "Разовая интеграция WhatsApp API (180 тыс) + AI Fashion Studio (350 тыс)", "Разово (Setup)", "530 000 ₸"),
     ]
 
@@ -373,7 +373,10 @@ def create_presentation(output_paths):
             cell.text = text
             p = cell.text_frame.paragraphs[0]
             p.font.size = Pt(10)
-            if col_idx == 3:
+            if row_idx == 4:
+                p.font.bold = True
+                p.font.color.rgb = C_GREEN
+            elif col_idx == 3:
                 p.font.bold = True
                 p.font.color.rgb = C_PRIMARY
 
@@ -386,13 +389,13 @@ def create_presentation(output_paths):
     tx_l = s6.shapes.add_textbox(Inches(1.0), Inches(6.25), Inches(11.3), Inches(0.75))
     tf_l = tx_l.text_frame
     p_l = tf_l.paragraphs[0]
-    p_l.text = "ИТОГО СТОИМОСТЬ ЗАПУСКА ПОД КЛЮЧ (ТАРИФ «ПРЕМИУМ»): 1 950 000 ₸"
+    p_l.text = "ИТОГО СТОИМОСТЬ ЗАПУСКА ПОД КЛЮЧ (ТАРИФ «ПРЕМИУМ»): 1 680 000 ₸"
     p_l.font.size = Pt(13)
     p_l.font.bold = True
     p_l.font.color.rgb = C_GREEN
 
     p_lsub = tf_l.add_paragraph()
-    p_lsub.text = "Включает стартовый пакет 15 000 СМС (118 000 ₸) и 6 месяцев гарантийного VIP-сопровождения (538 000 ₸)."
+    p_lsub.text = "🎁 Прямая экономия −272 000 ₸ на оборудовании сети! Включает 15 000 СМС (118 000 ₸) и 6 месяцев VIP-сопровождения (540 000 ₸)."
     p_lsub.font.size = Pt(10)
     p_lsub.font.color.rgb = C_TEXT_MAIN
 
@@ -414,22 +417,22 @@ def create_presentation(output_paths):
             "1 месяц гарантийного саппорта",
         ], C_TEXT_MUTED),
 
-        ("Тариф «БИЗНЕС»", "Оптимальный уровень", "6 200 000 ₸", "1 350 000 ₸", "7 550 000 ₸", "~ $15 100", [
+        ("Тариф «БИЗНЕС»", "Оптимальный уровень", "6 200 000 ₸", "1 110 000 ₸", "7 310 000 ₸", "~ $14 620", [
             "Все из тарифа «Стандарт»",
             "WhatsApp AI-продавец 24/7",
             "Подбор размера в мессенджере",
-            "16 сканеров штрихкодов на кассы",
+            "Сканеры сети: 0 ₸ (Экономия 240 тыс ₸)",
             "Серверы и домен .kz на 1 год",
             "Лицензии Apple & Google",
             "3 месяца техподдержки",
             "Обучение персонала 16 точек",
         ], C_GOLD),
 
-        ("⭐ Тариф «ПРЕМИУМ / ENTERPRISE»", "ХИТ ПРОДАЖ • ВЫБОР СЕТИ", "7 800 000 ₸", "1 950 000 ₸", "9 750 000 ₸", "~ $19 500", [
+        ("⭐ Тариф «ПРЕМИУМ / ENTERPRISE»", "ХИТ ПРОДАЖ • ВЫБОР СЕТИ", "7 800 000 ₸", "1 680 000 ₸", "9 480 000 ₸", "~ $18 960", [
             "Все из тарифа «Бизнес» + WhatsApp 24/7",
             "AI Fashion Studio (виртуальные модели)",
             "Полная замена фотосессий одеждой",
-            "16 сканеров + принтер этикеток Xprinter",
+            "Оборудование сети: 0 ₸ (Экономия 272 тыс ₸)",
             "Пакет 15 000 СМС для входа",
             "6 месяцев VIP-сопровождения (SLA 30 мин)",
             "Выделенный менеджер проекта",
@@ -556,8 +559,8 @@ def create_presentation(output_paths):
 
     paybacks = [
         ("Тариф «СТАНДАРТ» (5 850 000 ₸):", "27–28 дней (0.92 месяца)"),
-        ("Тариф «БИЗНЕС» (7 550 000 ₸):", "36–38 дней (1.19 месяца)"),
-        ("⭐ Тариф «ПРЕМИУМ» (9 750 000 ₸):", "46–48 дней (1.53 месяца)"),
+        ("Тариф «БИЗНЕС» (7 310 000 ₸):", "34–35 дней (1.15 месяца)"),
+        ("⭐ Тариф «ПРЕМИУМ» (9 480 000 ₸):", "44–45 дней (1.49 месяца)"),
     ]
 
     for p_name, p_days in paybacks:
@@ -568,12 +571,19 @@ def create_presentation(output_paths):
         p_row.font.color.rgb = C_GREEN if "ПРЕМИУМ" in p_name else C_PRIMARY
         p_row.space_before = Pt(4)
 
+    p_save = tf_r.add_paragraph()
+    p_save.text = "🎁 Экономия 272 000 ₸: за счет использования существующих сканеров и принтеров сети."
+    p_save.font.size = Pt(10)
+    p_save.font.bold = True
+    p_save.font.color.rgb = C_GREEN
+    p_save.space_before = Pt(6)
+
     pr_ret = tf_r.add_paragraph()
     pr_ret.text = "РЕГЛАМЕНТ АБОНЕНТСКОГО СОПРОВОЖДЕНИЯ"
     pr_ret.font.size = Pt(12)
     pr_ret.font.bold = True
     pr_ret.font.color.rgb = C_DARK
-    pr_ret.space_before = Pt(14)
+    pr_ret.space_before = Pt(10)
 
     pr_ret_txt = tf_r.add_paragraph()
     pr_ret_txt.text = (
@@ -581,9 +591,9 @@ def create_presentation(output_paths):
         "• Премиум DevOps: 250 000 ₸/мес (+ обязательная адаптация под новые версии iOS/Android)\n"
         "⚠️ Доработка любых новых функций производится исключительно по отдельным Доп. соглашениям по ТЗ. На разработчике никто «не ездит» — каждый новый функционал оплачивается отдельно."
     )
-    pr_ret_txt.font.size = Pt(10)
+    pr_ret_txt.font.size = Pt(9.5)
     pr_ret_txt.font.color.rgb = C_TEXT_MAIN
-    pr_ret_txt.space_before = Pt(4)
+    pr_ret_txt.space_before = Pt(3)
 
     # ----------------------------------------------------
     # SLIDE 9: 14-day Launch & Closing Call to Action (PREMIUM)
@@ -594,7 +604,7 @@ def create_presentation(output_paths):
     steps_data = [
         ("Дни 1 – 3", "Юридический запуск и инфраструктура", "Подписание договора, аванс 50%, регистрация домена indiatrikotaj.kz, аккаунты Apple/Google, серверы PS.kz в ЦОД Алматы"),
         ("Дни 4 – 7", "Шлюзы и платежный контур", "Боевое подключение Kaspi Pay (QR, Gold, Red 0-0-3), ОФД Webkassa, подключение WhatsApp Business API и СМС-шлюза Mobizon"),
-        ("Дни 8 – 11", "ИИ Премиум, Склады и Оборудование", "AI Fashion Studio (виртуальные модели), запуск WhatsApp AI 24/7, сквозной учет остатков 16 филиалов, доставка 16 сканеров и принтера"),
+        ("Дни 8 – 11", "ИИ Премиум, Склады и Оборудование", "AI Fashion Studio (виртуальные модели), запуск WhatsApp AI 24/7, сопряжение 16 сканеров касс и калибровка принтеров сети"),
         ("Дни 12 – 14", "Тестирование, Обучение и Релиз", "Тестовый платеж 100 ₸ Kaspi QR с чеком, обучение кассиров 16 филиалов, публикация в App Store & Google Play, старт продаж"),
     ]
 
