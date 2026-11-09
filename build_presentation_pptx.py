@@ -340,7 +340,7 @@ def create_presentation(output_paths):
     s6 = prs.slides.add_slide(blank_layout)
     add_header(s6, "Стоимость запуска проекта (Входные расходы заказчика под ключ)")
 
-    table_s6 = s6.shapes.add_table(6, 4, Inches(0.8), Inches(1.5), Inches(11.73), Inches(4.5))
+    table_s6 = s6.shapes.add_table(8, 4, Inches(0.8), Inches(1.35), Inches(11.73), Inches(4.7))
     t6 = table_s6.table
 
     t6.columns[0].width = Inches(3.5)
@@ -355,7 +355,7 @@ def create_presentation(output_paths):
         cell.fill.solid()
         cell.fill.fore_color.rgb = C_DARK
         p = cell.text_frame.paragraphs[0]
-        p.font.size = Pt(11)
+        p.font.size = Pt(10.5)
         p.font.bold = True
         p.font.color.rgb = C_WHITE
 
@@ -363,8 +363,10 @@ def create_presentation(output_paths):
         ("Инфраструктура на 12 мес. (PS.kz)", "VPS в ЦОД Алматы (Закон о ПДн РК) + домен .kz + SSL + БД + S3", "12 месяцев", "285 000 ₸"),
         ("Лицензии Apple & Google Play", "Apple Developer ($99/год) + Google Play Console ($25 разово)", "1 год", "62 000 ₸"),
         ("Kaspi Pay + ОФД Webkassa", "Регистрация мерчанта, боевые ключи Kaspi Pay + онлайн-касса", "12 месяцев", "145 000 ₸"),
+        ("Пакет СМС (15 000 сообщений)", "Авторизация по СМС через Mobizon для беспарольного входа", "Стартовый пакет", "118 000 ₸"),
         ("Оборудование филиалов и склад", "Парк Заказчика: 16 сканеров + принтер (сопряжение 0 ₸)", "В наличии у сети", "0 ₸ (Экономия: -272 000 ₸)"),
         ("Настройка ИИ (WhatsApp 24/7 + Models)", "Разовая интеграция WhatsApp API (180 тыс) + AI Fashion Studio (350 тыс)", "Разово (Setup)", "530 000 ₸"),
+        ("VIP-техподдержка и SLA (6 мес.)", "Мониторинг 24/7, бэкапы каждые 6 часов, приоритетный саппорт SLA 30 мин", "6 месяцев", "540 000 ₸"),
     ]
 
     for row_idx, r_data in enumerate(start_rows, start=1):
@@ -372,8 +374,8 @@ def create_presentation(output_paths):
             cell = t6.cell(row_idx, col_idx)
             cell.text = text
             p = cell.text_frame.paragraphs[0]
-            p.font.size = Pt(10)
-            if row_idx == 4:
+            p.font.size = Pt(9.5)
+            if row_idx == 5:
                 p.font.bold = True
                 p.font.color.rgb = C_GREEN
             elif col_idx == 3:
@@ -381,12 +383,12 @@ def create_presentation(output_paths):
                 p.font.color.rgb = C_PRIMARY
 
     # Bottom launch info
-    b_launch = s6.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), Inches(6.2), Inches(11.73), Inches(0.85))
+    b_launch = s6.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), Inches(6.18), Inches(11.73), Inches(0.88))
     b_launch.fill.solid()
     b_launch.fill.fore_color.rgb = RGBColor(0xEC, 0xFD, 0xF5)
     b_launch.line.color.rgb = C_GREEN
 
-    tx_l = s6.shapes.add_textbox(Inches(1.0), Inches(6.25), Inches(11.3), Inches(0.75))
+    tx_l = s6.shapes.add_textbox(Inches(1.0), Inches(6.22), Inches(11.3), Inches(0.8))
     tf_l = tx_l.text_frame
     p_l = tf_l.paragraphs[0]
     p_l.text = "ИТОГО СТОИМОСТЬ ЗАПУСКА ПОД КЛЮЧ (ТАРИФ «ПРЕМИУМ»): 1 680 000 ₸"
@@ -395,7 +397,7 @@ def create_presentation(output_paths):
     p_l.font.color.rgb = C_GREEN
 
     p_lsub = tf_l.add_paragraph()
-    p_lsub.text = "🎁 Прямая экономия −272 000 ₸ на оборудовании сети! Включает 15 000 СМС (118 000 ₸) и 6 месяцев VIP-сопровождения (540 000 ₸)."
+    p_lsub.text = "🎁 Прямая экономия −272 000 ₸ на оборудовании сети! Существующие 16 сканеров и принтер этикеток задействованы без доплат."
     p_lsub.font.size = Pt(10)
     p_lsub.font.color.rgb = C_TEXT_MAIN
 
@@ -589,7 +591,7 @@ def create_presentation(output_paths):
     pr_ret_txt.text = (
         "• Базовый саппорт: 150 000 ₸/мес (серверы, бэкапы каждые 6 ч, SSL, домен)\n"
         "• Премиум DevOps: 250 000 ₸/мес (+ обязательная адаптация под новые версии iOS/Android)\n"
-        "⚠️ Доработка любых новых функций производится исключительно по отдельным Доп. соглашениям по ТЗ. На разработчике никто «не ездит» — каждый новый функционал оплачивается отдельно."
+        "⚠️ Внедрение любого нового функционала производится строго по отдельным Доп. соглашениям (по ТЗ). Абонплата обеспечивает 99.9% uptime, безопасность, бэкапы каждые 6 ч и системную стабильность."
     )
     pr_ret_txt.font.size = Pt(9.5)
     pr_ret_txt.font.color.rgb = C_TEXT_MAIN
