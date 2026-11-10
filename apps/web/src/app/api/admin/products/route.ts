@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { CATALOG_PRODUCTS } from '@/lib/catalog-data';
 import { ALL_BRANCHES } from '@/lib/branch-constants';
+import { verifyStaffAuth } from '@/lib/server-auth';
 
 export interface AdminProductItem {
   id: string;
@@ -46,18 +47,6 @@ let liveProducts: AdminProductItem[] = CATALOG_PRODUCTS.map((p, idx) => {
   };
 });
 
-function isAuthorizedStaff(req: Request): boolean {
-  const auth = req.headers.get('authorization') || '';
-  const referer = req.headers.get('referer') || '';
-  if (auth.includes('admin') || auth.includes('manager') || auth.includes('superadmin') || auth.includes('mock-admin-token')) {
-    return true;
-  }
-  if (referer.includes('/admin')) {
-    return true;
-  }
-  return false;
-}
-
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const category = searchParams.get('category');
@@ -91,9 +80,14 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  if (!isAuthorizedStaff(req)) {
-    return NextResponse.json({ error: 'Доступ запрещен. Требуется авторизация сотрудника.' }, { status: 401 });
+  const auth = verifyStaffAuth(req);
+  if (!auth.isAuthorized) {
+    return NextResponse.json(
+      { error: 'Доступ запрещен. Требуется авторизация сотрудника сети.' },
+      { status: 401 }
+    );
   }
+
   try {
     const body = await req.json();
     const newProduct: AdminProductItem = {
@@ -122,26 +116,30 @@ export async function POST(req: Request) {
       liveProducts.unshift(newProduct);
     }
     return NextResponse.json({ success: true, product: newProduct }, { status: 201 });
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: msg }, { status: 400 });
+  } catch {
+    return NextResponse.json({ error: 'Некорректный запрос' }, { status: 400 });
   }
 }
 
 export async function PATCH(req: Request) {
-  if (!isAuthorizedStaff(req)) {
-    return NextResponse.json({ error: 'Доступ запрещен. Требуется авторизация сотрудника.' }, { status: 401 });
+  const auth = verifyStaffAuth(req);
+  if (!auth.isAuthorized) {
+    return NextResponse.json(
+      { error: 'Доступ запрещен. Требуется авторизация сотрудника сети.' },
+      { status: 401 }
+    );
   }
+
   try {
     const body = await req.json();
     const { id, updates } = body;
     if (!id) {
-      return NextResponse.json({ error: 'Product id required' }, { status: 400 });
+      return NextResponse.json({ error: 'Идентификатор товара обязателен' }, { status: 400 });
     }
 
     const index = liveProducts.findIndex(p => p.id === id);
     if (index === -1) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Товар не найден' }, { status: 404 });
     }
 
     const existing = liveProducts[index]!;
@@ -156,20 +154,24 @@ export async function PATCH(req: Request) {
 
     liveProducts[index] = updated;
     return NextResponse.json({ success: true, product: updated });
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: msg }, { status: 400 });
+  } catch {
+    return NextResponse.json({ error: 'Некорректный запрос' }, { status: 400 });
   }
 }
 
 export async function DELETE(req: Request) {
-  if (!isAuthorizedStaff(req)) {
-    return NextResponse.json({ error: 'Доступ запрещен. Требуется авторизация сотрудника.' }, { status: 401 });
+  const auth = verifyStaffAuth(req);
+  if (!auth.isAuthorized) {
+    return NextResponse.json(
+      { error: 'Доступ запрещен. Требуется авторизация сотрудника сети.' },
+      { status: 401 }
+    );
   }
+
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
   if (!id) {
-    return NextResponse.json({ error: 'Product id required' }, { status: 400 });
+    return NextResponse.json({ error: 'Идентификатор товара обязателен' }, { status: 400 });
   }
 
   liveProducts = liveProducts.filter(p => p.id !== id);

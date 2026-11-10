@@ -13,6 +13,19 @@ interface AdminAuthGateProps {
   onRegisterAccount: (newAccount: AdminAccount, newCustomer: CustomerAccount) => void;
 }
 
+async function computeSha256(text: string): Promise<string> {
+  try {
+    const enc = new TextEncoder();
+    const data = enc.encode(text);
+    const hash = await window.crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hash))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+  } catch {
+    return text;
+  }
+}
+
 export function AdminAuthGate({ accounts, customers = [], onLoginSuccess, onRegisterAccount }: AdminAuthGateProps) {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   
@@ -20,6 +33,8 @@ export function AdminAuthGate({ accounts, customers = [], onLoginSuccess, onRegi
   const [loginInput, setLoginInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
 
   // Register form (для добавления нового сотрудника в панель)
   const [regLogin, setRegLogin] = useState('');
@@ -55,9 +70,16 @@ export function AdminAuthGate({ accounts, customers = [], onLoginSuccess, onRegi
     : null;
   const duplicateRegEmail = duplicateStaffByEmail || duplicateCustomerByEmail;
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+
+    // Brute-force lockout guard
+    if (lockoutUntil && Date.now() < lockoutUntil) {
+      const waitSec = Math.ceil((lockoutUntil - Date.now()) / 1000);
+      setErrorMsg(`Слишком много неудачных попыток. Пожалуйста, подождите ${waitSec} сек.`);
+      return;
+    }
 
     const inputClean = loginInput.trim().toLowerCase();
     const inputDigits = loginInput.replace(/\D/g, '');
@@ -87,15 +109,34 @@ export function AdminAuthGate({ accounts, customers = [], onLoginSuccess, onRegi
         return;
       }
 
-      setErrorMsg('Неверный логин, телефон или пароль сотрудника');
+      const nextAttempts = failedAttempts + 1;
+      setFailedAttempts(nextAttempts);
+      if (nextAttempts >= 5) {
+        setLockoutUntil(Date.now() + 60 * 1000);
+        setErrorMsg('Слишком много неудачных попыток входа. Вход заблокирован на 60 секунд.');
+      } else {
+        setErrorMsg(`Неверный логин, телефон или пароль сотрудника (осталось попыток: ${5 - nextAttempts})`);
+      }
       return;
     }
 
-    if (account.passwordHash !== passwordInput) {
-      setErrorMsg('Неверный пароль сотрудника');
+    const inputHash = await computeSha256(passwordInput);
+    const isPasswordMatch = account.passwordHash === inputHash || account.passwordHash === passwordInput;
+
+    if (!isPasswordMatch) {
+      const nextAttempts = failedAttempts + 1;
+      setFailedAttempts(nextAttempts);
+      if (nextAttempts >= 5) {
+        setLockoutUntil(Date.now() + 60 * 1000);
+        setErrorMsg('Слишком много неудачных попыток входа. Вход заблокирован на 60 секунд.');
+      } else {
+        setErrorMsg(`Неверный пароль сотрудника (осталось попыток: ${5 - nextAttempts})`);
+      }
       return;
     }
 
+    setFailedAttempts(0);
+    setLockoutUntil(null);
     onLoginSuccess(account);
   };
 
@@ -103,7 +144,7 @@ export function AdminAuthGate({ accounts, customers = [], onLoginSuccess, onRegi
     onLoginSuccess(acc);
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
 
@@ -133,11 +174,12 @@ export function AdminAuthGate({ accounts, customers = [], onLoginSuccess, onRegi
 
     const cleanPhone = formatKazakhstanPhone(regPhone) || regPhone.trim();
     const cleanEmail = regEmail.trim();
+    const hashedPassword = await computeSha256(regPassword);
 
     const newAcc: AdminAccount = {
       id: `admin-${Date.now()}`,
       login: regLogin.trim(),
-      passwordHash: regPassword,
+      passwordHash: hashedPassword,
       name: regName.trim(),
       role: regRole,
       email: cleanEmail,

@@ -1,14 +1,32 @@
 import { NextResponse } from 'next/server';
 import { ALL_BRANCHES } from '@/lib/branch-constants';
+import { checkRateLimit, getClientIp } from '@/lib/server-auth';
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+    const rateCheck = checkRateLimit(`ai:ingest:${ip}`, 20, 60 * 1000);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Слишком много запросов на оцифровку. Пожалуйста, подождите 1 минуту.' },
+        { status: 429, headers: { 'Retry-After': rateCheck.resetSeconds.toString() } }
+      );
+    }
+
     const body = await req.json();
     const { imageBase64, mimeType = 'image/jpeg', filename = 'product.jpg' } = body;
 
-    if (!imageBase64) {
-      return NextResponse.json({ error: 'imageBase64 is required' }, { status: 400 });
+    if (!imageBase64 || typeof imageBase64 !== 'string') {
+      return NextResponse.json({ error: 'imageBase64 обязателен для анализа' }, { status: 400 });
     }
+
+    // Limit imageBase64 to max ~14MB (prevents memory exhaustion DoS)
+    if (imageBase64.length > 14 * 1024 * 1024) {
+      return NextResponse.json({ error: 'Размер изображения превышает максимально допустимый (10MB)' }, { status: 413 });
+    }
+
+    // Sanitize filename against path traversal
+    const safeFilename = String(filename).replace(/[^a-zA-Z0-9._-]/g, '').slice(0, 80) || 'product.jpg';
 
     const geminiApiKey = process.env.GEMINI_API_KEY;
 
@@ -96,7 +114,7 @@ export async function POST(req: Request) {
 
     const result = {
       draftId: `draft-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-      filename,
+      filename: safeFilename,
       metadata: {
         titleRu: detectedTitleRu,
         titleKz: detectedTitleKz,
@@ -105,19 +123,17 @@ export async function POST(req: Request) {
         compositionKz: detectedCompositionKz,
         descriptionRu: detectedDescriptionRu,
         descriptionKz: detectedDescriptionKz,
-        priceKzt: suggestedPriceKzt,
+        suggestedPriceKzt,
         colors: detectedColors,
         sizes: detectedSizes,
-        branchesStock: initialBranchStock,
-        totalStock: initialBranchStock.reduce((acc, b) => acc + b.stock, 0),
+        branchStock: initialBranchStock,
+        totalInitialStock: initialBranchStock.reduce((acc, b) => acc + b.stock, 0),
+        processedAt: new Date().toISOString(),
       },
-      previewImage: imageBase64.startsWith('data:') ? imageBase64 : `data:${mimeType};base64,${imageBase64}`,
     };
 
-    return NextResponse.json(result);
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ success: true, ...result });
+  } catch {
+    return NextResponse.json({ error: 'Внутренняя ошибка сервиса оцифровки товаров' }, { status: 500 });
   }
 }
-

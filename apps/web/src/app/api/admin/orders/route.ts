@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ALL_BRANCHES } from '@/lib/branch-constants';
+import { verifyStaffAuth } from '@/lib/server-auth';
 
 export interface AdminOrderItem {
   id: string;
@@ -85,22 +86,15 @@ let liveOrders: AdminOrderItem[] = [
   },
 ];
 
-function isAuthorizedStaff(req: Request): boolean {
-  const auth = req.headers.get('authorization') || '';
-  const referer = req.headers.get('referer') || '';
-  if (auth.includes('admin') || auth.includes('manager') || auth.includes('superadmin') || auth.includes('mock-admin-token')) {
-    return true;
-  }
-  if (referer.includes('/admin')) {
-    return true;
-  }
-  return false;
-}
-
 export async function GET(req: Request) {
-  if (!isAuthorizedStaff(req)) {
-    return NextResponse.json({ error: 'Доступ запрещен. Требуется авторизация администратора.' }, { status: 401 });
+  const auth = verifyStaffAuth(req);
+  if (!auth.isAuthorized) {
+    return NextResponse.json(
+      { error: 'Доступ запрещен. Требуется авторизация администратора сети.' },
+      { status: 401 }
+    );
   }
+
   const { searchParams } = new URL(req.url);
   const storeId = searchParams.get('storeId');
   const status = searchParams.get('status');
@@ -123,23 +117,31 @@ export async function GET(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  if (!isAuthorizedStaff(req)) {
-    return NextResponse.json({ error: 'Доступ запрещен. Требуется авторизация администратора.' }, { status: 401 });
+  const auth = verifyStaffAuth(req);
+  if (!auth.isAuthorized) {
+    return NextResponse.json(
+      { error: 'Доступ запрещен. Требуется авторизация администратора сети.' },
+      { status: 401 }
+    );
   }
+
   try {
     const body = await req.json();
     const { id, newStatus } = body;
 
+    const validStatuses = ['pending', 'paid', 'processing', 'ready_for_pickup', 'in_transit', 'delivered', 'cancelled'];
+    if (!validStatuses.includes(newStatus)) {
+      return NextResponse.json({ error: 'Недопустимый статус заказа' }, { status: 400 });
+    }
+
     const order = liveOrders.find(o => o.id === id);
     if (!order) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Заказ не найден' }, { status: 404 });
     }
 
     order.status = newStatus;
     return NextResponse.json({ success: true, order });
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: msg }, { status: 400 });
+  } catch {
+    return NextResponse.json({ error: 'Некорректный запрос' }, { status: 400 });
   }
 }
-

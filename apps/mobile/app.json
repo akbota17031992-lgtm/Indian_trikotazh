@@ -19,7 +19,16 @@
       "bundleIdentifier": "kz.indiatrikotaj.app",
       "infoPlist": {
         "NSCameraUsageDescription": "Приложению необходим доступ к камере для сканирования штрихкодов в магазинах сети «Индийский Трикотаж».",
-        "NSLocationWhenInUseUsageDescription": "Определение ближайшего к вам филиала «Индийский Трикотаж» в Алматы."
+        "NSLocationWhenInUseUsageDescription": "Определение ближайшего к вам филиала «Индийский Трикотаж» в Алматы.",
+        "NSFaceIDUsageDescription": "Используется для быстрой и безопасной биометрической авторизации в приложении по Face ID.",
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": false,
+          "NSExceptionDomains": {
+            "localhost": {
+              "NSExceptionAllowsInsecureHTTPLoads": true
+            }
+          }
+        }
       }
     },
     "android": {
@@ -28,9 +37,12 @@
         "backgroundColor": "#78350f"
       },
       "package": "kz.indiatrikotaj.app",
+      "allowBackup": false,
       "permissions": [
         "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION"
+        "ACCESS_FINE_LOCATION",
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT"
       ]
     },
     "web": {

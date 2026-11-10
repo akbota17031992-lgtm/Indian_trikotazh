@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { checkRateLimit, getClientIp } from '@/lib/server-auth';
 
 export interface GenerateCopyRequest {
   titleRu: string;
@@ -17,12 +18,28 @@ const CATEGORY_NAMES: Record<string, { ru: string; kz: string }> = {
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+    const rateCheck = checkRateLimit(`ai:copy:${ip}`, 30, 60 * 1000);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Слишком много запросов к генератору описаний. Пожалуйста, подождите 1 минуту.' },
+        { status: 429, headers: { 'Retry-After': rateCheck.resetSeconds.toString() } }
+      );
+    }
+
     const body: GenerateCopyRequest = await req.json();
-    const { titleRu, category, compositionRu, tone = 'commercial' } = body;
+    const { titleRu, category, compositionRu } = body;
+
+    if (!titleRu || typeof titleRu !== 'string' || titleRu.trim().length === 0) {
+      return NextResponse.json({ error: 'Параметр titleRu обязателен' }, { status: 400 });
+    }
+    if (titleRu.length > 300) {
+      return NextResponse.json({ error: 'Название товара превышает допустимую длину (300 символов)' }, { status: 400 });
+    }
 
     const geminiApiKey = process.env.GEMINI_API_KEY;
-    const catName = CATEGORY_NAMES[category]?.ru || category;
-    const catNameKz = CATEGORY_NAMES[category]?.kz || category;
+    const catName = CATEGORY_NAMES[category]?.ru || category || 'Одежда';
+    const catNameKz = CATEGORY_NAMES[category]?.kz || category || 'Киім';
 
     let generatedRu = '';
     let generatedKz = '';
@@ -32,9 +49,9 @@ export async function POST(req: Request) {
       try {
         const prompt = `Ты — профессиональный fashion-копирайтер сети магазинов «Индийский Трикотаж» (Алматы).
 Напиши продающее, уютное и информативное описание для карточки товара на двух языках (русский и казахский).
-Товар: ${titleRu}
+Товар: ${titleRu.slice(0, 150)}
 Категория: ${catName}
-Состав ткани: ${compositionRu || '100% натуральный индийский хлопок'}
+Состав ткани: ${(compositionRu || '100% натуральный индийский хлопок').slice(0, 100)}
 Акценты: натуральность, мягкость, фабричное качество Индии, воздухопроницаемость, стойкость к стиркам, комфорт для климата Алматы.
 
 Верни СТРОГО валидный JSON без markdown:
@@ -92,9 +109,7 @@ export async function POST(req: Request) {
       descriptionKz: generatedKz,
       generatedAt: new Date().toISOString(),
     });
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: msg }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: 'Внутренняя ошибка сервиса генерации текста' }, { status: 500 });
   }
 }
-

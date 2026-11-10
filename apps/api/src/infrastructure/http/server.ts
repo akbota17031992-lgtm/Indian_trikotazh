@@ -1,6 +1,7 @@
 import express, { type Express, type Request, type Response } from 'express';
 import { corsMiddleware } from './middlewares/cors.middleware.js';
 import { securityHeadersMiddleware } from './middlewares/security-headers.middleware.js';
+import { globalApiRateLimiter } from './middlewares/rate-limiter.middleware.js';
 import { requestLoggerMiddleware } from './middlewares/request-logger.middleware.js';
 import { errorHandlerMiddleware } from './middlewares/error-handler.middleware.js';
 import { authMiddleware } from './middlewares/auth.middleware.js';
@@ -12,9 +13,13 @@ import { RepositoryContainer } from '../../adapters/repositories/repository.cont
 export async function createExpressApp(): Promise<Express> {
   const app = express();
 
-  // 1. Core Security & Logging Middlewares
+  // Disable fingerprinting header
+  app.disable('x-powered-by');
+
+  // 1. Core Security, Rate Limiting & Logging Middlewares
   app.use(securityHeadersMiddleware);
   app.use(corsMiddleware);
+  app.use(globalApiRateLimiter);
   app.use(requestLoggerMiddleware);
 
   // 2. Request Body Parsers (10MB limit enforcement with rawBody retention for webhook verification)

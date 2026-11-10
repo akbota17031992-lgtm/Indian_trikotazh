@@ -11,6 +11,7 @@ import { CreateKaspiInvoiceUseCase } from '../../use-cases/payments/create-kaspi
 import { ProcessKaspiWebhookUseCase } from '../../use-cases/payments/process-kaspi-webhook.use-case.js';
 import { PaymentGatewayFactory } from '../../adapters/gateways/kaspi/payment-gateway.factory.js';
 import { requireAuth } from './middlewares/auth.middleware.js';
+import { strictMutationRateLimiter } from './middlewares/rate-limiter.middleware.js';
 
 export function createV1Router(repoContainer: RepositoryContainer): Router {
   const router = Router();
@@ -54,17 +55,17 @@ export function createV1Router(repoContainer: RepositoryContainer): Router {
 
   // Order routes
   router.get('/orders', requireAuth, orderController.listOrders);
-  router.post('/orders', orderController.createOrder);
+  router.post('/orders', strictMutationRateLimiter, orderController.createOrder);
   router.get('/orders/:id', requireAuth, orderController.getOrderById);
 
   // Auth routes
   router.get('/auth/me', requireAuth, authController.getMe);
 
-  // Kaspi Pay routes (both direct and prefixed)
-  router.post('/kaspi/create', paymentController.createKaspiInvoice);
-  router.post('/kaspi/callback', paymentController.handleKaspiWebhook);
-  router.post('/payments/kaspi/create', paymentController.createKaspiInvoice);
-  router.post('/payments/kaspi/callback', paymentController.handleKaspiWebhook);
+  // Kaspi Pay routes (both direct and prefixed) protected with strict rate limiting
+  router.post('/kaspi/create', strictMutationRateLimiter, paymentController.createKaspiInvoice);
+  router.post('/kaspi/callback', strictMutationRateLimiter, paymentController.handleKaspiWebhook);
+  router.post('/payments/kaspi/create', strictMutationRateLimiter, paymentController.createKaspiInvoice);
+  router.post('/payments/kaspi/callback', strictMutationRateLimiter, paymentController.handleKaspiWebhook);
 
   return router;
 }

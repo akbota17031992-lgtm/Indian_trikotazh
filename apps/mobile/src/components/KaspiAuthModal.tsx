@@ -118,6 +118,8 @@ export function KaspiAuthModal({
 
   // Result info
   const [finalProfile, setFinalProfile] = useState<UserProfile | null>(null);
+  const [failedOtpAttempts, setFailedOtpAttempts] = useState(0);
+  const [otpLockoutUntil, setOtpLockoutUntil] = useState<number | null>(null);
 
   // Check hardware biometrics availability on mount
   useEffect(() => {
@@ -202,7 +204,20 @@ export function KaspiAuthModal({
   const handleVerifyOtp = (code: string) => {
     setSmsCode(code);
     if (code.length === 4) {
+      if (otpLockoutUntil && Date.now() < otpLockoutUntil) {
+        const waitSec = Math.ceil((otpLockoutUntil - Date.now()) / 1000);
+        Alert.alert(
+          locale === 'kz' ? 'Бұғатталды' : 'Блокировка',
+          locale === 'kz'
+            ? `Тым көп қате әрекет. ${waitSec} секунд күтіңіз`
+            : `Слишком много неверных попыток. Подождите ${waitSec} сек.`
+        );
+        return;
+      }
+
       if (code === generatedSms || code === '1234' || code === '7429') {
+        setFailedOtpAttempts(0);
+        setOtpLockoutUntil(null);
         const digits = cleanPhoneDigits(phone);
         const existing = registeredUsers.find(u => cleanPhoneDigits(u.phone) === digits);
 
@@ -230,12 +245,25 @@ export function KaspiAuthModal({
           setStep('register_details');
         }
       } else {
-        Alert.alert(
-          locale === 'kz' ? 'Қате код' : 'Неверный код',
-          locale === 'kz'
-            ? 'СМС-код дұрыс емес, қайталап көріңіз'
-            : 'Код из СМС не совпадает, попробуйте еще раз'
-        );
+        const nextAttempts = failedOtpAttempts + 1;
+        setFailedOtpAttempts(nextAttempts);
+
+        if (nextAttempts >= 4) {
+          setOtpLockoutUntil(Date.now() + 60 * 1000);
+          Alert.alert(
+            locale === 'kz' ? 'Бұғатталды' : 'Вход заблокирован',
+            locale === 'kz'
+              ? '4 қате код енгізілді. Қауіпсіздік мақсатында 60 секундқа бұғатталды'
+              : '4 неверных попытки ввода кода. В целях безопасности ввод заблокирован на 60 секунд'
+          );
+        } else {
+          Alert.alert(
+            locale === 'kz' ? 'Қате код' : 'Неверный код',
+            locale === 'kz'
+              ? `СМС-код дұрыс емес. Қалған әрекеттер саны: ${4 - nextAttempts}`
+              : `Код из СМС не совпадает. Осталось попыток: ${4 - nextAttempts}`
+          );
+        }
       }
     }
   };

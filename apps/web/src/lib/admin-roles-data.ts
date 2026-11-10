@@ -40,12 +40,12 @@ export interface PromoPromotion {
   validUntil: string;
 }
 
-// 3 предустановленных эталонных аккаунта под ТЗ:
+// 3 предустановленных эталонных аккаунта под ТЗ (пароли защищены SHA-256 хешированием):
 export const INITIAL_ADMIN_ACCOUNTS: AdminAccount[] = [
   {
     id: 'admin-001',
     login: 'superadmin',
-    passwordHash: 'superadmin123',
+    passwordHash: 'e34f92a20532a873cb3184398070b4b82a8fa29cf48572c203dc5f0fa6158231', // SHA-256(superadmin123)
     name: 'Ерлан Сериков (Владелец / Суперадмин)',
     role: 'superadmin',
     email: 'owner@indiatrikotaj.kz',
@@ -57,7 +57,7 @@ export const INITIAL_ADMIN_ACCOUNTS: AdminAccount[] = [
   {
     id: 'admin-002',
     login: 'admin',
-    passwordHash: 'admin123',
+    passwordHash: '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', // SHA-256(admin123)
     name: 'Алия Касымова (Старший Администратор)',
     role: 'admin',
     email: 'admin@indiatrikotaj.kz',
@@ -69,7 +69,7 @@ export const INITIAL_ADMIN_ACCOUNTS: AdminAccount[] = [
   {
     id: 'admin-003',
     login: 'manager',
-    passwordHash: 'manager123',
+    passwordHash: '866485796cfa8d7c0cf7111640205b83076433547577511d81f8030ae99ecea5', // SHA-256(manager123)
     name: 'Даурен Нургалиев (Контент-Менеджер)',
     role: 'manager',
     email: 'manager@indiatrikotaj.kz',

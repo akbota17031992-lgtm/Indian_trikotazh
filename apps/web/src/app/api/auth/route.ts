@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { validateKazakhstanPhone } from '@india-trikotaj/shared';
 import { INITIAL_CUSTOMERS, INITIAL_ADMIN_ACCOUNTS } from '@/lib/admin-roles-data';
+import { checkRateLimit, getClientIp, verifyStaffAuth } from '@/lib/server-auth';
 
 export interface UserSession {
   id: string;
@@ -61,10 +62,11 @@ let registeredUsers: UserSession[] = [
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
     const body = await req.json();
     const { action, phone, code, fullName, email, existingCustomer } = body;
 
-    // 1. REQUEST SMS OTP CODE
+    // 1. REQUEST SMS OTP CODE (Protected with Rate Limiting against SMS Toll Fraud / DoS)
     if (action === 'send_otp') {
       if (!phone || !validateKazakhstanPhone(phone)) {
         return NextResponse.json(
@@ -73,11 +75,28 @@ export async function POST(req: Request) {
         );
       }
 
+      // Check Rate Limit: max 5 OTP requests per 10 minutes per IP/Phone
       const digits = getCleanPhoneDigits(phone);
-      const existingUser = registeredUsers.find(u => getCleanPhoneDigits(u.phone) === digits);
+      const rateLimitKey = `otp:${ip}:${digits}`;
+      const rateCheck = checkRateLimit(rateLimitKey, 5, 10 * 60 * 1000);
 
-      // Demo SMS code is always 7777 or last 4 digits
+      if (!rateCheck.allowed) {
+        return NextResponse.json(
+          {
+            error: `Слишком много запросов кода. Пожалуйста, повторите попытку через ${rateCheck.resetSeconds} сек.`,
+          },
+          {
+            status: 429,
+            headers: {
+              'Retry-After': rateCheck.resetSeconds.toString(),
+            },
+          }
+        );
+      }
+
+      const existingUser = registeredUsers.find(u => getCleanPhoneDigits(u.phone) === digits);
       const demoCode = '7777';
+
       return NextResponse.json({
         success: true,
         message: 'SMS-код отправлен',
@@ -111,7 +130,7 @@ export async function POST(req: Request) {
       const staffMatch = INITIAL_ADMIN_ACCOUNTS.find(a => getCleanPhoneDigits(a.phone) === digits);
       const authorizedRole = staffMatch ? (staffMatch.role === 'manager' ? 'store_manager' : 'admin') : 'customer';
 
-      // If client supplied custom customer (e.g. from CRM in localStorage), prioritize name but sanitize role and bonuses
+      // If client supplied custom customer, prioritize name but sanitize role and bonuses
       if (existingCustomer && existingCustomer.name) {
         if (user) {
           user.fullName = existingCustomer.name;
@@ -124,7 +143,7 @@ export async function POST(req: Request) {
             fullName: existingCustomer.name,
             email: existingCustomer.email || undefined,
             role: authorizedRole,
-            bonusesKzt: Math.min(Math.max(Number(existingCustomer.bonusBalance) || 1000, 0), 5000), // capped to 5000 ₸ max initial bonus
+            bonusesKzt: Math.min(Math.max(Number(existingCustomer.bonusBalance) || 1000, 0), 5000),
             ordersCount: Number(existingCustomer.ordersCount) || 0,
           };
           registeredUsers.push(user);
@@ -134,7 +153,6 @@ export async function POST(req: Request) {
       const isNewUser = !user;
 
       if (!user) {
-        // Register brand new customer (strictly customer role, strictly 1 000 ₸ welcome bonus)
         user = {
           id: `usr-${Date.now()}`,
           phone: phone.trim(),
@@ -160,21 +178,15 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ error: 'Неизвестное действие' }, { status: 400 });
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: 'Некорректный запрос', details: msg }, { status: 400 });
+    return NextResponse.json({ error: 'Некорректный запрос' }, { status: 400 });
   }
 }
 
 export async function GET(req: Request) {
-  // Check authorization before returning sensitive customer PII
-  const authHeader = req.headers.get('authorization');
-  const isAuthorizedAdmin = authHeader && (
-    authHeader.includes('superadmin') ||
-    authHeader.includes('admin') ||
-    authHeader.includes('mock-admin-token')
-  );
+  // Cryptographic staff token authorization check before returning customer PII
+  const authCheck = verifyStaffAuth(req);
 
-  if (isAuthorizedAdmin) {
+  if (authCheck.isAuthorized) {
     return NextResponse.json({
       totalCustomers: registeredUsers.length,
       users: registeredUsers,
