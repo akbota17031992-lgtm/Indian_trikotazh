@@ -12,7 +12,7 @@ def set_cell_background(cell, fill_hex):
     shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{fill_hex}"/>')
     tcPr.append(shd)
 
-def set_cell_margins(cell, top=80, bottom=80, left=100, right=100):
+def set_cell_margins(cell, top=70, bottom=70, left=80, right=80):
     tcPr = cell._tc.get_or_add_tcPr()
     tcMar = parse_xml(
         f'<w:tcMar {nsdecls("w")}>'
@@ -23,6 +23,47 @@ def set_cell_margins(cell, top=80, bottom=80, left=100, right=100):
         f'</w:tcMar>'
     )
     tcPr.append(tcMar)
+
+def create_styled_table(doc, headers, data, col_widths, alignments=None, header_bg="78350F", alt_bg="F8FAFC"):
+    table = doc.add_table(rows=len(data) + 1, cols=len(headers))
+    table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    
+    # Headers
+    for ci, h in enumerate(headers):
+        cell = table.cell(0, ci)
+        cell.width = col_widths[ci]
+        cell.text = h
+        set_cell_background(cell, header_bg)
+        set_cell_margins(cell, top=80, bottom=80, left=80, right=80)
+        p = cell.paragraphs[0]
+        align = alignments[ci] if alignments else WD_ALIGN_PARAGRAPH.LEFT
+        p.alignment = align
+        if len(p.runs) > 0:
+            p.runs[0].font.name = "Arial"
+            p.runs[0].font.bold = True
+            p.runs[0].font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
+            p.runs[0].font.size = Pt(8.5)
+
+    # Data Rows
+    for ri, row_data in enumerate(data, start=1):
+        row_cells = table.rows[ri].cells
+        bg = alt_bg if ri % 2 == 1 else "FFFFFF"
+        for ci, val in enumerate(row_data):
+            cell = row_cells[ci]
+            cell.width = col_widths[ci]
+            cell.text = str(val)
+            set_cell_background(cell, bg)
+            set_cell_margins(cell, top=60, bottom=60, left=70, right=70)
+            p = cell.paragraphs[0]
+            align = alignments[ci] if alignments else WD_ALIGN_PARAGRAPH.LEFT
+            p.alignment = align
+            if len(p.runs) > 0:
+                p.runs[0].font.name = "Arial"
+                p.runs[0].font.size = Pt(8)
+                p.runs[0].font.color.rgb = RGBColor(0x1F, 0x29, 0x37)
+    
+    doc.add_paragraph().paragraph_format.space_after = Pt(4)
+    return table
 
 def create_docx(output_paths):
     doc = Document()
@@ -52,14 +93,14 @@ def create_docx(output_paths):
     # DOCUMENT HEADER
     # -------------------------------------------------------------------------
     p_top = doc.add_paragraph()
-    r_top = p_top.add_run("КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ")
+    r_top = p_top.add_run("📋 КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ")
     r_top.font.name = "Arial"
     r_top.font.size = Pt(11)
     r_top.font.bold = True
     r_top.font.color.rgb = COLOR_GOLD
 
     p_title = doc.add_paragraph()
-    r_title = p_title.add_run("Поставка, запуск и сопровождение омниканальной цифровой экосистемы розничной сети «Индийский Трикотаж» (г. Алматы)")
+    r_title = p_title.add_run("Омниканальная цифровая экосистема розничной сети «Индийский Трикотаж» (г. Алматы)")
     r_title.font.name = "Arial"
     r_title.font.size = Pt(16)
     r_title.font.bold = True
@@ -78,8 +119,8 @@ def create_docx(output_paths):
     for i, (k, v) in enumerate(meta_data):
         row = t_meta.rows[i]
         c0, c1 = row.cells[0], row.cells[1]
-        c0.width = Inches(2.0)
-        c1.width = Inches(4.7)
+        c0.width = Inches(1.8)
+        c1.width = Inches(5.1)
         set_cell_background(c0, "F1F5F9")
         set_cell_background(c1, "F8FAFC")
         set_cell_margins(c0, top=50, bottom=50, left=80, right=80)
@@ -87,70 +128,81 @@ def create_docx(output_paths):
         
         p0 = c0.paragraphs[0]
         r0 = p0.add_run(k)
+        r0.font.name = "Arial"
         r0.font.bold = True
-        r0.font.size = Pt(9)
+        r0.font.size = Pt(8.5)
         r0.font.color.rgb = COLOR_PRIMARY
 
         p1 = c1.paragraphs[0]
         r1 = p1.add_run(v)
-        r1.font.size = Pt(9)
+        r1.font.name = "Arial"
+        r1.font.size = Pt(8.5)
 
     doc.add_paragraph().paragraph_format.space_after = Pt(4)
 
     # -------------------------------------------------------------------------
-    # 1. БИЗНЕС-ЦЕЛЬ И ЗАДАЧИ ПРОЕКТА
+    # 1. БИЗНЕС-ЦЕЛИ И ЗАДАЧИ ПРОЕКТА (ТАБЛИЦА)
     # -------------------------------------------------------------------------
     h1 = doc.add_heading(level=1)
-    r_h1 = h1.add_run("1. Бизнес-цель и ключевые задачи проекта")
+    r_h1 = h1.add_run("1. Бизнес-цели и задачи проекта")
+    r_h1.font.name = "Arial"
     r_h1.font.color.rgb = COLOR_PRIMARY
     r_h1.font.bold = True
 
-    p_intro = doc.add_paragraph(
-        "Торговая сеть «Индийский Трикотаж» объединяет 16 филиалов в торговых центрах и розничных точках Алматы. "
-        "Цель проекта — объединить магазины, склады и онлайн-продажи в единую экосистему:\n"
-        "1. Сквозной учет остатков и ликвидация дефицита (Out-of-Stock): клиент и кассир видят точное наличие нужного размера в любом из 16 филиалов (Click & Collect за 2 часа).\n"
-        "2. Автоматическое пополнение филиалов: система отслеживает неснижаемый остаток и формирует листы перемещения со склада, устраняя дефицит на витринах.\n"
-        "3. Прямой приём Kaspi Pay: приём оплаты через Kaspi QR, Kaspi Gold, Kaspi Red (0-0-3) и Рассрочку без 10–15% комиссий сторонних маркетплейсов с фискализацией Webkassa.\n"
-        "4. Оцифровка коллекций через ИИ: создание карточек товаров на казахском и русском языках по фото со смартфона, а в тарифе «Премиум» — генерация лукбуков на виртуальных фотомоделях без затрат на фотостудии.\n"
-        "5. Мобильное присутствие бренда: нативное приложение с авторизацией по Face ID и СМС без паролей в стиле Kaspi."
-    )
-    p_intro.paragraph_format.line_spacing = 1.15
-    p_intro.paragraph_format.space_after = Pt(6)
+    sec1_headers = ["№", "Бизнес-задача сети", "Проблема текущей офлайн-модели", "Цифровое решение экосистемы"]
+    sec1_widths = [Inches(0.4), Inches(1.6), Inches(2.4), Inches(2.5)]
+    sec1_aligns = [WD_ALIGN_PARAGRAPH.CENTER, WD_ALIGN_PARAGRAPH.LEFT, WD_ALIGN_PARAGRAPH.LEFT, WD_ALIGN_PARAGRAPH.LEFT]
+    sec1_data = [
+        ["1", "Сквозной учет остатков", "Покупатель не нашел размер в филиале — ушел к конкурентам", "Онлайн-мониторинг 16 филиалов в реальном времени, самовывоз Click & Collect за 2 часа"],
+        ["2", "Пополнение витрин", "Полки пустеют незаметно, возникает дефицит (Out-of-Stock)", "Авто-контроль неснижаемого остатка и листы перемещения со склада"],
+        ["3", "Прямой приём Kaspi Pay", "Потеря 10–15% комиссии при продажах через сторонние маркетплейсы", "Приём Kaspi QR, Kaspi Gold, Kaspi Red (0-0-3) без комиссий маркетплейсов + ОФД Webkassa"],
+        ["4", "Оцифровка коллекций ИИ", "Дорогие и долгие фотосессии моделей (от 900 000 ₸/мес)", "Оцифровка карточки за 3 сек по фото + AI Fashion Studio (виртуальные модели без фотостудий)"],
+        ["5", "Мобильное присутствие", "Зависимость от Instagram Direct и потеря повторных продаж", "Нативное приложение iOS & Android с авторизацией по Face ID и СМС без паролей в стиле Kaspi"],
+    ]
+    t1 = create_styled_table(doc, sec1_headers, sec1_data, sec1_widths, sec1_aligns)
+    # Highlight tasks in bold
+    for row in t1.rows[1:]:
+        p_task = row.cells[1].paragraphs[0]
+        if len(p_task.runs) > 0:
+            p_task.runs[0].font.bold = True
 
     # -------------------------------------------------------------------------
-    # 2. АРХИТЕКТУРА ГОТОВОГО РЕШЕНИЯ
+    # 2. АРХИТЕКТУРА ГОТОВОГО РЕШЕНИЯ (ТАБЛИЦА)
     # -------------------------------------------------------------------------
     h2 = doc.add_heading(level=1)
-    r_h2 = h2.add_run("2. Архитектура разработанного программного комплекса")
+    r_h2 = h2.add_run("2. Архитектура готового программного комплекса")
+    r_h2.font.name = "Arial"
     r_h2.font.color.rgb = COLOR_PRIMARY
     r_h2.font.bold = True
 
-    arch_items = [
-        ("Интернет-магазин (Web):", "Next.js 15, SSR, SEO-оптимизация, фильтры по составу и 16 филиалам, интерактивная корзина, мультиязычность (Русский / Қазақша)."),
-        ("Мобильное приложение (iOS & Android):", "Нативный кроссплатформенный стек Expo React Native, авторизация Kaspi по СМС без паролей, Face ID / Touch ID / код разблокировки, гостевой режим, кешбэк 5% бонусами."),
-        ("Панель управления & CRM (Админка):", "Сквозной учет остатков по 16 складам в реальном времени, авто-контроль дефицита, печать ценников со штрихкодами на принтеры сети, роли персонала (Директор, Менеджер, Кассир)."),
-        ("Интеграционный контур:", "Kaspi Pay (QR, Red 0-0-3), ОФД Webkassa, СМС Mobizon, ИИ-платформа (AI Ingest, WhatsApp AI-продавец 24/7, AI Fashion Studio)."),
+    sec2_headers = ["Модуль системы", "Технологический стек", "Функциональный состав для сети"]
+    sec2_widths = [Inches(1.6), Inches(1.8), Inches(3.5)]
+    sec2_aligns = [WD_ALIGN_PARAGRAPH.LEFT, WD_ALIGN_PARAGRAPH.LEFT, WD_ALIGN_PARAGRAPH.LEFT]
+    sec2_data = [
+        ["Интернет-магазин (Web)", "Next.js 15, React 19, SSR, TypeScript", "Мгновенная загрузка, SEO Google/Yandex, умные фильтры по составу и 16 филиалам, интерактивная корзина, RU/KZ"],
+        ["Мобильное приложение", "React Native (Expo 52), iOS & Android", "Вход по Face ID / Touch ID и СМС без паролей в стиле Kaspi, кешбэк 5% бонусами, push-уведомления"],
+        ["Панель управления (CRM)", "Web Admin, PostgreSQL, REST API", "Сквозной учет 16 складов, авто-контроль дефицита, печать ценников со штрихкодами, роли кассиров"],
+        ["Платежи и фискализация", "Kaspi Pay API, Webkassa ОФД, Mobizon", "Приём Kaspi QR, Gold, Red 0-0-3, фискализация чеков с отправкой покупателям, шлюз СМС-авторизации"],
+        ["ИИ-платформа", "Vision AI, WhatsApp API, Fashion Studio", "AI Product Ingest (оцифровка фото), WhatsApp AI-продавец 24/7, виртуальные фотомодели"],
     ]
-    for title, desc in arch_items:
-        p_a = doc.add_paragraph()
-        r_at = p_a.add_run(f"• {title} ")
-        r_at.font.bold = True
-        r_at.font.color.rgb = COLOR_DARK
-        p_a.add_run(desc)
-        p_a.paragraph_format.space_after = Pt(2)
-
-    doc.add_paragraph().paragraph_format.space_after = Pt(4)
+    t2 = create_styled_table(doc, sec2_headers, sec2_data, sec2_widths, sec2_aligns)
+    for row in t2.rows[1:]:
+        p_mod = row.cells[0].paragraphs[0]
+        if len(p_mod.runs) > 0:
+            p_mod.runs[0].font.bold = True
+            p_mod.runs[0].font.color.rgb = COLOR_DARK
 
     # -------------------------------------------------------------------------
     # 3. ЕДИНАЯ СВОДНАЯ ТАБЛИЦА РАСЧЕТОВ ПО ВСЕМ ТАРИФАМ
     # -------------------------------------------------------------------------
     h3 = doc.add_heading(level=1)
     r_h3 = h3.add_run("3. Единая сводная таблица расчетов по всем тарифам")
+    r_h3.font.name = "Arial"
     r_h3.font.color.rgb = COLOR_PRIMARY
     r_h3.font.bold = True
 
     p_table_intro = doc.add_paragraph(
-        "В единой таблице сведены все финансовые расчеты: стоимость разработки ПО, статьи запуска, бесплатная интеграция оборудования сети (экономия 272 000 ₸), сроки окупаемости и график платежей:"
+        "Вся финансовая модель, разработка ПО, статьи запуска, оборудование, сроки окупаемости и график оплат сведены в единую таблицу:"
     )
     p_table_intro.paragraph_format.space_after = Pt(4)
 
@@ -187,8 +239,7 @@ def create_docx(output_paths):
     t_master = doc.add_table(rows=len(master_rows) + 1, cols=5)
     t_master.alignment = WD_TABLE_ALIGNMENT.CENTER
 
-    # Col widths: 0.4 in, 2.7 in, 1.2 in, 1.2 in, 1.5 in
-    col_widths = [Inches(0.4), Inches(2.7), Inches(1.2), Inches(1.2), Inches(1.5)]
+    col_widths = [Inches(0.4), Inches(2.7), Inches(1.2), Inches(1.2), Inches(1.4)]
 
     # Headers
     headers = [
@@ -206,6 +257,7 @@ def create_docx(output_paths):
         set_cell_margins(cell, top=70, bottom=70, left=70, right=70)
         p = cell.paragraphs[0]
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER if ci in (0, 2, 3, 4) else WD_ALIGN_PARAGRAPH.LEFT
+        p.runs[0].font.name = "Arial"
         p.runs[0].font.bold = True
         p.runs[0].font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
         p.runs[0].font.size = Pt(8.5)
@@ -223,11 +275,11 @@ def create_docx(output_paths):
         row_cells[4].text = c4
 
         if rtype == "SECTION":
-            # Merge across cells
             for ci in range(5):
                 set_cell_background(row_cells[ci], "E2E8F0")
                 set_cell_margins(row_cells[ci], top=40, bottom=40, left=60, right=60)
                 p = row_cells[ci].paragraphs[0]
+                p.runs[0].font.name = "Arial"
                 p.runs[0].font.bold = True
                 p.runs[0].font.size = Pt(8.5)
                 p.runs[0].font.color.rgb = COLOR_DARK
@@ -236,6 +288,7 @@ def create_docx(output_paths):
                 set_cell_background(row_cells[ci], HEX_LIGHT_GOLD)
                 set_cell_margins(row_cells[ci], top=50, bottom=50, left=60, right=60)
                 p = row_cells[ci].paragraphs[0]
+                p.runs[0].font.name = "Arial"
                 p.runs[0].font.bold = True
                 p.runs[0].font.size = Pt(8.5)
                 p.runs[0].font.color.rgb = COLOR_DARK
@@ -246,6 +299,7 @@ def create_docx(output_paths):
                 set_cell_background(row_cells[ci], HEX_PRIMARY)
                 set_cell_margins(row_cells[ci], top=60, bottom=60, left=60, right=60)
                 p = row_cells[ci].paragraphs[0]
+                p.runs[0].font.name = "Arial"
                 p.runs[0].font.bold = True
                 p.runs[0].font.size = Pt(9.5)
                 p.runs[0].font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
@@ -256,6 +310,7 @@ def create_docx(output_paths):
                 set_cell_background(row_cells[ci], HEX_LIGHT_GREEN)
                 set_cell_margins(row_cells[ci], top=40, bottom=40, left=60, right=60)
                 p = row_cells[ci].paragraphs[0]
+                p.runs[0].font.name = "Arial"
                 p.runs[0].font.bold = True
                 p.runs[0].font.size = Pt(8.5)
                 p.runs[0].font.color.rgb = COLOR_GREEN
@@ -266,18 +321,19 @@ def create_docx(output_paths):
                 set_cell_background(row_cells[ci], HEX_BG_ALT)
                 set_cell_margins(row_cells[ci], top=40, bottom=40, left=60, right=60)
                 p = row_cells[ci].paragraphs[0]
+                p.runs[0].font.name = "Arial"
                 p.runs[0].font.size = Pt(8.5)
                 if ci in (2, 3, 4):
                     p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
                     p.runs[0].font.bold = True
                     p.runs[0].font.color.rgb = COLOR_PRIMARY
         else:
-            # Regular row
             bg = HEX_BG_ALT if ri % 2 == 1 else "FFFFFF"
             for ci in range(5):
                 set_cell_background(row_cells[ci], bg)
                 set_cell_margins(row_cells[ci], top=40, bottom=40, left=60, right=60)
                 p = row_cells[ci].paragraphs[0]
+                p.runs[0].font.name = "Arial"
                 p.runs[0].font.size = Pt(8)
                 if ci in (2, 3, 4):
                     p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
@@ -286,111 +342,210 @@ def create_docx(output_paths):
                 if c0 == "2.6":
                     p.runs[0].font.color.rgb = COLOR_GREEN
 
-    # Explanatory Callout
-    p_eq_note = doc.add_paragraph()
-    p_eq_note.paragraph_format.space_before = Pt(6)
-    p_eq_note.paragraph_format.space_after = Pt(6)
-    r_eq_h = p_eq_note.add_run("🎁 ПРЯМАЯ ЭКОНОМИЯ 272 000 ₸ НА ОБОРУДОВАНИИ СЕТИ:\n")
-    r_eq_h.font.bold = True
-    r_eq_h.font.size = Pt(9)
-    r_eq_h.font.color.rgb = COLOR_GREEN
-    r_eq_b = p_eq_note.add_run(
-        "• В розничной сети «Индийский Трикотаж» уже установлены 2D-сканеры на всех 16 кассах, а на складе есть термопринтер для этикеток. Наша платформа поддерживает работу с существующей техникой сети «из коробки» (HID-интерфейс + браузерная печать). Закупка нового оборудования не требуется — экономия бюджета 272 000 ₸ на старте!\n"
-        "• WhatsApp AI-продавец 24/7 (180 000 ₸ разово): это разовая настройка и обучение нейросети разработчиком под трикотаж (рыночная цена в РК: 250–600 тыс. ₸). Ежемесячные токены и трафик (~25–40 тыс. ₸/мес) оплачиваются Заказчиком напрямую провайдерам по факту."
-    )
-    r_eq_b.font.size = Pt(8.5)
+    # Explanatory Callout Box / Table
+    t_notes = doc.add_table(rows=1, cols=1)
+    t_notes.alignment = WD_TABLE_ALIGNMENT.CENTER
+    c_note = t_notes.cell(0, 0)
+    c_note.width = Inches(6.9)
+    set_cell_background(c_note, "F0FDF4")
+    set_cell_margins(c_note, top=70, bottom=70, left=90, right=90)
+    p_note = c_note.paragraphs[0]
+    r_n1 = p_note.add_run("🎁 Прямая экономия 272 000 ₸ на оборудовании: ")
+    r_n1.font.name = "Arial"
+    r_n1.font.bold = True
+    r_n1.font.size = Pt(8.5)
+    r_n1.font.color.rgb = COLOR_GREEN
+    r_n2 = p_note.add_run("Платформа поддерживает 16 имеющихся сканеров касс и термопринтер этикеток сети «из коробки» (HID-интерфейс + браузерная печать). Покупка новых устройств не требуется.\n")
+    r_n2.font.name = "Arial"
+    r_n2.font.size = Pt(8.5)
+    
+    r_n3 = p_note.add_run("ℹ️ WhatsApp AI (180 000 ₸ разово): ")
+    r_n3.font.name = "Arial"
+    r_n3.font.bold = True
+    r_n3.font.size = Pt(8.5)
+    r_n3.font.color.rgb = COLOR_PRIMARY
+    r_n4 = p_note.add_run("Разовая настройка промптов, интеграция с остатками 16 филиалов и вебхуков разработчиком (рынок РК: 250–600 тыс. ₸). Ежемесячные токены и трафик (~25–40 тыс. ₸/мес) оплачиваются Заказчиком напрямую провайдерам по факту.")
+    r_n4.font.name = "Arial"
+    r_n4.font.size = Pt(8.5)
+
+    doc.add_paragraph().paragraph_format.space_after = Pt(4)
 
     # -------------------------------------------------------------------------
-    # 4. ФИНАНСОВЫЙ ЭФФЕКТ СЕТИ (ROI)
+    # 4. ФИНАНСОВЫЙ ЭФФЕКТ СЕТИ (ROI) (ТАБЛИЦЫ)
     # -------------------------------------------------------------------------
     h4 = doc.add_heading(level=1)
-    r_h4 = h4.add_run("4. Финансовый эффект сети и окупаемость инвестиций (ROI)")
+    r_h4 = h4.add_run("4. Финансовый эффект и окупаемость инвестиций (ROI)")
+    r_h4.font.name = "Arial"
     r_h4.font.color.rgb = COLOR_PRIMARY
     r_h4.font.bold = True
 
-    p_roi = doc.add_paragraph(
-        "Платформа конвертирует существующий покупательский поток сети в дополнительную чистую прибыль:\n"
-        "• Онлайн-заказы курьером (20 чек/день × 7 500 ₸ × маржа 55%): + 2 475 000 ₸ / месяц\n"
-        "• Самовывоз Click & Collect из 16 филиалов (15 сохраненных чеков/день): + 1 856 000 ₸ / месяц\n"
-        "• Ликвидация дефицита (Out-of-Stock) по складам (~12 покупок/день): + 1 650 000 ₸ / месяц\n"
-        "• Экономия на комиссиях Kaspi Магазина (перевод клиентов в свое ПО): + 450 000 ₸ / месяц\n"
-        "• Минус ежемесячный OPEX (серверы, СМС, токены ИИ): - 75 000 ₸ / месяц\n"
-        "ИТОГО ДОПОЛНИТЕЛЬНАЯ ЧИСТАЯ ПРИБЫЛЬ СЕТИ: + 6 356 000 ₸ в месяц.\n\n"
-        "Сроки окупаемости по всем тарифам:\n"
-        "1. Тариф «СТАНДАРТ» (5 850 000 ₸): 5 850 000 ₸ / 6 356 000 ₸ = 0.92 месяца (всего 27–28 дней!).\n"
-        "2. Тариф «БИЗНЕС» (7 310 000 ₸): 7 310 000 ₸ / 6 356 000 ₸ = 1.15 месяца (всего 34–35 дней!).\n"
-        "3. ⭐ Тариф «ПРЕМИУМ» (9 480 000 ₸): 9 480 000 ₸ / 6 356 000 ₸ = 1.49 месяца (всего 44–45 дней!).\n"
-        "Каждый тариф полностью окупается менее чем за 1.5 месяца, принося более 75 млн ₸ дополнительного дохода за первый год."
-    )
-    p_roi.paragraph_format.line_spacing = 1.15
-    p_roi.paragraph_format.space_after = Pt(6)
+    sec4_headers = ["№", "Источник дополнительной прибыли сети", "Расчетная метрика", "Сумма в месяц"]
+    sec4_widths = [Inches(0.4), Inches(2.3), Inches(2.7), Inches(1.5)]
+    sec4_aligns = [WD_ALIGN_PARAGRAPH.CENTER, WD_ALIGN_PARAGRAPH.LEFT, WD_ALIGN_PARAGRAPH.LEFT, WD_ALIGN_PARAGRAPH.RIGHT]
+    sec4_data = [
+        ["1", "Онлайн-заказы курьером по Алматы", "20 заказов/день × средний чек 7 500 ₸ × маржа 55%", "+ 2 475 000 ₸"],
+        ["2", "Самовывоз из 16 филиалов (Click & Collect)", "15 сохраненных покупок/день (заказ нужного размера)", "+ 1 856 000 ₸"],
+        ["3", "Ликвидация дефицита (Out-of-Stock)", "Своевременное пополнение витрин (~12 покупок/день)", "+ 1 650 000 ₸"],
+        ["4", "Экономия на комиссиях Kaspi Магазина", "Перевод клиентов с маркетплейса (15%) в свое ПО (1.5%)", "+ 450 000 ₸"],
+        ["5", "Минус ежемесячный OPEX платформы", "Серверы в Алматы, СМС, токены нейросетей", "- 75 000 ₸"],
+        ["=", "ИТОГО ЧИСТАЯ ДОПОЛНИТЕЛЬНАЯ ПРИБЫЛЬ СЕТИ:", "Суммарный прирост чистой прибыли", "+ 6 356 000 ₸ / мес"],
+    ]
+    t4 = create_styled_table(doc, sec4_headers, sec4_data, sec4_widths, sec4_aligns)
+    # Format total row
+    tot_row = t4.rows[-1]
+    for ci in range(4):
+        set_cell_background(tot_row.cells[ci], HEX_LIGHT_GOLD)
+        p = tot_row.cells[ci].paragraphs[0]
+        if len(p.runs) > 0:
+            p.runs[0].font.bold = True
+            p.runs[0].font.size = Pt(8.5)
+            p.runs[0].font.color.rgb = COLOR_DARK
+
+    p_roi_sub = doc.add_paragraph()
+    r_rsub = p_roi_sub.add_run("Сроки окупаемости и годовая доходность по тарифам:")
+    r_rsub.font.name = "Arial"
+    r_rsub.font.bold = True
+    r_rsub.font.size = Pt(10)
+    r_rsub.font.color.rgb = COLOR_DARK
+    p_roi_sub.paragraph_format.space_after = Pt(2)
+
+    sec4_roi_headers = ["Тарифный пакет", "Сумма инвестиций", "Формула расчета срока окупаемости", "Срок возврата", "Прибыль за 1-й год", "ROI"]
+    sec4_roi_widths = [Inches(1.4), Inches(1.1), Inches(1.7), Inches(1.0), Inches(1.1), Inches(0.6)]
+    sec4_roi_aligns = [WD_ALIGN_PARAGRAPH.LEFT, WD_ALIGN_PARAGRAPH.RIGHT, WD_ALIGN_PARAGRAPH.CENTER, WD_ALIGN_PARAGRAPH.CENTER, WD_ALIGN_PARAGRAPH.RIGHT, WD_ALIGN_PARAGRAPH.CENTER]
+    sec4_roi_data = [
+        ["Тариф «СТАНДАРТ»", "5 850 000 ₸", "5 850 000 ₸ / 6 356 000 ₸ = 0.92 мес", "27–28 дней", "+ 76 272 000 ₸", "> 1300%"],
+        ["Тариф «БИЗНЕС»", "7 310 000 ₸", "7 310 000 ₸ / 6 356 000 ₸ = 1.15 мес", "34–35 дней", "+ 76 272 000 ₸", "> 1040%"],
+        ["⭐ Тариф «ПРЕМИУМ» (Хит)", "9 480 000 ₸", "9 480 000 ₸ / 6 356 000 ₸ = 1.49 мес", "44–45 дней (1.5 мес)", "+ 76 272 000 ₸", "> 800%"],
+    ]
+    t4_roi = create_styled_table(doc, sec4_roi_headers, sec4_roi_data, sec4_roi_widths, sec4_roi_aligns, header_bg="451A03")
+    # Highlight Premium row
+    prem_row = t4_roi.rows[3]
+    for ci in range(6):
+        set_cell_background(prem_row.cells[ci], HEX_LIGHT_GREEN)
+        p = prem_row.cells[ci].paragraphs[0]
+        if len(p.runs) > 0:
+            p.runs[0].font.bold = True
+            p.runs[0].font.color.rgb = COLOR_GREEN
 
     # -------------------------------------------------------------------------
-    # 5. АБОНЕНТСКОЕ СОПРОВОЖДЕНИЕ
+    # 5. АБОНЕНТСКОЕ СОПРОВОЖДЕНИЕ (ТАБЛИЦА)
     # -------------------------------------------------------------------------
     h5 = doc.add_heading(level=1)
     r_h5 = h5.add_run("5. Абонентское сопровождение и регламент доработок (MRR)")
+    r_h5.font.name = "Arial"
     r_h5.font.color.rgb = COLOR_PRIMARY
     r_h5.font.bold = True
 
-    p_mrr = doc.add_paragraph(
-        "После завершения гарантийного периода действует договор сервисной поддержки стабильности:\n"
-        "• Тариф «Базовый мониторинг» (150 000 ₸/мес): uptime 99.9% 24/7, бэкапы каждые 6 часов, контроль домена, SSL, шлюзов Kaspi Pay и Webkassa.\n"
-        "• Тариф «Премиум DevOps» (250 000 ₸/мес): базовый мониторинг + обязательная адаптация мобильных приложений под новые требования iOS (Apple) и Android (Google) при ежегодных обновлениях ОС (гарантия от блокировки и удаления из сторов).\n\n"
-        "⚠️ РЕГЛАМЕНТ РАЗРАБОТКИ НОВЫХ ФУНКЦИЙ:\n"
-        "Абонентская плата обеспечивает исключительно стабильность, безопасность и совместимость платформы. Доработка любого нового функционала, отчетов или акций выполняется строго по отдельным Дополнительным соглашениям (по ТЗ)."
-    )
-    p_mrr.paragraph_format.line_spacing = 1.15
-    p_mrr.paragraph_format.space_after = Pt(6)
+    sec5_headers = ["Пакет сопровождения", "Стоимость", "Включенный состав услуг и регламент SLA", "Разработка новых функций"]
+    sec5_widths = [Inches(1.5), Inches(1.1), Inches(2.7), Inches(1.6)]
+    sec5_aligns = [WD_ALIGN_PARAGRAPH.LEFT, WD_ALIGN_PARAGRAPH.RIGHT, WD_ALIGN_PARAGRAPH.LEFT, WD_ALIGN_PARAGRAPH.LEFT]
+    sec5_data = [
+        ["Базовый мониторинг", "150 000 ₸ / мес", "Uptime 99.9% 24/7, бэкапы каждые 6 часов, контроль домена, SSL, шлюзов Kaspi Pay и Webkassa", "Не входит (строго по доп. соглашению)"],
+        ["Премиум DevOps", "250 000 ₸ / мес", "Базовый мониторинг + обязательная адаптация приложений под новые требования iOS и Android при обновлениях ОС", "Не входит (строго по доп. соглашению)"],
+    ]
+    t5 = create_styled_table(doc, sec5_headers, sec5_data, sec5_widths, sec5_aligns)
+    for row in t5.rows[1:]:
+        p_pkg = row.cells[0].paragraphs[0]
+        if len(p_pkg.runs) > 0:
+            p_pkg.runs[0].font.bold = True
+            p_pkg.runs[0].font.color.rgb = COLOR_DARK
+        p_lim = row.cells[3].paragraphs[0]
+        if len(p_lim.runs) > 0:
+            p_lim.runs[0].font.color.rgb = RGBColor(0xDC, 0x26, 0x26)
+
+    # Callout about new features
+    t_feat = doc.add_table(rows=1, cols=1)
+    t_feat.alignment = WD_TABLE_ALIGNMENT.CENTER
+    c_feat = t_feat.cell(0, 0)
+    c_feat.width = Inches(6.9)
+    set_cell_background(c_feat, "FFFBEB")
+    set_cell_margins(c_feat, top=60, bottom=60, left=80, right=80)
+    p_feat = c_feat.paragraphs[0]
+    r_f1 = p_feat.add_run("⚠️ РЕГЛАМЕНТ РАЗРАБОТКИ НОВЫХ ФУНКЦИЙ: ")
+    r_f1.font.name = "Arial"
+    r_f1.font.bold = True
+    r_f1.font.size = Pt(8.5)
+    r_f1.font.color.rgb = COLOR_GOLD
+    r_f2 = p_feat.add_run("Абонентская плата обеспечивает исключительно стабильность, безопасность и совместимость платформы. Доработка любого нового функционала, отчетов или акций выполняется строго по отдельным Дополнительным соглашениям (по ТЗ).")
+    r_f2.font.name = "Arial"
+    r_f2.font.size = Pt(8.5)
+
+    doc.add_paragraph().paragraph_format.space_after = Pt(4)
 
     # -------------------------------------------------------------------------
-    # 6. ГРАФИК ВНЕДРЕНИЯ (14 ДНЕЙ)
+    # 6. ГРАФИК ВНЕДРЕНИЯ (ТАБЛИЦА)
     # -------------------------------------------------------------------------
     h6 = doc.add_heading(level=1)
     r_h6 = h6.add_run("6. График внедрения Тарифа «Премиум» за 14 рабочих дней")
+    r_h6.font.name = "Arial"
     r_h6.font.color.rgb = COLOR_PRIMARY
     r_h6.font.bold = True
 
-    p_roadmap = doc.add_paragraph(
-        "• Дни 1–3 (Организационный запуск): Договор, аванс 50%, регистрация домена .KZ, выпуск Wildcard SSL, аккаунты Apple ($99) и Google ($25), серверы PS.kz в ЦОД Алматы.\n"
-        "• Дни 4–7 (Шлюзы и касса): Боевое подключение Kaspi Pay (QR, Red 0-0-3), ОФД Webkassa, подключение СМС Mobizon и WhatsApp Business API.\n"
-        "• Дни 8–11 (ИИ и Склады сети): Запуск AI Fashion Studio (виртуальные модели), сквозные остатки 16 филиалов, бесплатное сопряжение сканеров и принтеров сети.\n"
-        "• Дни 12–14 (Релиз и обучение): Тестовый платеж 100 ₸ Kaspi QR, инструктаж кассиров 16 точек, релиз в App Store & Google Play, старт продаж."
-    )
-    p_roadmap.paragraph_format.line_spacing = 1.15
-    p_roadmap.paragraph_format.space_after = Pt(6)
+    sec6_headers = ["Этап", "Сроки", "Состав работ этапа", "Контрольный результат"]
+    sec6_widths = [Inches(1.5), Inches(0.8), Inches(2.6), Inches(2.0)]
+    sec6_aligns = [WD_ALIGN_PARAGRAPH.LEFT, WD_ALIGN_PARAGRAPH.CENTER, WD_ALIGN_PARAGRAPH.LEFT, WD_ALIGN_PARAGRAPH.LEFT]
+    sec6_data = [
+        ["Этап 1: Организационный старт", "Дни 1–3", "Подписание договора, аванс 50%, регистрация домена .KZ, SSL, аккаунты Apple/Google, серверы PS.kz", "Развернута защищенная серверная инфраструктура в ЦОД Алматы"],
+        ["Этап 2: Финансовый контур", "Дни 4–7", "Боевой Kaspi Pay (QR, Red 0-0-3), ОФД Webkassa, СМС Mobizon, WhatsApp Business API", "Настроены онлайн-платежи, фискализация и СМС-шлюз"],
+        ["Этап 3: ИИ и Склады сети", "Дни 8–11", "Запуск AI Fashion Studio, сквозные остатки 16 филиалов, сопряжение сканеров и принтеров сети (0 ₸)", "Каталог оцифрован, сканеры на кассах 16 филиалов подключены"],
+        ["Этап 4: Релиз и обучение", "Дни 12–14", "Тестовый платеж 100 ₸ Kaspi QR, инструктаж кассиров 16 точек, релиз в App Store & Google Play", "Проект сдан заказчику, старт официальных онлайн-продаж"],
+    ]
+    t6 = create_styled_table(doc, sec6_headers, sec6_data, sec6_widths, sec6_aligns)
+    for row in t6.rows[1:]:
+        p_st = row.cells[0].paragraphs[0]
+        if len(p_st.runs) > 0:
+            p_st.runs[0].font.bold = True
+            p_st.runs[0].font.color.rgb = COLOR_DARK
 
     # -------------------------------------------------------------------------
-    # 7. ГАРАНТИИ И ПОДПИСИ СТОРОН
+    # 7. ГАРАНТИИ И ПОДПИСИ СТОРОН (ТАБЛИЦЫ)
     # -------------------------------------------------------------------------
     h7 = doc.add_heading(level=1)
     r_h7 = h7.add_run("7. Юридические гарантии и реквизиты сторон")
+    r_h7.font.name = "Arial"
     r_h7.font.color.rgb = COLOR_PRIMARY
     r_h7.font.bold = True
 
-    p_guar = doc.add_paragraph(
-        "1. Гарантия на программный код — 12 месяцев (бесплатное устранение скрытых дефектов).\n"
-        "2. 100% исключительных прав на исходный код, дизайн и базу данных передаются Заказчику без роялти."
-    )
-    p_guar.paragraph_format.space_after = Pt(10)
+    sec7_headers = ["Параметр гарантии", "Обязательства Исполнителя в договоре"]
+    sec7_widths = [Inches(2.0), Inches(4.9)]
+    sec7_aligns = [WD_ALIGN_PARAGRAPH.LEFT, WD_ALIGN_PARAGRAPH.LEFT]
+    sec7_data = [
+        ["Гарантия на программный код", "12 месяцев бесплатного устранения любых скрытых дефектов или сбоев"],
+        ["Исключительные права", "100% исключительных прав на исходный код, дизайн и базу данных передаются Заказчику"],
+        ["Отсутствие роялти", "Никаких скрытых комиссий, роялти или абонентской привязки к разработчику"],
+    ]
+    t7 = create_styled_table(doc, sec7_headers, sec7_data, sec7_widths, sec7_aligns)
+    for row in t7.rows[1:]:
+        p_g = row.cells[0].paragraphs[0]
+        if len(p_g.runs) > 0:
+            p_g.runs[0].font.bold = True
+            p_g.runs[0].font.color.rgb = COLOR_DARK
 
-    t_sign = doc.add_table(rows=2, cols=2)
+    t_sign = doc.add_table(rows=1, cols=2)
     t_sign.alignment = WD_TABLE_ALIGNMENT.CENTER
     s00 = t_sign.cell(0, 0)
     s01 = t_sign.cell(0, 1)
-    s10 = t_sign.cell(1, 0)
-    s11 = t_sign.cell(1, 1)
 
-    s00.width = Inches(3.3)
-    s01.width = Inches(3.3)
-    s10.width = Inches(3.3)
-    s11.width = Inches(3.3)
+    s00.width = Inches(3.45)
+    s01.width = Inches(3.45)
+    set_cell_background(s00, "F8FAFC")
+    set_cell_background(s01, "F8FAFC")
+    set_cell_margins(s00, top=70, bottom=70, left=80, right=80)
+    set_cell_margins(s01, top=70, bottom=70, left=80, right=80)
 
     p_s00 = s00.paragraphs[0]
-    p_s00.add_run("ОТ ИСПОЛНИТЕЛЯ:\nПроектная группа «Индийский Трикотаж»\nг. Алматы • +7 (701) 992-84-12\n\n_____________________ / М.П.").font.size = Pt(9.5)
+    r_s00_h = p_s00.add_run("ОТ ИСПОЛНИТЕЛЯ:\n")
+    r_s00_h.font.bold = True
+    r_s00_h.font.size = Pt(9.5)
+    r_s00_h.font.color.rgb = COLOR_PRIMARY
+    p_s00.add_run("Проектная IT-группа «Индийский Трикотаж»\nг. Алматы • Телефон / WhatsApp: +7 (701) 992-84-12\n\n_______________________ / М.П.").font.size = Pt(8.5)
 
     p_s01 = s01.paragraphs[0]
-    p_s01.add_run("ОТ ЗАКАЗЧИКА:\nТорговая сеть «Индийский Трикотаж»\nг. Алматы, Республика Казахстан\n\n_____________________ / М.П.").font.size = Pt(9.5)
+    r_s01_h = p_s01.add_run("ОТ ЗАКАЗЧИКА:\n")
+    r_s01_h.font.bold = True
+    r_s01_h.font.size = Pt(9.5)
+    r_s01_h.font.color.rgb = COLOR_PRIMARY
+    p_s01.add_run("Торговая сеть «Индийский Трикотаж»\nг. Алматы, Республика Казахстан\n\n\n_______________________ / М.П.").font.size = Pt(8.5)
 
     for p in output_paths:
         os.makedirs(os.path.dirname(os.path.abspath(p)), exist_ok=True)
