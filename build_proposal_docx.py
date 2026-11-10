@@ -3,16 +3,16 @@ import docx
 from docx import Document
 from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
-from docx.oxml import OxmlElement, parse_xml
-from docx.oxml.ns import nsdecls, qn
+from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.oxml import parse_xml
+from docx.oxml.ns import nsdecls
 
 def set_cell_background(cell, fill_hex):
     tcPr = cell._tc.get_or_add_tcPr()
     shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{fill_hex}"/>')
     tcPr.append(shd)
 
-def set_cell_margins(cell, top=100, bottom=100, left=150, right=150):
+def set_cell_margins(cell, top=80, bottom=80, left=100, right=100):
     tcPr = cell._tc.get_or_add_tcPr()
     tcMar = parse_xml(
         f'<w:tcMar {nsdecls("w")}>'
@@ -27,13 +27,12 @@ def set_cell_margins(cell, top=100, bottom=100, left=150, right=150):
 def create_docx(output_paths):
     doc = Document()
 
-    # Set page margins (0.8 in)
-    sections = doc.sections
-    for s in sections:
-        s.top_margin = Inches(0.8)
-        s.bottom_margin = Inches(0.8)
-        s.left_margin = Inches(0.8)
-        s.right_margin = Inches(0.8)
+    # Set page margins (0.75 in)
+    for s in doc.sections:
+        s.top_margin = Inches(0.75)
+        s.bottom_margin = Inches(0.75)
+        s.left_margin = Inches(0.75)
+        s.right_margin = Inches(0.75)
 
     # Base Colors
     HEX_DARK = "451A03"
@@ -43,16 +42,14 @@ def create_docx(output_paths):
     HEX_BG_ALT = "F8FAFC"
     HEX_GREEN = "059669"
     HEX_LIGHT_GREEN = "ECFDF5"
-    HEX_TEXT = "0F172A"
 
     COLOR_PRIMARY = RGBColor(0x78, 0x35, 0x0F)
     COLOR_DARK = RGBColor(0x45, 0x1A, 0x03)
     COLOR_GOLD = RGBColor(0xD9, 0x77, 0x06)
-    COLOR_MUTED = RGBColor(0x64, 0x74, 0x8B)
     COLOR_GREEN = RGBColor(0x05, 0x96, 0x69)
 
     # -------------------------------------------------------------------------
-    # DOCUMENT HEADER / BANNER
+    # DOCUMENT HEADER
     # -------------------------------------------------------------------------
     p_top = doc.add_paragraph()
     r_top = p_top.add_run("КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ")
@@ -64,10 +61,10 @@ def create_docx(output_paths):
     p_title = doc.add_paragraph()
     r_title = p_title.add_run("Поставка, запуск и сопровождение омниканальной цифровой экосистемы розничной сети «Индийский Трикотаж» (г. Алматы)")
     r_title.font.name = "Arial"
-    r_title.font.size = Pt(18)
+    r_title.font.size = Pt(16)
     r_title.font.bold = True
     r_title.font.color.rgb = COLOR_DARK
-    p_title.paragraph_format.space_after = Pt(6)
+    p_title.paragraph_format.space_after = Pt(4)
 
     # Metadata callout box
     t_meta = doc.add_table(rows=4, cols=2)
@@ -75,64 +72,64 @@ def create_docx(output_paths):
     meta_data = [
         ("Заказчик:", "Руководству и учредителям торговой сети «Индийский Трикотаж»"),
         ("Масштаб проекта:", "16 розничных филиалов в торговых центрах Алматы + Интернет-магазин + Мобильные приложения"),
-        ("Статус готовности:", "Платформа разработана, отлажена на боевых данных и готова к промышленному запуску"),
-        ("Дата предложения:", "08 ноября 2026 г. • г. Алматы, Республика Казахстан"),
+        ("Статус готовности:", "Платформа разработана, отлажена на реальных данных и готова к промышленному запуску"),
+        ("Дата предложения:", "10 ноября 2026 г. • г. Алматы, Республика Казахстан"),
     ]
     for i, (k, v) in enumerate(meta_data):
         row = t_meta.rows[i]
         c0, c1 = row.cells[0], row.cells[1]
-        c0.width = Inches(2.2)
-        c1.width = Inches(4.5)
+        c0.width = Inches(2.0)
+        c1.width = Inches(4.7)
         set_cell_background(c0, "F1F5F9")
         set_cell_background(c1, "F8FAFC")
-        set_cell_margins(c0, top=60, bottom=60, left=100, right=100)
-        set_cell_margins(c1, top=60, bottom=60, left=100, right=100)
+        set_cell_margins(c0, top=50, bottom=50, left=80, right=80)
+        set_cell_margins(c1, top=50, bottom=50, left=80, right=80)
         
         p0 = c0.paragraphs[0]
         r0 = p0.add_run(k)
         r0.font.bold = True
-        r0.font.size = Pt(9.5)
+        r0.font.size = Pt(9)
         r0.font.color.rgb = COLOR_PRIMARY
 
         p1 = c1.paragraphs[0]
         r1 = p1.add_run(v)
-        r1.font.size = Pt(9.5)
+        r1.font.size = Pt(9)
 
-    doc.add_paragraph().paragraph_format.space_after = Pt(8)
+    doc.add_paragraph().paragraph_format.space_after = Pt(4)
 
     # -------------------------------------------------------------------------
-    # 1. ВВЕДЕНИЕ И БИЗНЕС-ЦЕЛЬ
+    # 1. БИЗНЕС-ЦЕЛЬ И ЗАДАЧИ ПРОЕКТА
     # -------------------------------------------------------------------------
     h1 = doc.add_heading(level=1)
-    r_h1 = h1.add_run("1. Введение и бизнес-цель проекта")
+    r_h1 = h1.add_run("1. Бизнес-цель и ключевые задачи проекта")
     r_h1.font.color.rgb = COLOR_PRIMARY
     r_h1.font.bold = True
 
     p_intro = doc.add_paragraph(
-        "Торговая сеть «Индийский Трикотаж» занимает устойчивую позицию на рынке качественного трикотажа из Индии в Алматы с 16 филиалами в торговых центрах и розничных точках города.\n\n"
-        "Цель настоящего проекта — объединить 16 розничных магазинов, складские запасы и онлайн-продажи в единую цифровую экосистему, которая:\n"
-        "1. Исключает дефицит (Out-of-Stock) и потерю покупателей: сквозной онлайн-мониторинг складов и остатков 16 филиалов. Клиент видит точное наличие своего размера и оформляет самовывоз (Click & Collect) за 2 часа.\n"
-        "2. Обеспечивает своевременное пополнение филиалов: автоматический контроль неснижаемого остатка. Если в конкретном магазине заканчиваются популярные размеры или расцветки, система заранее формирует лист перемещения со склада, гарантируя непрерывное наличие товара на витринах.\n"
-        "3. Обеспечивает прямой приём платежей Kaspi: приём оплаты через Kaspi QR, Kaspi Gold, Kaspi Red (0-0-3) и Рассрочку без 10–15% комиссий сторонних маркетплейсов.\n"
-        "4. Автоматизирует оцифровку товаров через ИИ: распознавание новых партий трикотажа по фото со смартфона, мгновенная генерация характеристик и описаний на казахском и русском языках, а в тарифе «Премиум» — генерация фото одежды на живых виртуальных моделях без дорогостоящих фотосессий.\n"
-        "5. Закрепляет мобильное присутствие бренда: нативное приложение с Kaspi-подобной авторизацией по Face ID и СМС без паролей на экранах смартфонов алматинцев."
+        "Торговая сеть «Индийский Трикотаж» объединяет 16 филиалов в торговых центрах и розничных точках Алматы. "
+        "Цель проекта — объединить магазины, склады и онлайн-продажи в единую экосистему:\n"
+        "1. Сквозной учет остатков и ликвидация дефицита (Out-of-Stock): клиент и кассир видят точное наличие нужного размера в любом из 16 филиалов (Click & Collect за 2 часа).\n"
+        "2. Автоматическое пополнение филиалов: система отслеживает неснижаемый остаток и формирует листы перемещения со склада, устраняя дефицит на витринах.\n"
+        "3. Прямой приём Kaspi Pay: приём оплаты через Kaspi QR, Kaspi Gold, Kaspi Red (0-0-3) и Рассрочку без 10–15% комиссий сторонних маркетплейсов с фискализацией Webkassa.\n"
+        "4. Оцифровка коллекций через ИИ: создание карточек товаров на казахском и русском языках по фото со смартфона, а в тарифе «Премиум» — генерация лукбуков на виртуальных фотомоделях без затрат на фотостудии.\n"
+        "5. Мобильное присутствие бренда: нативное приложение с авторизацией по Face ID и СМС без паролей в стиле Kaspi."
     )
     p_intro.paragraph_format.line_spacing = 1.15
-    p_intro.paragraph_format.space_after = Pt(12)
+    p_intro.paragraph_format.space_after = Pt(6)
 
     # -------------------------------------------------------------------------
-    # 2. АРХИТЕКТУРА И СОСТАВ СИСТЕМЫ
+    # 2. АРХИТЕКТУРА ГОТОВОГО РЕШЕНИЯ
     # -------------------------------------------------------------------------
     h2 = doc.add_heading(level=1)
-    r_h2 = h2.add_run("2. Архитектура и состав разработанного программного комплекса")
+    r_h2 = h2.add_run("2. Архитектура разработанного программного комплекса")
     r_h2.font.color.rgb = COLOR_PRIMARY
     r_h2.font.bold = True
 
     arch_items = [
-        ("Интернет-магазин (Web):", "Next.js 15, React 19, Server-Side Rendering для мгновенного SEO в Google/Yandex, многоуровневая фильтрация по составу и 16 филиалам, интерактивная корзина с выбором товаров чекбоксами, мультиязычность (Русский / Қазақша)."),
-        ("Мобильное приложение (iOS & Android):", "Нативный кроссплатформенный стек Expo React Native, авторизация Kaspi по СМС без паролей, нативный Face ID / Touch ID / код разблокировки телефона, гостевой режим для покупок без регистрации, программа лояльности (кешбэк 5%)."),
-        ("Панель управления & CRM (Админка):", "Сквозной учет остатков по 16 филиалам в реальном времени, автоматический контроль дефицита и листы перемещений, модуль печати ценников со штрихкодами на существующие термопринтеры сети, управление заказами самовывоза и доставки, ролевая модель (Директор, Менеджер, Кассир)."),
-        ("Интеграции и Сервисы:", "Платежный шлюз Kaspi Pay (Kaspi QR, Kaspi Gold, Kaspi Red 0-0-3), фискализация чеков ОФД Webkassa, ИИ-модули (AI Product Ingest, WhatsApp AI-продавец 24/7, AI Fashion Studio)."),
+        ("Интернет-магазин (Web):", "Next.js 15, SSR, SEO-оптимизация, фильтры по составу и 16 филиалам, интерактивная корзина, мультиязычность (Русский / Қазақша)."),
+        ("Мобильное приложение (iOS & Android):", "Нативный кроссплатформенный стек Expo React Native, авторизация Kaspi по СМС без паролей, Face ID / Touch ID / код разблокировки, гостевой режим, кешбэк 5% бонусами."),
+        ("Панель управления & CRM (Админка):", "Сквозной учет остатков по 16 складам в реальном времени, авто-контроль дефицита, печать ценников со штрихкодами на принтеры сети, роли персонала (Директор, Менеджер, Кассир)."),
+        ("Интеграционный контур:", "Kaspi Pay (QR, Red 0-0-3), ОФД Webkassa, СМС Mobizon, ИИ-платформа (AI Ingest, WhatsApp AI-продавец 24/7, AI Fashion Studio)."),
     ]
     for title, desc in arch_items:
         p_a = doc.add_paragraph()
@@ -140,341 +137,243 @@ def create_docx(output_paths):
         r_at.font.bold = True
         r_at.font.color.rgb = COLOR_DARK
         p_a.add_run(desc)
-        p_a.paragraph_format.space_after = Pt(4)
+        p_a.paragraph_format.space_after = Pt(2)
 
-    doc.add_paragraph().paragraph_format.space_after = Pt(8)
+    doc.add_paragraph().paragraph_format.space_after = Pt(4)
 
     # -------------------------------------------------------------------------
-    # 3. БЛОК 1: СТОИМОСТЬ РАЗРАБОТКИ САЙТА И ПО
+    # 3. ЕДИНАЯ СВОДНАЯ ТАБЛИЦА РАСЧЕТОВ ПО ВСЕМ ТАРИФАМ
     # -------------------------------------------------------------------------
     h3 = doc.add_heading(level=1)
-    r_h3 = h3.add_run("3. БЛОК 1: Стоимость разработки программного комплекса (Сайт и ПО под ключ)")
+    r_h3 = h3.add_run("3. Единая сводная таблица расчетов по всем тарифам")
     r_h3.font.color.rgb = COLOR_PRIMARY
     r_h3.font.bold = True
 
-    p_dev_intro = doc.add_paragraph(
-        "В стоимость разработки входит программное ядро, все пользовательские и административные интерфейсы, мобильные приложения, документация и передача полных исключительных прав на исходный код заказчику:"
+    p_table_intro = doc.add_paragraph(
+        "В единой таблице сведены все финансовые расчеты: стоимость разработки ПО, статьи запуска, бесплатная интеграция оборудования сети (экономия 272 000 ₸), сроки окупаемости и график платежей:"
     )
-    p_dev_intro.paragraph_format.space_after = Pt(6)
+    p_table_intro.paragraph_format.space_after = Pt(4)
 
-    t_dev = doc.add_table(rows=7, cols=4)
-    t_dev.alignment = WD_TABLE_ALIGNMENT.CENTER
-    t_dev_headers = ["№", "Компонент системы", "Рыночная цена в РК", "Стоимость в нашем КП (Тариф «Премиум» / Хит)"]
-    for i, h in enumerate(t_dev_headers):
-        cell = t_dev.cell(0, i)
+    # Master Table: 26 rows, 5 columns
+    master_rows = [
+        # (type, col0_num, col1_desc, col2_std, col3_biz, col4_prem)
+        ("SECTION", "I", "БЛОК 1: РАЗРАБОТКА САЙТА И ПО ПОД КЛЮЧ", "", "", ""),
+        ("ROW", "1.1", "Интернет-магазин (Next.js 15, SSR, 16 филиалов, RU/KZ)", "2 400 000 ₸", "2 600 000 ₸", "2 800 000 ₸"),
+        ("ROW", "1.2", "Мобильное приложение iOS & Android (Kaspi ID, Face ID)", "1 800 000 ₸", "2 400 000 ₸", "3 000 000 ₸"),
+        ("ROW", "1.3", "Панель управления (CRM, 16 складов, листы перемещений)", "400 000 ₸", "600 000 ₸", "1 000 000 ₸"),
+        ("ROW", "1.4", "Интеграция Kaspi Pay (QR, Red 0-0-3) и фискализация Webkassa", "200 000 ₸", "350 000 ₸", "450 000 ₸"),
+        ("ROW", "1.5", "Пакет ИИ-модулей (AI Ingest / WhatsApp 24/7 / Fashion Studio)", "100 000 ₸", "250 000 ₸", "550 000 ₸"),
+        ("SUBTOTAL", "=", "ПОДИТОГ 1: СТОИМОСТЬ САЙТА И ПО (РАЗРАБОТКА)", "4 900 000 ₸", "6 200 000 ₸", "7 800 000 ₸"),
+        
+        ("SECTION", "II", "БЛОК 2: СТОИМОСТЬ ЗАПУСКА ПОД КЛЮЧ (ВХОДНЫЕ РАСХОДЫ)", "", "", ""),
+        ("ROW", "2.1", "Сервер VPS в Алматы (PS.kz, Закон о ПДн РК) + SSL на 1 год", "140 000 ₸", "140 000 ₸", "140 000 ₸"),
+        ("ROW", "2.2", "Брендовый домен .KZ + Облачная база PostgreSQL на 1 год", "145 000 ₸", "145 000 ₸", "145 000 ₸"),
+        ("ROW", "2.3", "Лицензии публикации App Store ($99/год) + Google Play ($25)", "62 000 ₸", "62 000 ₸", "62 000 ₸"),
+        ("ROW", "2.4", "Боевое подключение Kaspi Pay + онлайн-касса Webkassa на 1 год", "145 000 ₸", "145 000 ₸", "145 000 ₸"),
+        ("ROW", "2.5", "Стартовый пакет СМС-авторизации Mobizon", "48 000 ₸ (5k)", "88 000 ₸ (10k)", "118 000 ₸ (15k)"),
+        ("ROW", "2.6", "Оборудование 16 филиалов (2D сканеры + принтер сети)", "0 ₸ (смартфоны)", "0 ₸ (эк. −240k)", "0 ₸ (Эк. −272 000 ₸)"),
+        ("ROW", "2.7", "Настройка ИИ-инструментов (Prompting, база, WhatsApp API)", "80 000 ₸ (Lite)", "180 000 ₸ (WhatsApp)", "530 000 ₸ (Studio)"),
+        ("ROW", "2.8", "Включенная техподдержка (гарантийный период)", "330 000 ₸ (1 мес)", "350 000 ₸ (3 мес)", "540 000 ₸ (6 мес VIP)"),
+        ("SUBTOTAL", "=", "ПОДИТОГ 2: СТОИМОСТЬ ЗАПУСКА ПРОЕКТА", "950 000 ₸", "1 110 000 ₸", "1 680 000 ₸"),
+        
+        ("TOTAL", "💰", "ИТОГО ОБЩАЯ СУММА К ОПЛАТЕ (САЙТ + ЗАПУСК):", "5 850 000 ₸", "7 310 000 ₸", "9 480 000 ₸"),
+        ("HIGHLIGHT", "💵", "Эквивалент в долларах США ($):", "~ $11 700", "~ $14 620", "~ $18 960"),
+        ("HIGHLIGHT", "⏱️", "Срок окупаемости (при чистой прибыли +6.35 млн ₸/мес):", "27–28 дней", "34–35 дней", "44–45 дней (до 1.5 мес)"),
+        ("PAY", "💳", "1 ЭТАП: Авансовый платеж (50%) — старт работ:", "2 925 000 ₸", "3 655 000 ₸", "4 740 000 ₸"),
+        ("PAY", "💳", "2 ЭТАП: Промежуточный платеж (30%) — запуск сайта и Kaspi:", "1 755 000 ₸", "2 193 000 ₸", "2 844 000 ₸"),
+        ("PAY", "💳", "3 ЭТАП: Финальный платеж (20%) — релиз в сторах и сдача:", "1 170 000 ₸", "1 462 000 ₸", "1 896 000 ₸"),
+    ]
+
+    t_master = doc.add_table(rows=len(master_rows) + 1, cols=5)
+    t_master.alignment = WD_TABLE_ALIGNMENT.CENTER
+
+    # Col widths: 0.4 in, 2.7 in, 1.2 in, 1.2 in, 1.5 in
+    col_widths = [Inches(0.4), Inches(2.7), Inches(1.2), Inches(1.2), Inches(1.5)]
+
+    # Headers
+    headers = [
+        "№",
+        "Статьи сметы и компоненты проекта",
+        "Тариф «СТАНДАРТ»\n(Базовый запуск)",
+        "Тариф «БИЗНЕС»\n(Оптимальный)",
+        "⭐ Тариф «ПРЕМИУМ»\n(ХИТ / ВЫБОР СЕТИ)",
+    ]
+    for ci, h in enumerate(headers):
+        cell = t_master.cell(0, ci)
+        cell.width = col_widths[ci]
         cell.text = h
         set_cell_background(cell, HEX_PRIMARY)
-        set_cell_margins(cell, top=80, bottom=80, left=100, right=100)
+        set_cell_margins(cell, top=70, bottom=70, left=70, right=70)
         p = cell.paragraphs[0]
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER if ci in (0, 2, 3, 4) else WD_ALIGN_PARAGRAPH.LEFT
         p.runs[0].font.bold = True
         p.runs[0].font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
-        p.runs[0].font.size = Pt(9.5)
+        p.runs[0].font.size = Pt(8.5)
 
-    dev_data = [
-        ("1.1", "Интернет-магазин (Next.js 15, SSR, SEO, фильтры 16 филиалов, чекаут)", "3 500 000 ₸", "2 800 000 ₸"),
-        ("1.2", "Мобильное приложение iOS & Android (Kaspi-авторизация, Face ID, Push)", "4 500 000 ₸", "3 000 000 ₸"),
-        ("1.3", "Панель управления (CRM, сквозной учет 16 складов, листы перемещений)", "2 500 000 ₸", "1 000 000 ₸"),
-        ("1.4", "Интеграция Kaspi Pay (QR, Red 0-0-3) и фискализация Webkassa", "1 000 000 ₸", "450 000 ₸"),
-        ("1.5", "Интеграция ИИ-модулей (AI Ingest, Fashion Studio, семантический поиск)", "2 500 000 ₸", "550 000 ₸"),
-        ("ИТОГО", "СТОИМОСТЬ РАЗРАБОТКИ ПЛАТФОРМЫ ПОД КЛЮЧ (ПРЕМИУМ):", "14 000 000 ₸", "7 800 000 ₸"),
-    ]
-    for row_idx, r_data in enumerate(dev_data, start=1):
-        for col_idx, text in enumerate(r_data):
-            cell = t_dev.cell(row_idx, col_idx)
-            cell.text = text
-            bg = HEX_LIGHT_GOLD if row_idx == 6 else (HEX_BG_ALT if row_idx % 2 == 1 else "FFFFFF")
-            set_cell_background(cell, bg)
-            set_cell_margins(cell, top=60, bottom=60, left=100, right=100)
-            p = cell.paragraphs[0]
-            p.runs[0].font.size = Pt(9)
-            if row_idx == 6:
+    for ri, rdata in enumerate(master_rows, start=1):
+        rtype, c0, c1, c2, c3, c4 = rdata
+        row_cells = t_master.rows[ri].cells
+        for ci, w in enumerate(col_widths):
+            row_cells[ci].width = w
+
+        row_cells[0].text = c0
+        row_cells[1].text = c1
+        row_cells[2].text = c2
+        row_cells[3].text = c3
+        row_cells[4].text = c4
+
+        if rtype == "SECTION":
+            # Merge across cells
+            for ci in range(5):
+                set_cell_background(row_cells[ci], "E2E8F0")
+                set_cell_margins(row_cells[ci], top=40, bottom=40, left=60, right=60)
+                p = row_cells[ci].paragraphs[0]
                 p.runs[0].font.bold = True
+                p.runs[0].font.size = Pt(8.5)
                 p.runs[0].font.color.rgb = COLOR_DARK
-            elif col_idx == 3:
+        elif rtype == "SUBTOTAL":
+            for ci in range(5):
+                set_cell_background(row_cells[ci], HEX_LIGHT_GOLD)
+                set_cell_margins(row_cells[ci], top=50, bottom=50, left=60, right=60)
+                p = row_cells[ci].paragraphs[0]
                 p.runs[0].font.bold = True
+                p.runs[0].font.size = Pt(8.5)
+                p.runs[0].font.color.rgb = COLOR_DARK
+                if ci in (2, 3, 4):
+                    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        elif rtype == "TOTAL":
+            for ci in range(5):
+                set_cell_background(row_cells[ci], HEX_PRIMARY)
+                set_cell_margins(row_cells[ci], top=60, bottom=60, left=60, right=60)
+                p = row_cells[ci].paragraphs[0]
+                p.runs[0].font.bold = True
+                p.runs[0].font.size = Pt(9.5)
+                p.runs[0].font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
+                if ci in (2, 3, 4):
+                    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        elif rtype == "HIGHLIGHT":
+            for ci in range(5):
+                set_cell_background(row_cells[ci], HEX_LIGHT_GREEN)
+                set_cell_margins(row_cells[ci], top=40, bottom=40, left=60, right=60)
+                p = row_cells[ci].paragraphs[0]
+                p.runs[0].font.bold = True
+                p.runs[0].font.size = Pt(8.5)
                 p.runs[0].font.color.rgb = COLOR_GREEN
+                if ci in (2, 3, 4):
+                    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        elif rtype == "PAY":
+            for ci in range(5):
+                set_cell_background(row_cells[ci], HEX_BG_ALT)
+                set_cell_margins(row_cells[ci], top=40, bottom=40, left=60, right=60)
+                p = row_cells[ci].paragraphs[0]
+                p.runs[0].font.size = Pt(8.5)
+                if ci in (2, 3, 4):
+                    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+                    p.runs[0].font.bold = True
+                    p.runs[0].font.color.rgb = COLOR_PRIMARY
+        else:
+            # Regular row
+            bg = HEX_BG_ALT if ri % 2 == 1 else "FFFFFF"
+            for ci in range(5):
+                set_cell_background(row_cells[ci], bg)
+                set_cell_margins(row_cells[ci], top=40, bottom=40, left=60, right=60)
+                p = row_cells[ci].paragraphs[0]
+                p.runs[0].font.size = Pt(8)
+                if ci in (2, 3, 4):
+                    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+                if ci == 4:
+                    p.runs[0].font.bold = True
+                if c0 == "2.6":
+                    p.runs[0].font.color.rgb = COLOR_GREEN
 
-    doc.add_paragraph().paragraph_format.space_after = Pt(8)
+    # Explanatory Callout
+    p_eq_note = doc.add_paragraph()
+    p_eq_note.paragraph_format.space_before = Pt(6)
+    p_eq_note.paragraph_format.space_after = Pt(6)
+    r_eq_h = p_eq_note.add_run("🎁 ПРЯМАЯ ЭКОНОМИЯ 272 000 ₸ НА ОБОРУДОВАНИИ СЕТИ:\n")
+    r_eq_h.font.bold = True
+    r_eq_h.font.size = Pt(9)
+    r_eq_h.font.color.rgb = COLOR_GREEN
+    r_eq_b = p_eq_note.add_run(
+        "• В розничной сети «Индийский Трикотаж» уже установлены 2D-сканеры на всех 16 кассах, а на складе есть термопринтер для этикеток. Наша платформа поддерживает работу с существующей техникой сети «из коробки» (HID-интерфейс + браузерная печать). Закупка нового оборудования не требуется — экономия бюджета 272 000 ₸ на старте!\n"
+        "• WhatsApp AI-продавец 24/7 (180 000 ₸ разово): это разовая настройка и обучение нейросети разработчиком под трикотаж (рыночная цена в РК: 250–600 тыс. ₸). Ежемесячные токены и трафик (~25–40 тыс. ₸/мес) оплачиваются Заказчиком напрямую провайдерам по факту."
+    )
+    r_eq_b.font.size = Pt(8.5)
 
     # -------------------------------------------------------------------------
-    # 4. БЛОК 2: СТОИМОСТЬ ЗАПУСКА ПРОЕКТА
+    # 4. ФИНАНСОВЫЙ ЭФФЕКТ СЕТИ (ROI)
     # -------------------------------------------------------------------------
     h4 = doc.add_heading(level=1)
-    r_h4 = h4.add_run("4. БЛОК 2: Стоимость запуска проекта (Входные расходы заказчика под ключ)")
+    r_h4 = h4.add_run("4. Финансовый эффект сети и окупаемость инвестиций (ROI)")
     r_h4.font.color.rgb = COLOR_PRIMARY
     r_h4.font.bold = True
 
-    p_start_intro = doc.add_paragraph(
-        "Стоимость запуска включает обязательные расходы на инфраструктуру, лицензии, сертификаты, шлюзы и техническое сопровождение на 1-й год. Благодаря наличию у сети собственных 2D-сканеров и принтеров этикеток, статья расходов на оборудование равна 0 ₸:"
+    p_roi = doc.add_paragraph(
+        "Платформа конвертирует существующий покупательский поток сети в дополнительную чистую прибыль:\n"
+        "• Онлайн-заказы курьером (20 чек/день × 7 500 ₸ × маржа 55%): + 2 475 000 ₸ / месяц\n"
+        "• Самовывоз Click & Collect из 16 филиалов (15 сохраненных чеков/день): + 1 856 000 ₸ / месяц\n"
+        "• Ликвидация дефицита (Out-of-Stock) по складам (~12 покупок/день): + 1 650 000 ₸ / месяц\n"
+        "• Экономия на комиссиях Kaspi Магазина (перевод клиентов в свое ПО): + 450 000 ₸ / месяц\n"
+        "• Минус ежемесячный OPEX (серверы, СМС, токены ИИ): - 75 000 ₸ / месяц\n"
+        "ИТОГО ДОПОЛНИТЕЛЬНАЯ ЧИСТАЯ ПРИБЫЛЬ СЕТИ: + 6 356 000 ₸ в месяц.\n\n"
+        "Сроки окупаемости по всем тарифам:\n"
+        "1. Тариф «СТАНДАРТ» (5 850 000 ₸): 5 850 000 ₸ / 6 356 000 ₸ = 0.92 месяца (всего 27–28 дней!).\n"
+        "2. Тариф «БИЗНЕС» (7 310 000 ₸): 7 310 000 ₸ / 6 356 000 ₸ = 1.15 месяца (всего 34–35 дней!).\n"
+        "3. ⭐ Тариф «ПРЕМИУМ» (9 480 000 ₸): 9 480 000 ₸ / 6 356 000 ₸ = 1.49 месяца (всего 44–45 дней!).\n"
+        "Каждый тариф полностью окупается менее чем за 1.5 месяца, принося более 75 млн ₸ дополнительного дохода за первый год."
     )
-    p_start_intro.paragraph_format.space_after = Pt(6)
-
-    t_start = doc.add_table(rows=14, cols=4)
-    t_start.alignment = WD_TABLE_ALIGNMENT.CENTER
-    start_headers = ["Статья расходов", "Назначение статьи", "Срок / Единицы", "Сумма (₸)"]
-    for i, h in enumerate(start_headers):
-        cell = t_start.cell(0, i)
-        cell.text = h
-        set_cell_background(cell, HEX_PRIMARY)
-        set_cell_margins(cell, top=80, bottom=80, left=100, right=100)
-        p = cell.paragraphs[0]
-        p.runs[0].font.bold = True
-        p.runs[0].font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
-        p.runs[0].font.size = Pt(9.5)
-
-    start_data = [
-        ("Сервер VPS в Алматы (PS.kz)", "ЦОД в Казахстане (требование Закона РК о защите ПДн)", "12 месяцев", "140 000 ₸"),
-        ("Брендовый домен .kz + SSL", "Регистрация indiatrikotaj.kz + Wildcard SSL сертификат", "12 месяцев", "25 000 ₸"),
-        ("Облачная СУБД + S3 хранилище", "Отказоустойчивая PostgreSQL + облачный диск медиафайлов", "12 месяцев", "120 000 ₸"),
-        ("Apple Developer Program", "Официальная публикация в App Store на имя компании ($99)", "1 год", "49 500 ₸"),
-        ("Google Play Console", "Публикация приложения в Google Play ($25 разово)", "Бессрочно", "12 500 ₸"),
-        ("Боевое подключение Kaspi Pay", "Регистрация мерчанта, боевые API-ключи, комплаенс", "Разово", "90 000 ₸"),
-        ("Фискализация ОФД Webkassa", "Интеграция фискальных чеков с налоговыми органами РК", "12 месяцев", "55 000 ₸"),
-        ("Пакет СМС (15 000 шт.)", "Беспарольная авторизация клиентов через Mobizon", "Стартовый пакет", "118 000 ₸"),
-        ("Оборудование филиалов и склада", "16 сканеров + принтер: парк Заказчика (сопряжение 0 ₸)", "В наличии у сети", "0 ₸ (Экономия: -272 000 ₸)"),
-        ("Настройка WhatsApp AI 24/7 (Setup)", "Обучение промптов (RU/KZ), загрузка номенклатуры, API", "Разово (Setup)", "180 000 ₸"),
-        ("Настройка AI Fashion Studio (Setup)", "Развертывание пайплайна генерации одежды на виртуальных моделях", "Разово (Setup)", "350 000 ₸"),
-        ("VIP-техподдержка и SLA (6 мес.)", "Мониторинг 24/7, бэкапы каждые 6 часов, приоритетный саппорт", "6 месяцев (гарантия)", "540 000 ₸"),
-        ("ИТОГО СТОИМОСТЬ ЗАПУСКА:", "Все ресурсы, лицензии, сопряжение и ввод в эксплуатацию", "Тариф «Премиум»", "1 680 000 ₸"),
-    ]
-    for row_idx, r_data in enumerate(start_data, start=1):
-        for col_idx, text in enumerate(r_data):
-            cell = t_start.cell(row_idx, col_idx)
-            cell.text = text
-            bg = HEX_LIGHT_GOLD if row_idx == 13 else (HEX_LIGHT_GREEN if row_idx == 9 else (HEX_BG_ALT if row_idx % 2 == 1 else "FFFFFF"))
-            set_cell_background(cell, bg)
-            set_cell_margins(cell, top=60, bottom=60, left=100, right=100)
-            p = cell.paragraphs[0]
-            p.runs[0].font.size = Pt(9)
-            if row_idx == 13:
-                p.runs[0].font.bold = True
-                p.runs[0].font.color.rgb = COLOR_DARK
-            elif row_idx == 9:
-                p.runs[0].font.bold = True
-                p.runs[0].font.color.rgb = COLOR_GREEN
-            elif col_idx == 3:
-                p.runs[0].font.bold = True
-                p.runs[0].font.color.rgb = COLOR_PRIMARY
-
-    # Explanatory Notes Callout
-    p_eq_note = doc.add_paragraph()
-    r_eq_h = p_eq_note.add_run("🎁 ПРЯМАЯ ЭКОНОМИЯ НА ОБОРУДОВАНИИ (−272 000 ₸):\n")
-    r_eq_h.font.bold = True
-    r_eq_h.font.color.rgb = COLOR_GREEN
-    p_eq_note.add_run(
-        "• В розничной сети «Индийский Трикотаж» уже установлены 2D-сканеры на всех 16 кассах, а на центральном складе имеется термопринтер для этикеток. Наша платформа поддерживает работу с существующим парком техники «из коробки» (HID-интерфейс сканеров + прямая печать этикеток из веб-панели). Покупка новых устройств не требуется — бюджет клиента экономит 272 000 ₸ на старте!\n"
-        "• WhatsApp AI-продавец 24/7 (180 000 ₸ разово): Это разовая стоимость работ разработчика по интеграции и обучению (Setup fee) — написание системных промптов (RU/KZ), алгоритмы подбора размеров по росту/весу, интеграция с остатками 16 филиалов. Ежемесячные затраты на трафик и токены нейросети (~25 000 – 40 000 ₸/мес) оплачиваются Заказчиком напрямую провайдерам по фактическому объему переписки."
-    )
-    p_eq_note.paragraph_format.line_spacing = 1.15
-    p_eq_note.paragraph_format.space_after = Pt(8)
+    p_roi.paragraph_format.line_spacing = 1.15
+    p_roi.paragraph_format.space_after = Pt(6)
 
     # -------------------------------------------------------------------------
-    # 5. БЛОК 3: ИИ-ИНСТРУМЕНТЫ
+    # 5. АБОНЕНТСКОЕ СОПРОВОЖДЕНИЕ
     # -------------------------------------------------------------------------
     h5 = doc.add_heading(level=1)
-    r_h5 = h5.add_run("5. БЛОК 3: ИИ-инструменты для платформы (3 Варианта на выбор)")
+    r_h5 = h5.add_run("5. Абонентское сопровождение и регламент доработок (MRR)")
     r_h5.font.color.rgb = COLOR_PRIMARY
     r_h5.font.bold = True
 
-    ai_desc = [
-        ("Вариант А: «AI-Товаровед Lite» (Эконом)", "Распознавание одежды по фото со смартфона на складе, определение состава ткани, мгновенная генерация карточки товара на русском и казахском языках за 3 секунды. Заменяет штатного копирайтера (экономия ~150 000 ₸/мес). Настройка: 80 000 ₸. API: ~15 000 ₸/мес."),
-        ("Вариант Б: «Smart Business: AI-Товаровед + WhatsApp AI-Консультант 24/7»", "Все из Lite + семантический поиск + виртуальный продавец в WhatsApp 24/7. Бот консультирует клиентов по подбору размера по росту/весу, проверяет остатки в ближайшем из 16 филиалов и присылает готовую ссылку на корзину с Kaspi Red 0-0-3. Заменяет 2 ночных операторов (экономия ~450 000 ₸/мес). Настройка: 180 000 ₸. API: ~35 000 ₸/мес."),
-        ("⭐ Вариант В: «Fashion Studio & Virtual Fitting» (Премиум / Флагман)", "Все из Smart Business + генерация фото одежды на живых виртуальных моделях (парни и девушки) в алматинских локациях и интерьерах. Фотография трикотажа на вешалке превращается в студийный лук. Полная замена найма моделей, фотографов и аренды студий (экономия до ~900 000 ₸/мес). Настройка: 350 000 ₸. API: ~65 000 ₸/мес."),
-    ]
-    for atitle, adesc in ai_desc:
-        p_ai = doc.add_paragraph()
-        r_ait = p_ai.add_run(f"• {atitle}\n")
-        r_ait.font.bold = True
-        r_ait.font.color.rgb = COLOR_PRIMARY
-        p_ai.add_run(adesc)
-        p_ai.paragraph_format.space_after = Pt(6)
-
-    doc.add_paragraph().paragraph_format.space_after = Pt(8)
+    p_mrr = doc.add_paragraph(
+        "После завершения гарантийного периода действует договор сервисной поддержки стабильности:\n"
+        "• Тариф «Базовый мониторинг» (150 000 ₸/мес): uptime 99.9% 24/7, бэкапы каждые 6 часов, контроль домена, SSL, шлюзов Kaspi Pay и Webkassa.\n"
+        "• Тариф «Премиум DevOps» (250 000 ₸/мес): базовый мониторинг + обязательная адаптация мобильных приложений под новые требования iOS (Apple) и Android (Google) при ежегодных обновлениях ОС (гарантия от блокировки и удаления из сторов).\n\n"
+        "⚠️ РЕГЛАМЕНТ РАЗРАБОТКИ НОВЫХ ФУНКЦИЙ:\n"
+        "Абонентская плата обеспечивает исключительно стабильность, безопасность и совместимость платформы. Доработка любого нового функционала, отчетов или акций выполняется строго по отдельным Дополнительным соглашениям (по ТЗ)."
+    )
+    p_mrr.paragraph_format.line_spacing = 1.15
+    p_mrr.paragraph_format.space_after = Pt(6)
 
     # -------------------------------------------------------------------------
-    # 6. БЛОК 4: ИТОГОВАЯ ОБЩАЯ СУММА ПРОЕКТА
+    # 6. ГРАФИК ВНЕДРЕНИЯ (14 ДНЕЙ)
     # -------------------------------------------------------------------------
     h6 = doc.add_heading(level=1)
-    r_h6 = h6.add_run("6. БЛОК 4: Итоговая стоимость проекта (Стоимость сайта + Стоимость запуска)")
+    r_h6 = h6.add_run("6. График внедрения Тарифа «Премиум» за 14 рабочих дней")
     r_h6.font.color.rgb = COLOR_PRIMARY
     r_h6.font.bold = True
 
-    p_tot_form = doc.add_paragraph()
-    r_tf = p_tot_form.add_run("ОБЩАЯ СУММА К ОПЛАТЕ = Стоимость сайта (разработка) + Стоимость запуска проекта под ключ")
-    r_tf.font.bold = True
-    r_tf.font.color.rgb = COLOR_DARK
-    p_tot_form.paragraph_format.space_after = Pt(6)
-
-    t_tariffs = doc.add_table(rows=5, cols=4)
-    t_tariffs.alignment = WD_TABLE_ALIGNMENT.CENTER
-    tariff_headers = ["Тарифный пакет", "Стоимость сайта (ПО)", "Стоимость запуска", "ИТОГО ОБЩАЯ СУММА"]
-    for i, h in enumerate(tariff_headers):
-        cell = t_tariffs.cell(0, i)
-        cell.text = h
-        set_cell_background(cell, HEX_PRIMARY)
-        set_cell_margins(cell, top=80, bottom=80, left=100, right=100)
-        p = cell.paragraphs[0]
-        p.runs[0].font.bold = True
-        p.runs[0].font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
-        p.runs[0].font.size = Pt(9.5)
-
-    tariff_rows = [
-        ("Тариф «СТАНДАРТ» (Базовый запуск: Web + Приложение + 16 филиалов + AI Lite)", "4 900 000 ₸", "950 000 ₸", "5 850 000 ₸ (~$11 700)"),
-        ("Тариф «БИЗНЕС» (+ WhatsApp AI 24/7 + свои сканеры 0 ₸ + 3 мес. саппорта)", "6 200 000 ₸", "1 110 000 ₸", "7 310 000 ₸ (~$14 620)"),
-        ("⭐ Тариф «ПРЕМИУМ / ENTERPRISE» (ХИТ: + AI Fashion Studio + свои сканеры/принтер 0 ₸ + 6 мес. VIP)", "7 800 000 ₸", "1 680 000 ₸", "9 480 000 ₸ (~$18 960)"),
-        ("РЕКОМЕНДАЦИЯ:", "Оптимальный выбор для сети из 16 магазинов:", "ТАРИФ «ПРЕМИУМ»", "9 480 000 ₸ ПОД КЛЮЧ"),
-    ]
-    for row_idx, r_data in enumerate(tariff_rows, start=1):
-        for col_idx, text in enumerate(r_data):
-            cell = t_tariffs.cell(row_idx, col_idx)
-            cell.text = text
-            bg = HEX_LIGHT_GOLD if row_idx in (3, 4) else (HEX_BG_ALT if row_idx % 2 == 1 else "FFFFFF")
-            set_cell_background(cell, bg)
-            set_cell_margins(cell, top=70, bottom=70, left=100, right=100)
-            p = cell.paragraphs[0]
-            p.runs[0].font.size = Pt(9.5)
-            if row_idx == 3 or col_idx == 3:
-                p.runs[0].font.bold = True
-                p.runs[0].font.color.rgb = COLOR_GREEN if col_idx == 3 else COLOR_DARK
-
-    doc.add_paragraph().paragraph_format.space_after = Pt(8)
+    p_roadmap = doc.add_paragraph(
+        "• Дни 1–3 (Организационный запуск): Договор, аванс 50%, регистрация домена .KZ, выпуск Wildcard SSL, аккаунты Apple ($99) и Google ($25), серверы PS.kz в ЦОД Алматы.\n"
+        "• Дни 4–7 (Шлюзы и касса): Боевое подключение Kaspi Pay (QR, Red 0-0-3), ОФД Webkassa, подключение СМС Mobizon и WhatsApp Business API.\n"
+        "• Дни 8–11 (ИИ и Склады сети): Запуск AI Fashion Studio (виртуальные модели), сквозные остатки 16 филиалов, бесплатное сопряжение сканеров и принтеров сети.\n"
+        "• Дни 12–14 (Релиз и обучение): Тестовый платеж 100 ₸ Kaspi QR, инструктаж кассиров 16 точек, релиз в App Store & Google Play, старт продаж."
+    )
+    p_roadmap.paragraph_format.line_spacing = 1.15
+    p_roadmap.paragraph_format.space_after = Pt(6)
 
     # -------------------------------------------------------------------------
-    # 7. АБОНЕНТСКОЕ СОПРОВОЖДЕНИЕ
+    # 7. ГАРАНТИИ И ПОДПИСИ СТОРОН
     # -------------------------------------------------------------------------
     h7 = doc.add_heading(level=1)
-    r_h7 = h7.add_run("7. Абонентское сопровождение и регламент доработок (MRR)")
+    r_h7 = h7.add_run("7. Юридические гарантии и реквизиты сторон")
     r_h7.font.color.rgb = COLOR_PRIMARY
     r_h7.font.bold = True
 
-    p_mrr = doc.add_paragraph(
-        "После завершения гарантийного периода (в тарифе «Премиум» включено 6 месяцев VIP-саппорта) заказчик переходит на сервисный контракт по поддержанию жизнедеятельности и безопасности платформы:\n\n"
-        "1. Тариф «Базовый мониторинг и стабильность» — 150 000 ₸ / месяц:\n"
-        "   • Мониторинг работоспособности серверов и СУБД 24/7 (SLA 99.9%).\n"
-        "   • Автоматическое резервное копирование каждые 6 часов на внешнее S3-хранилище.\n"
-        "   • Контроль продления домена .kz, SSL-сертификатов, ключей Apple Developer и Google Play.\n"
-        "   • Мониторинг боевых интеграций Kaspi Pay и фискализации ОФД Webkassa.\n"
-        "   • Устранение любых сбоев с гарантированным временем реакции до 2 часов.\n\n"
-        "2. Тариф «Премиум DevOps и безопасность» — 250 000 ₸ / месяц:\n"
-        "   • Все услуги базового мониторинга.\n"
-        "   • Обязательная адаптация мобильных приложений под новые требования операционных систем iOS (Apple) и Android (Google) при выходе ежегодных обновлений ОС (гарантия того, что приложения не заблокируют и не удалят из сторов).\n"
-        "   • Выделенный приоритет технической поддержки (реакция до 30 минут).\n"
-        "   • Мониторинг стабильности AI-пайплайна и вебхуков WhatsApp.\n\n"
-        "⚠️ ВАЖНЕЙШИЙ РЕГЛАМЕНТ РАЗРАБОТКИ НОВЫХ ФУНКЦИЙ:\n"
-        "Абонентская плата направлена исключительно на отказоустойчивость, безопасность и системную совместимость платформы. Любые доработки функционала, добавление новых модулей, маркетинговых механик, отчетов или изменений дизайна оцениваются и реализуются исключительно на основании отдельных Дополнительных соглашений (по ТЗ или за каждую фичу). Это защищает обе стороны от споров и размывания рамок проекта."
+    p_guar = doc.add_paragraph(
+        "1. Гарантия на программный код — 12 месяцев (бесплатное устранение скрытых дефектов).\n"
+        "2. 100% исключительных прав на исходный код, дизайн и базу данных передаются Заказчику без роялти."
     )
-    p_mrr.paragraph_format.line_spacing = 1.15
-    p_mrr.paragraph_format.space_after = Pt(10)
+    p_guar.paragraph_format.space_after = Pt(10)
 
-    # -------------------------------------------------------------------------
-    # 8. ЭКОНОМИЧЕСКИЙ ЭФФЕКТ И ОКУПАЕМОСТЬ
-    # -------------------------------------------------------------------------
-    h8 = doc.add_heading(level=1)
-    r_h8 = h8.add_run("8. Финансовый эффект и сроки окупаемости инвестиций (ROI)")
-    r_h8.font.color.rgb = COLOR_PRIMARY
-    r_h8.font.bold = True
-
-    p_roi_desc = doc.add_paragraph(
-        "Сеть «Индийский Трикотаж» уже обладает ключевым активом — трафиком 16 магазинов и тысячами покупателей. Платформа просто конвертирует этот трафик в прямой доход:\n"
-        "• Онлайн-заказы с доставкой курьером по Алматы (20 заказов/день × чек 7 500 ₸ × маржа 55%): + 2 475 000 ₸ / мес.\n"
-        "• Самовывоз из 16 филиалов Click & Collect (15 сохраненных покупок/день): + 1 856 000 ₸ / мес.\n"
-        "• Ликвидация дефицита (Out-of-Stock) за счет сквозного учета остатков: своевременное пополнение витрин (~12 сохраненных покупок/день): + 1 650 000 ₸ / мес.\n"
-        "• Экономия на комиссиях маркетплейса Kaspi.kz (перевод покупателей в свое приложение): + 450 000 ₸ / мес.\n"
-        "• Минус ежемесячный OPEX (серверы, СМС, ИИ-токены): - 75 000 ₸ / мес.\n"
-        "ИТОГО ЧИСТАЯ ДОПОЛНИТЕЛЬНАЯ ПРИБЫЛЬ СЕТИ: + 6 356 000 ₸ в месяц.\n\n"
-        "Сроки окупаемости по ВСЕМ тарифам (с учетом экономии на оборудовании):\n"
-        "1. Тариф «СТАНДАРТ» (5 850 000 ₸): 5 850 000 ₸ / 6 356 000 ₸ = 0.92 месяца (ВСЕГО 27–28 ДНЕЙ!).\n"
-        "2. Тариф «БИЗНЕС» (7 310 000 ₸): 7 310 000 ₸ / 6 356 000 ₸ = 1.15 месяца (ВСЕГО 34–35 ДНЕЙ!).\n"
-        "3. ⭐ Тариф «ПРЕМИУМ / ENTERPRISE» (9 480 000 ₸): 9 480 000 ₸ / 6 356 000 ₸ = 1.49 месяца (ВСЕГО 44–45 ДНЕЙ!).\n\n"
-        "Все варианты окупаются быстрее 1.5 месяцев, а годовая дополнительная прибыль сети превышает 75 000 000 ₸ при ROI > 750%."
-    )
-    p_roi_desc.paragraph_format.line_spacing = 1.15
-    p_roi_desc.paragraph_format.space_after = Pt(10)
-
-    # -------------------------------------------------------------------------
-    # 9. ГРАФИК ВНЕДРЕНИЯ (14 РАБОЧИХ ДНЕЙ)
-    # -------------------------------------------------------------------------
-    h9 = doc.add_heading(level=1)
-    r_h9 = h9.add_run("9. Поэтапный график внедрения Тарифа «Премиум» (14 рабочих дней)")
-    r_h9.font.color.rgb = COLOR_PRIMARY
-    r_h9.font.bold = True
-
-    p_steps = doc.add_paragraph(
-        "Платформа полностью разработана и отлажена на реальных данных. Ввод в промышленную эксплуатацию занимает 14 рабочих дней:\n\n"
-        "• Этап 1 (Дни 1–3): Организационный запуск и инфраструктура\n"
-        "  Подписание договора, внесение аванса 50%, регистрация официального домена indiatrikotaj.kz, выпуск корпоративного Wildcard SSL сертификата, оформление корпоративных учетных записей Apple Developer Program ($99) и Google Play ($25), развертывание выделенных серверов PS.kz в ЦОД Алматы и СУБД PostgreSQL.\n\n"
-        "• Этап 2 (Дни 4–7): Финансовый контур, касса и мессенджеры\n"
-        "  Подключение боевого эквайринга Kaspi Pay (Kaspi QR, Kaspi Gold, Kaspi Red 0-0-3, Рассрочка), интеграция фискализации онлайн-кассы Webkassa, подключение казахстанского СМС-шлюза Mobizon, подключение WhatsApp Business API для AI-продавца.\n\n"
-        "• Этап 3 (Дни 8–11): Загрузка каталога, ИИ Премиум и сопряжение оборудования сети\n"
-        "  Развертывание AI Fashion Studio: генерация лукбуков на виртуальных фотомоделях, загрузка номенклатуры и сквозных остатков 16 филиалов, обучение и запуск умного WhatsApp AI-консультанта 24/7 с матрицей подбора размеров, бесплатное сопряжение 16 существующих сканеров филиалов и калибровка шаблонов ценников со штрихкодами под имеющиеся термопринтеры склада.\n\n"
-        "• Этап 4 (Дни 12–14): Тестирование, обучение кассиров и Официальный Релиз\n"
-        "  Проведение контрольных платежей Kaspi QR на 100 ₸ с фискализацией в ОФД, инструктаж старших кассиров 16 филиалов по выдаче заказов самовывоза, отправка на финальную модерацию и релиз приложений в App Store и Google Play, старт рекламной кампании в Instagram."
-    )
-    p_steps.paragraph_format.line_spacing = 1.15
-    p_steps.paragraph_format.space_after = Pt(12)
-
-    # -------------------------------------------------------------------------
-    # 10. ПОРЯДОК РАСЧЕТОВ И ЮРИДИЧЕСКИЕ ГАРАНТИИ
-    # -------------------------------------------------------------------------
-    h10 = doc.add_heading(level=1)
-    r_h10 = h10.add_run("10. Порядок расчетов и юридические гарантии")
-    r_h10.font.color.rgb = COLOR_PRIMARY
-    r_h10.font.bold = True
-
-    p_pay_intro = doc.add_paragraph(
-        "Оплата производится поэтапно в строгой привязке к видимым результатам работы. Для максимальной прозрачности суммы платежей зафиксированы в договоре:\n"
-    )
-    p_pay_intro.paragraph_format.space_after = Pt(4)
-
-    t_milestones = doc.add_table(rows=4, cols=4)
-    t_milestones.alignment = WD_TABLE_ALIGNMENT.CENTER
-    ms_headers = ["Этап оплаты", "Условие и результат этапа", "% от сметы", "Сумма в Тарифе «Премиум»"]
-    for i, h in enumerate(ms_headers):
-        cell = t_milestones.cell(0, i)
-        cell.text = h
-        set_cell_background(cell, HEX_PRIMARY)
-        set_cell_margins(cell, top=70, bottom=70, left=90, right=90)
-        p = cell.paragraphs[0]
-        p.runs[0].font.bold = True
-        p.runs[0].font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
-        p.runs[0].font.size = Pt(9.5)
-
-    ms_data = [
-        ("1 этап (Аванс)", "Подписание договора, бронирование серверов, домена, SSL и аккаунтов Apple/Google", "50%", "4 740 000 ₸"),
-        ("2 этап (Промежуточный)", "Демонстрация рабочего сайта на боевом домене с подключенным Kaspi Pay и каталогом 16 филиалов", "30%", "2 844 000 ₸"),
-        ("3 этап (Финальный)", "Успешная публикация приложений в App Store и Google Play, сдача полного проекта заказчику", "20%", "1 896 000 ₸"),
-    ]
-    for row_idx, r_data in enumerate(ms_data, start=1):
-        for col_idx, text in enumerate(r_data):
-            cell = t_milestones.cell(row_idx, col_idx)
-            cell.text = text
-            set_cell_background(cell, HEX_BG_ALT if row_idx % 2 == 1 else "FFFFFF")
-            set_cell_margins(cell, top=60, bottom=60, left=90, right=90)
-            p = cell.paragraphs[0]
-            p.runs[0].font.size = Pt(9)
-            if col_idx in (2, 3):
-                p.runs[0].font.bold = True
-                p.runs[0].font.color.rgb = COLOR_GREEN if col_idx == 3 else COLOR_PRIMARY
-
-    p_guar = doc.add_paragraph()
-    p_guar.paragraph_format.space_before = Pt(8)
-    p_guar.paragraph_format.space_after = Pt(14)
-    r_gh = p_guar.add_run("Юридические гарантии заказчика:\n")
-    r_gh.font.bold = True
-    r_gh.font.color.rgb = COLOR_PRIMARY
-    p_guar.add_run(
-        "1. Гарантия на программный код — 12 месяцев: бесплатное устранение любых скрытых дефектов или программных сбоев.\n"
-        "2. Передача 100% исключительных прав: заказчик получает полный доступ к репозиторию исходного кода, дизайну и базе данных. Никаких скрытых арендных платежей, привязки к разработчику или роялти.\n"
-        "3. Полная юридическая чистота: программный комплекс создается на базе передового открытого стека без лицензионных рисков."
-    )
-
-    # -------------------------------------------------------------------------
-    # 11. SIGNATURE BLOCK
-    # -------------------------------------------------------------------------
-    h11 = doc.add_heading(level=1)
-    r_h11 = h11.add_run("11. Реквизиты и подписи сторон")
-    r_h11.font.color.rgb = COLOR_PRIMARY
-    r_h11.font.bold = True
     t_sign = doc.add_table(rows=2, cols=2)
     t_sign.alignment = WD_TABLE_ALIGNMENT.CENTER
     s00 = t_sign.cell(0, 0)

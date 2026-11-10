@@ -125,3 +125,4 @@ export function verifyStaffAuth(req: Request): {
     error: 'Недостаточно прав доступа или сессия истекла',
   };
 }
+
