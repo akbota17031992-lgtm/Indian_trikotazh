@@ -44,6 +44,8 @@ uploads/
 .DS_Store
 Thumbs.db
 desktop.ini
+~$*
+*.tmp
 
 # IDE & Editors
 .idea/
