@@ -25,6 +25,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
     "test": "pnpm run test:unit",
+    "test:all": "pnpm test:unit && pnpm test:api && pnpm --dir apps/web test",
+    "ci:verify": "pnpm build:packages && pnpm type-check && pnpm test:all",
     "test:unit": "pnpm -r --filter \"./packages/**\" test",
     "test:shared": "pnpm --filter @india-trikotaj/shared test",
     "test:api": "pnpm --filter @india-trikotaj/api test",

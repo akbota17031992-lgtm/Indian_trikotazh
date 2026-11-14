@@ -10,7 +10,7 @@
     "verify": "node ./scripts/build.js",
     "lint": "tsc --noEmit",
     "type-check": "tsc --noEmit",
-    "test": "node --test --experimental-strip-types tests/storefront.test.ts"
+    "test": "node --test --experimental-strip-types tests/storefront.test.ts tests/ai-stylist.test.ts"
   },
   "dependencies": {
     "@india-trikotaj/shared": "workspace:*",

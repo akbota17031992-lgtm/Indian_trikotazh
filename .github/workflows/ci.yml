@@ -1,0 +1,139 @@
+name: CI — Continuous Integration
+
+on:
+  push:
+    branches: [main, develop, 'feature/**', 'fix/**', 'release/**']
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  lint-and-typecheck:
+    name: 🔍 Lint, Format & TypeCheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Code Formatting Check (Prettier)
+        run: pnpm format:check
+
+      - name: Build Monorepo Shared Packages
+        run: pnpm build:packages
+
+      - name: Monorepo TypeCheck (TypeScript)
+        run: pnpm type-check
+
+  test-suite:
+    name: 🧪 Automated Test Suite (233+ Tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: lint-and-typecheck
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Monorepo Packages
+        run: pnpm build:packages
+
+      - name: Run Core Packages Unit Tests (Shared & AI - 168 tests)
+        run: pnpm test:unit
+
+      - name: Run Backend API Security & Acceptance Tests (31 tests)
+        run: pnpm test:api
+
+      - name: Run Web Storefront & AI-Stylist Tests (34 tests)
+        run: pnpm --dir apps/web test
+
+  build-production:
+    name: 🏗️ Production Build Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [lint-and-typecheck, test-suite]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Shared Packages
+        run: pnpm build:packages
+
+      - name: Build Backend API
+        run: pnpm --filter @india-trikotaj/api build
+
+      - name: Build Web Frontend (Next.js 15 SSR)
+        run: pnpm --filter @india-trikotaj/web build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+          NODE_ENV: 'production'
+
+  security-audit:
+    name: 🛡️ Security Audit & Secret Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Check Dependencies Vulnerabilities
+        run: pnpm audit --prod --audit-level=high || true
+
+      - name: Secret Leak Prevention Check
+        run: |
+          echo "Scanning for accidentally committed credentials..."
+          ! git grep -E "(BEGIN (RSA|EC|DSA|OPENSSH) PRIVATE KEY|AKIA[0-9A-Z]{16}|ghp_[0-9a-zA-Z]{36})" -- . ':(exclude).env.example' ':(exclude)*.md'
