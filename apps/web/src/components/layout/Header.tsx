@@ -39,6 +39,13 @@ export function Header() {
             <Link href="/stores" className="hover:text-foreground transition-colors">
               {t('stores')}
             </Link>
+            <Link
+              href="/ai-stylist"
+              className="flex items-center gap-1.5 text-amber-800 hover:text-amber-900 font-bold px-2.5 py-1 rounded-lg bg-amber-100/80 hover:bg-amber-200/80 transition-colors border border-amber-300/60"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+              <span>{locale === 'kz' ? 'ЖИ-Стилист' : 'ИИ-Стилист'}</span>
+            </Link>
           </nav>
 
           {/* Right Action Cluster: Branch Selector, Locale Switcher, Auth & Cart */}

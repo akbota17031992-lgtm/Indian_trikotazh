@@ -136,13 +136,19 @@ export function HomePageClient() {
 
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 pt-2">
                 <Link href="/catalog" className="w-full sm:w-auto">
-                  <Button size="lg" className="w-full sm:w-auto font-bold h-12 px-8 flex items-center justify-center gap-2">
+                  <Button size="lg" className="w-full sm:w-auto font-bold h-12 px-7 flex items-center justify-center gap-2">
                     <span>{t('catalog')}</span>
                     <ArrowRight className="w-4 h-4" />
                   </Button>
                 </Link>
+                <Link href="/ai-stylist" className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full sm:w-auto font-bold h-12 px-6 flex items-center justify-center gap-2 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white shadow-md hover:shadow-lg transition-all">
+                    <Sparkles className="w-4 h-4 text-amber-200 animate-pulse" />
+                    <span>{locale === 'kz' ? 'ЖИ-Стилист' : '✨ ИИ-Стилист'}</span>
+                  </Button>
+                </Link>
                 <Link href="/stores" className="w-full sm:w-auto">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto font-semibold h-12 px-6 flex items-center justify-center gap-2">
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto font-semibold h-12 px-5 flex items-center justify-center gap-2">
                     <MapPin className="w-4 h-4 text-primary" />
                     <span>{t('stores')}</span>
                   </Button>
@@ -186,6 +192,34 @@ export function HomePageClient() {
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* AI Stylist Promo Section */}
+      <section className="container mx-auto px-4 max-w-7xl">
+        <div className="rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-[#451A03] via-[#78350F] to-[#2E1065] text-white shadow-xl relative overflow-hidden border border-amber-500/30">
+          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-3 max-w-xl text-center md:text-left">
+              <Badge className="bg-amber-400 text-amber-950 font-black uppercase text-[11px] px-3 py-1 tracking-wider">
+                ✨ Эксклюзивно: ИИ-Стилист 2026
+              </Badge>
+              <h2 className="text-2xl sm:text-3xl font-black tracking-tight leading-snug">
+                {locale === 'kz' ? 'Өз стиліңізді 1 минутта табыңыз' : 'Подберите свой идеальный образ по фото за 1 минуту'}
+              </h2>
+              <p className="text-amber-100/90 text-xs sm:text-sm leading-relaxed">
+                {locale === 'kz'
+                  ? 'ЖИ-стилист сіздің сыртқы келбетіңізді сараптап, Алматыдағы 16 дүкеннің қоймасындағы нақты өлшемдер бойынша мінсіз үнді трикотажын таңдайды.'
+                  : 'Умный нейро-стилист определит ваш цветотип внешности и моментально соберет гармоничный лук из наличия нужных размеров в 16 филиалах сети.'}
+              </p>
+            </div>
+            <Link href="/ai-stylist" className="shrink-0 w-full md:w-auto">
+              <Button size="lg" className="w-full md:w-auto bg-amber-400 hover:bg-amber-300 text-amber-950 font-black h-12 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all gap-2">
+                <Sparkles className="w-4 h-4 text-amber-950" />
+                <span>{locale === 'kz' ? 'Стилисті тексеру' : 'Попробовать ИИ-Стилиста'}</span>
+                <ArrowRight className="w-4 h-4 text-amber-950" />
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
