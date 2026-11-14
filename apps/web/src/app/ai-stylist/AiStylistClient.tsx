@@ -12,7 +12,7 @@ import { formatKZT } from '@india-trikotaj/shared';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useBranch } from '@/contexts/BranchContext';
 import { useCart } from '@/contexts/CartContext';
-import type { StylistAnalysisResult } from '../api/ai/stylist/route';
+import type { StylistAnalysisResult } from '@/lib/stylist-service';
 
 const DEMO_AVATARS = [
   {
@@ -69,6 +69,7 @@ export function AiStylistClient() {
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const nativeCameraInputRef = useRef<HTMLInputElement | null>(null);
 
   // Stop camera when component unmounts or camera is deactivated
   useEffect(() => {
@@ -79,6 +80,10 @@ export function AiStylistClient() {
 
   const startCamera = async () => {
     setCameraError(null);
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setCameraError('Браузер не поддерживает прямое подключение к веб-камере. Пожалуйста, сделайте снимок системной камерой устройства или выберите фото.');
+      return;
+    }
     try {
       setIsCameraActive(true);
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -88,9 +93,14 @@ export function AiStylistClient() {
         videoRef.current.srcObject = stream;
         videoRef.current.play();
       }
-    } catch (err) {
-      console.error('Camera access error:', err);
-      setCameraError('Не удалось получить доступ к веб-камере. Пожалуйста, разрешите доступ в браузере или загрузите фото из файла.');
+    } catch (err: any) {
+      // Use console.warn instead of console.error to avoid Next.js dev overlay Redbox
+      console.warn('Camera access handled gracefully:', err);
+      if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
+        setCameraError('PERMISSION_DENIED');
+      } else {
+        setCameraError('Не удалось запустить видеопоток камеры. Вы можете сделать фото камерой устройства или загрузить из файлов.');
+      }
       setIsCameraActive(false);
     }
   };
@@ -194,7 +204,7 @@ export function AiStylistClient() {
 
   const handleAddBundleToCart = () => {
     if (!result) return;
-    result.matchedProducts.forEach(item => {
+    result.matchedProducts.forEach((item: StylistAnalysisResult['matchedProducts'][0]) => {
       const defaultVariant = item.product.variants[0];
       addItem(
         {
@@ -284,17 +294,66 @@ export function AiStylistClient() {
                     </div>
                     <h3 className="text-lg font-bold mb-1">Сделать фото через камеру</h3>
                     <p className="text-xs text-muted-foreground mb-5 max-w-xs">
-                      Включите камеру смартфона или ноутбука для мгновенного сканирования лица и цветотипа
+                      Включите веб-камеру или сделайте снимок на камеру телефона/планшета для мгновенного подбора
                     </p>
-                    <Button onClick={startCamera} className="bg-amber-600 hover:bg-amber-700 text-white font-semibold gap-2">
-                      <Camera className="w-4 h-4" />
-                      <span>Включить камеру</span>
-                    </Button>
+                    <input 
+                      type="file" 
+                      ref={nativeCameraInputRef} 
+                      accept="image/*" 
+                      capture="user" 
+                      className="hidden" 
+                      onChange={handleFileUpload} 
+                    />
+                    <div className="flex flex-col sm:flex-row gap-2.5 w-full justify-center">
+                      <Button onClick={startCamera} className="bg-amber-600 hover:bg-amber-700 text-white font-semibold gap-2">
+                        <Camera className="w-4 h-4" />
+                        <span>Включить веб-камеру</span>
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => nativeCameraInputRef.current?.click()} 
+                        className="border-amber-300 text-amber-900 hover:bg-amber-50 font-medium gap-2"
+                      >
+                        <Camera className="w-4 h-4 text-amber-600" />
+                        <span>Камера устройства</span>
+                      </Button>
+                    </div>
                   </>
                 )}
-                {cameraError && (
-                  <p className="mt-3 text-xs text-red-600">{cameraError}</p>
-                )}
+                {cameraError === 'PERMISSION_DENIED' ? (
+                  <div className="mt-4 p-4 rounded-xl bg-amber-50/90 border border-amber-200 text-left text-xs text-amber-950 space-y-2 w-full max-w-sm">
+                    <div className="flex items-center gap-2 font-bold text-amber-900">
+                      <AlertCircle className="w-4 h-4 text-amber-700 shrink-0" />
+                      <span>Камера заблокирована браузером</span>
+                    </div>
+                    <p className="text-muted-foreground leading-relaxed text-[11px]">
+                      <strong>Как включить:</strong> нажмите на значок <strong>замка 🔒</strong> или <strong>настроек ⚙️</strong> слева в строке адреса браузера, выберите <strong>«Разрешить»</strong> напротив Камеры и обновите страницу.
+                    </p>
+                    <div className="pt-2 border-t border-amber-200/70">
+                      <Button 
+                        size="sm" 
+                        onClick={() => nativeCameraInputRef.current?.click()} 
+                        className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs gap-1.5"
+                      >
+                        <Camera className="w-3.5 h-3.5" />
+                        <span>Сделать снимок через камеру устройства</span>
+                      </Button>
+                    </div>
+                  </div>
+                ) : cameraError ? (
+                  <div className="mt-3 p-3 rounded-lg bg-red-50 border border-red-200 text-left text-xs text-red-700 w-full max-w-sm">
+                    <p className="mb-2">{cameraError}</p>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => nativeCameraInputRef.current?.click()} 
+                      className="w-full text-xs gap-1.5"
+                    >
+                      <Camera className="w-3.5 h-3.5" />
+                      <span>Сделать снимок камерой устройства</span>
+                    </Button>
+                  </div>
+                ) : null}
               </CardContent>
             </Card>
 
@@ -433,7 +492,7 @@ export function AiStylistClient() {
                       {locale === 'kz' ? 'Ұсынылатын түстер палитрасы:' : 'Ваша гармоничная палитра оттенков:'}
                     </span>
                     <div className="flex flex-wrap gap-2">
-                      {result.colorType.palette.map(color => (
+                      {result.colorType.palette.map((color: StylistAnalysisResult['colorType']['palette'][0]) => (
                         <div 
                           key={color.hex} 
                           className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border/80 bg-white shadow-xs"
@@ -480,7 +539,7 @@ export function AiStylistClient() {
 
             {/* Matched Products Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              {result.matchedProducts.map((item, idx) => (
+              {result.matchedProducts.map((item: StylistAnalysisResult['matchedProducts'][0], idx: number) => (
                 <Card key={item.product.id} className="border border-border overflow-hidden hover:border-amber-400 transition-colors">
                   <CardContent className="p-4 flex gap-4">
                     {/* Product Image */}
