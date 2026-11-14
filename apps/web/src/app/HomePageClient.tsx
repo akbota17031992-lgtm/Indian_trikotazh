@@ -130,8 +130,8 @@ export function HomePageClient() {
 
               <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed">
                 {locale === 'kz'
-                  ? 'Үндістанның үздік фабрикаларынан тікелей жеткізілім. Базалық футболкалар, жұмсақ шапандар, пижамалар және термоішкиім. Kaspi Red 0-0-3 бөліп төлеу.'
-                  : 'Прямые поставки от ведущих индийских фабрик. Базовые футболки, уютные халаты, пижамные комплекты и согревающее термобелье. Рассрочка Kaspi Red 0-0-3.'}
+                  ? 'Үндістан, Қытай және Пәкістан фабрикаларынан сапалы трикотаж бен киімдердің тікелей жеткізілімі. Базалық футболкалар, жұмсақ шапандар, пижамалар және термоішкиім. Kaspi Red 0-0-3 бөліп төлеу.'
+                  : 'Прямые поставки фабричного трикотажа и базовой одежды из Индии, Китая и Пакистана. Футболки, худи, лонгсливы, домашняя одежда и согревающее термобелье. Рассрочка Kaspi Red 0-0-3.'}
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 pt-2">
@@ -163,7 +163,7 @@ export function HomePageClient() {
                 </div>
                 <div>
                   <div className="text-lg font-extrabold text-foreground">100%</div>
-                  <div className="text-xs text-muted-foreground">индийский хлопок</div>
+                  <div className="text-xs text-muted-foreground">натуральный хлопок</div>
                 </div>
                 <div>
                   <div className="text-lg font-extrabold text-[#F14635]">0-0-3</div>
@@ -209,7 +209,7 @@ export function HomePageClient() {
               </h2>
               <p className="text-amber-100/90 text-xs sm:text-sm leading-relaxed">
                 {locale === 'kz'
-                  ? 'ЖИ-стилист сіздің сыртқы келбетіңізді сараптап, Алматыдағы 16 дүкеннің қоймасындағы нақты өлшемдер бойынша мінсіз үнді трикотажын таңдайды.'
+                  ? 'ЖИ-стилист сіздің сыртқы келбетіңізді сараптап, Алматыдағы 16 дүкеннің қоймасындағы нақты өлшемдер бойынша мінсіз трикотаж жиынтығын таңдайды.'
                   : 'Умный нейро-стилист определит ваш цветотип внешности и моментально соберет гармоничный лук из наличия нужных размеров в 16 филиалах сети.'}
               </p>
             </div>

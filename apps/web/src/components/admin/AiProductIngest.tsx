@@ -79,14 +79,14 @@ export function AiProductIngest({
   const [aiActionNotice, setAiActionNotice] = useState<string | null>(null);
 
   // Form State
-  const [titleRu, setTitleRu] = useState('Платье женское из индийского хлопка с орнаментом');
-  const [titleKz, setTitleKz] = useState('Өрнекті үнді мақтасынан тігілген әйелдер көйлегі');
-  const [category, setCategory] = useState('tunics');
-  const [compositionRu, setCompositionRu] = useState('100% натуральный индийский хлопок (дышащий батист)');
-  const [compositionKz, setCompositionKz] = useState('100% табиғи үнді мақтасы (тыныс алатын батист)');
-  const [descriptionRu, setDescriptionRu] = useState('Легкое летнее платье из премиального индийского хлопка. Идеальная посадка, стойкий традиционный орнамент, ткань не линяет.');
-  const [descriptionKz, setDescriptionKz] = useState('Премиум үнді мақтасынан жасалған жеңіл жазғы көйлек. Мінсіз үйлесім, дәстүрлі өрнек, матасы оңбайды.');
-  const [priceKzt, setPriceKzt] = useState(9990);
+  const [titleRu, setTitleRu] = useState('Худи оверсайз из плотного хлопкового трикотажа');
+  const [titleKz, setTitleKz] = useState('Тығыз мақта трикотажынан жасалған оверсайз худи');
+  const [category, setCategory] = useState('long-sleeves');
+  const [compositionRu, setCompositionRu] = useState('100% гребенной хлопок премиум (футер 3-нитка)');
+  const [compositionKz, setCompositionKz] = useState('100% премиум тарақты мақта');
+  const [descriptionRu, setDescriptionRu] = useState('Стильное оверсайз худи из мягкого плотного хлопкового трикотажа с начесом. Фабричный пошив, комфортная посадка, глубокий капюшон и стойкое окрашивание ткани. Идеально для повседневного городского гардероба.');
+  const [descriptionKz, setDescriptionKz] = useState('Жұмсақ әрі тығыз мақта трикотажынан тігілген стильді оверсайз худи. Ыңғайлы пішім, терең капюшон, сапалы фабрикалық тігіс. Күнделікті киюге өте қолайлы.');
+  const [priceKzt, setPriceKzt] = useState(11990);
   const [branchesStock, setBranchesStock] = useState<BranchStockRow[]>(
     ALL_BRANCHES.map(b => ({
       branchId: b.id,
@@ -140,14 +140,14 @@ export function AiProductIngest({
     } else {
       setGallery([]);
       setActiveImageIndex(0);
-      setTitleRu('Платье женское из индийского хлопка с орнаментом');
-      setTitleKz('Өрнекті үнді мақтасынан тігілген әйелдер көйлегі');
-      setCategory('tunics');
-      setPriceKzt(9990);
-      setCompositionRu('100% натуральный индийский хлопок (дышащий батист)');
-      setCompositionKz('100% табиғи үнді мақтасы (тыныс алатын батист)');
-      setDescriptionRu('Легкое летнее платье из премиального индийского хлопка. Идеальная посадка, стойкий традиционный орнамент, ткань не линяет.');
-      setDescriptionKz('Премиум үнді мақтасынан жасалған жеңіл жазғы көйлек. Мінсіз үйлесім, дәстүрлі өрнек, матасы оңбайды.');
+      setTitleRu('Худи оверсайз из плотного хлопкового трикотажа');
+      setTitleKz('Тығыз мақта трикотажынан жасалған оверсайз худи');
+      setCategory('long-sleeves');
+      setPriceKzt(11990);
+      setCompositionRu('100% гребенной хлопок премиум (футер 3-нитка)');
+      setCompositionKz('100% премиум тарақты мақта');
+      setDescriptionRu('Стильное оверсайз худи из мягкого плотного хлопкового трикотажа с начесом. Фабричный пошив, комфортная посадка, глубокий капюшон и стойкое окрашивание ткани. Идеально для повседневного городского гардероба.');
+      setDescriptionKz('Жұмсақ әрі тығыз мақта трикотажынан тігілген стильді оверсайз худи. Ыңғайлы пішім, терең капюшон, сапалы фабрикалық тігіс. Күнделікті киюге өте қолайлы.');
       setBranchesStock(
         ALL_BRANCHES.map(b => ({
           branchId: b.id,
